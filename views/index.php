@@ -88,17 +88,17 @@
 			<li class="nav-item"><a class="nav-link" href="#" id="<?= $uid = strings::rand() ?>">add entry on <?= $this->data->dto->address_street ?></a></li>
 			<script>
 			$(document).ready( () => {
-				$('#<?= $uid ?>').on( 'click', function( e) {
+				$('#<?= $uid ?>').on( 'click', e => {
 					e.preventDefault();
 
-					_brayworth_.loadModal({
-						url : _cms_.url('property_photolog/entry?property=<?= (int)$this->data->dto->property_id ?>'),
-						onSuccess : function( e, href) {
-							window.location.href = href;
+					( _ => {
+						_.loadModal({
+							url : _.url('property_photolog/entry?property=<?= (int)$this->data->dto->property_id ?>'),
+							onSuccess : ( e, href) => window.location.href = href,
 
-						},
+						});
 
-					});
+					}) (_brayworth_);
 
 				});
 
@@ -132,17 +132,17 @@
 			<li class="nav-item"><a class="nav-link" href="#" id="<?= $uid = strings::rand() ?>">add entry on <?= $this->data->referer->address_street ?></a></li>
 			<script>
 			$(document).ready( () => {
-				$('#<?= $uid ?>').on( 'click', function( e) {
+				$('#<?= $uid ?>').on( 'click', e => {
 					e.preventDefault();
 
-					_brayworth_.loadModal({
-						url : _cms_.url('property_photolog/entry?property=<?= (int)$this->data->referer->id ?>'),
-						onSuccess : function( e, href) {
-							window.location.href = href;
+					( _ => {
+						_.loadModal({
+							url : _.url('property_photolog/entry?property=<?= (int)$this->data->referer->id ?>'),
+							onSuccess : ( e, href) => window.location.href = href,
 
-						},
+						});
 
-					});
+					}) (_brayworth_);
 
 				});
 
@@ -297,17 +297,17 @@
 	<li class="nav-item pt-4"><a class="nav-link btn btn-outline-primary" href="#" id="<?= $uid = strings::rand() ?>">add entry</a></li>
 	<script>
 	$(document).ready( () => {
-		$('#<?= $uid ?>').on( 'click', function( e) {
+		$('#<?= $uid ?>').on( 'click', e => {
 			e.preventDefault();
 
-			_brayworth_.loadModal({
-				url : _cms_.url('property_photolog/entry'),
-				onSuccess : function( e, href) {
-					window.location.href = href;
+			( _ => {
+				_.loadModal({
+					url : _.url('property_photolog/entry'),
+					onSuccess : ( e, href) => window.location.href = href,
 
-				},
+				});
 
-			});
+			}) (_brayworth_);
 
 		});
 

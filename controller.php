@@ -67,6 +67,7 @@ class controller extends \Controller {
 
 	protected function before() {
     $this->label = 'Photolog';
+		config::photolog_checkdatabase();
     parent::before();
 
 	}

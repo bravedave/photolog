@@ -261,7 +261,28 @@ class property_photolog extends _dao {
 		$timer = false;
 		//~ $timer = \Application::timer();
 
-		$sql = 'SELECT
+		/**
+		 *  SQLite compatible statement
+		 */
+		$this->Q(
+			'CREATE TEMPORARY TABLE _t(
+				`id` INT PRIMARY KEY,
+				property_id INT,
+				address_street TEXT,
+				address_suburb TEXT,
+				street_index TEXT,
+				entries INT)');
+
+
+		$sql =
+		'INSERT INTO _t(
+				`property_id`,
+				`address_street`,
+				`address_suburb`,
+				`street_index`,
+				`entries`
+			)
+			SELECT
 				pl.property_id,
 				prop.address_street,
 				prop.address_suburb,
@@ -273,10 +294,7 @@ class property_photolog extends _dao {
 					properties prop ON prop.id = pl.property_id
 			GROUP BY pl.property_id';
 
-		$this->Q( sprintf( 'CREATE TEMPORARY TABLE _t AS (%s)', $sql));
-		$this->Q( 'ALTER TABLE _t
-			ADD COLUMN `id` BIGINT AUTO_INCREMENT FIRST,
-			ADD PRIMARY KEY (`id`)');
+		$this->Q( $sql);
 
 		if ( $res = $this->Result( 'SELECT id, address_street, street_index FROM _t')) {
 			$res->dtoSet( function( $dto) {

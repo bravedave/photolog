@@ -22,4 +22,5 @@ $dbc->defineField('public_link', 'varchar');
 $dbc->defineField('public_link_expires', 'date');
 $dbc->defineField('date', 'date');
 $dbc->defineField('notes', 'text');
+
 $dbc->check();

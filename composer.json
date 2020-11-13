@@ -28,7 +28,7 @@
 
   },
   "scripts": {
-    "x-post-update-cmd": "smokealarm\\postUpdate::upgrade"
+    "post-update-cmd": "photolog\\postUpdate::upgrade"
 
   }
 

@@ -1,14 +1,15 @@
 <?php
 /*
-	David Bray
-	BrayWorth Pty Ltd
-	e. david@brayworth.com.au
+ * David Bray
+ * BrayWorth Pty Ltd
+ * e. david@brayworth.com.au
+ *
+ * MIT License
+ *
+*/
 
-	This work is licensed under a Creative Commons Attribution 4.0 International Public License.
-		http://creativecommons.org/licenses/by/4.0/
-	*/
-	$uid = strings::rand();
-	?>
+$uid = strings::rand();	?>
+
 <h3 class="d-none d-print-block"><?= $this->title ?></h3>
 <table class="table table-sm" id="<?= $uid ?>" data-role="photolog-table">
 	<thead class="small">
@@ -42,7 +43,7 @@
 			class="<?= (bool)$dto->files->errors ? 'text-danger' : '' ?>"
 			>
 			<td><?= strings::asShortDate( $dto->date) ?></td>
-			<td data-address><?= PropertyUtility::GoodStreetString( $dto->address_street) ?></td>
+			<td data-address><?= strings::GoodStreetString( $dto->address_street) ?></td>
 			<td><?= $dto->subject ?></td>
 			<td><?php
 
