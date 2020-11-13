@@ -10,6 +10,9 @@
 
 namespace photolog;
 
+use Response;
+use sys;
+
 class controller extends \Controller {
   protected $viewPath = __DIR__ . '/views/';
 
@@ -67,8 +70,21 @@ class controller extends \Controller {
 
 	protected function before() {
     $this->label = 'Photolog';
-		config::photolog_checkdatabase();
+		// config::photolog_checkdatabase();
     parent::before();
+
+	}
+
+  protected function page( $params) {
+
+    if ( !isset( $params['latescripts'])) $params['latescripts'] = [];
+    $params['latescripts'][] = sprintf(
+      '<script type="text/javascript" src="%s"></script>',
+      strings::url( $this->route . '/js')
+
+    );
+
+		return parent::page( $params);
 
 	}
 
@@ -107,6 +123,15 @@ class controller extends \Controller {
 				}
 
 			} else { \Json::nak( $action); }
+
+		}
+    elseif ( 'search-properties' == $action) {
+			if ( $term = $this->getPost('term')) {
+				Json::ack( $action)
+					->add( 'term', $term)
+					->add( 'data', green\search::properties( $term));
+
+			} else { Json::nak( $action); }
 
 		}
 		else {
@@ -157,5 +182,20 @@ class controller extends \Controller {
 		]);
 
 	}
+
+	public function js( $lib = '') {
+    $s = [];
+    $r = [];
+
+    $s[] = '@{{route}}@';
+    $r[] = strings::url( $this->route);
+
+    $js = \file_get_contents( __DIR__ . '/js/custom.js');
+    $js = preg_replace( $s, $r, $js);
+
+    Response::javascript_headers();
+    print $js;
+
+  }
 
 }

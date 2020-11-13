@@ -14,7 +14,7 @@
 		if ( isset( $this->data->referer) && $this->data->referer) {	?>
 
 			<li class="nav-item" id="<?= $uid = strings::rand(); ?>">
-				<a href="<?= strings::url( sprintf( 'property_photolog/view/%d?f=%d', $this->data->dto->id, $this->data->referer->id)); ?>">
+				<a href="<?= strings::url( sprintf( '%s/view/%d?f=%d', $this->route, $this->data->dto->id, $this->data->referer->id)); ?>">
 					<h6><?= $this->title ?> #<?= $this->data->dto->id ?></h6>
 
 				</a>
@@ -23,7 +23,7 @@
 			<script>
 			$(document).ready( () => {
 				_cms_.post({
-					url : _cms_.url( 'property_photolog'),
+					url : _cms_.url( '<?= $this->route ?>'),
 					data : {
 						action : 'get-photolog',
 						property : <?= $this->data->referer->id ?>
@@ -42,7 +42,7 @@
 								let m = _cms_.moment( entry.date);
 								li.attr( 'title', m.format( 'l'));
 
-								a.attr( 'href', _cms_.url( 'property_photolog/view/' + entry.id + '?f=<?= $this->data->referer->id ?>'));
+								a.attr( 'href', _cms_.url( '<?= $this->route ?>/view/' + entry.id + '?f=<?= $this->data->referer->id ?>'));
 
 							});
 
@@ -67,7 +67,7 @@
 		}
 		else {	?>
 			<li class="nav-item">
-				<a href="<?= strings::url('property_photolog/view/' . $this->data->dto->id); ?>">
+				<a href="<?= strings::url( $this->route . '/view/' . $this->data->dto->id); ?>">
 					<h6><?= $this->title ?> #<?= $this->data->dto->id ?></h6>
 
 				</a>
@@ -75,7 +75,7 @@
 			</li>
 
 			<li class="nav-item">
-				<a class="nav-link" href="<?= strings::url( sprintf( 'property_photolog/?property=%d', $this->data->dto->property_id)); ?>">
+				<a class="nav-link" href="<?= strings::url( sprintf( '%s/?property=%d', $this->route, $this->data->dto->property_id)); ?>">
 					<i class="fa fa-level-up"></i>
 					<?= $this->data->dto->address_street ?>
 
@@ -93,7 +93,7 @@
 
 					( _ => {
 						_.loadModal({
-							url : _.url('property_photolog/entry?property=<?= (int)$this->data->dto->property_id ?>'),
+							url : _.url('<?= $this->route ?>/entry?property=<?= (int)$this->data->dto->property_id ?>'),
 							onSuccess : ( e, href) => window.location.href = href,
 
 						});
@@ -108,7 +108,7 @@
 		<?php
 		}	// if ( isset( $this->data->referer) && $this->data->referer)	?>
 
-		<li class="nav-item"><a class="nav-link" href="<?= strings::url('property_photolog/'); ?>">list all</a></li>
+		<li class="nav-item"><a class="nav-link" href="<?= strings::url( $this->route); ?>">list all</a></li>
 
 	<?php
 	}
@@ -116,14 +116,14 @@
 		if ( isset( $this->data->referer) && $this->data->referer) {	?>
 
 			<li class="nav-item">
-				<a href="<?= strings::url( sprintf( 'property_photolog/?property=%d', $this->data->referer->id)); ?>">
+				<a href="<?= strings::url( sprintf( '%s/?property=%d', $this->route, $this->data->referer->id)); ?>">
 					<h6><?= $this->data->referer->address_street ?></h6>
 
 				</a>
 
 			</li>
 
-			<li class="nav-item"><a class="nav-link" href="<?= strings::url('property_photolog/'); ?>">
+			<li class="nav-item"><a class="nav-link" href="<?= strings::url($this->route); ?>">
 				<i class="fa fa-level-up"></i>
 				list all
 
@@ -137,7 +137,7 @@
 
 					( _ => {
 						_.loadModal({
-							url : _.url('property_photolog/entry?property=<?= (int)$this->data->referer->id ?>'),
+							url : _.url('<?= $this->route ?>/entry?property=<?= (int)$this->data->referer->id ?>'),
 							onSuccess : ( e, href) => window.location.href = href,
 
 						});
@@ -153,7 +153,7 @@
 		}
 		else {	?>
 			<li class="nav-item">
-				<a href="<?= strings::url('property_photolog'); ?>">
+				<a href="<?= strings::url($this->route); ?>">
 					<h6><?= $this->title ?></h6>
 
 				</a>
@@ -302,7 +302,7 @@
 
 			( _ => {
 				_.loadModal({
-					url : _.url('property_photolog/entry'),
+					url : _.url('<?= $this->route ?>/entry'),
 					onSuccess : ( e, href) => window.location.href = href,
 
 				});

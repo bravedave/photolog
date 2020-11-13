@@ -18,6 +18,8 @@ class config extends \config {
   static protected $_PHOTOLOG_VERSION = 0;
 
 	static function photolog_checkdatabase() {
+		return;
+
 		if ( self::photolog_version() < self::photolog_db_version) {
       $dao = new dao\dbinfo;
 			$dao->dump( $verbose = false);

@@ -75,10 +75,10 @@
 
 </form>
 <script>
-$(document).ready( function() {
+$(document).ready( () => { ( _ => {
 	$('input[name="address_street"]', '#<?= $uid ?>frm').autofill({
 		autoFocus : true,
-		source: _cms_.search.address,
+		source: _.search.address,
 		select: function(event, ui) {
 			let o = ui.item;
 			$('input[name="property_id"]', '#<?= $uid ?>frm').val( o.id);
@@ -93,17 +93,17 @@ $(document).ready( function() {
 		console.log( data);
 		//~ return false;
 
-		_cms_.post({
-			url : _cms_.url('property_photolog'),
+		_.post({
+			url : _.url('<?= $this->route ?>'),
 			data : data,
 
 		}).then( function( d) {
 			if ( 'ack' == d.response) {
-				frm.closest( '.modal').trigger( 'brayworth.success', _cms_.url( 'property_photolog/view/' + d.id));
+				frm.closest( '.modal').trigger( 'brayworth.success', _.url( 'property_photolog/view/' + d.id));
 
 			}
 			else {
-				_cms_.growl( d);
+				_.growl( d);
 
 			}
 			frm.closest( '.modal').modal( 'hide');
@@ -114,5 +114,5 @@ $(document).ready( function() {
 
 	});
 
-});
+}) (_brayworth_);	});
 </script>

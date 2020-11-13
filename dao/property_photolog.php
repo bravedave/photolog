@@ -264,15 +264,16 @@ class property_photolog extends _dao {
 		/**
 		 *  SQLite compatible statement
 		 */
-		$this->Q(
+
+		$ai = 'sqlite' == \config::$DB_TYPE ? '' : 'AUTO_INCREMENT';
+		$this->Q( sprintf(
 			'CREATE TEMPORARY TABLE _t(
-				`id` INT PRIMARY KEY AUTO_INCREMENT,
+				`id` INT PRIMARY KEY %s,
 				property_id INT,
 				address_street TEXT,
 				address_suburb TEXT,
 				street_index TEXT,
-				entries INT)');
-
+				entries INT)', $ai));
 
 		$sql =
 		'INSERT INTO _t(
