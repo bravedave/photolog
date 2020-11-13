@@ -99,7 +99,7 @@ $(document).ready( () => { ( _ => {
 
 		}).then( function( d) {
 			if ( 'ack' == d.response) {
-				frm.closest( '.modal').trigger( 'brayworth.success', _.url( 'property_photolog/view/' + d.id));
+				frm.closest( '.modal').trigger( 'brayworth.success', _.url( '<?= $this->route ?>/view/' + d.id));
 
 			}
 			else {

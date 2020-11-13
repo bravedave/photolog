@@ -9,6 +9,12 @@
       "email": "david@brayworth.com.au"
     }
   ],
+  "repositories": [
+    {
+      "type": "git",
+      "url": "https://github.com/bravedave/dvc"
+    }
+  ],
   "require": {
     "bravedave/dvc": "*",
     "bravedave/green": "*"

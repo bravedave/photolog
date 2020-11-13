@@ -33,18 +33,18 @@
 
 </form>
 <script>
-$(document).ready( function() {
+$(document).ready( () => { ( _ => {
 	$('#<?= $uid ?>frm').on( 'submit', function( e) {
 		let frm = $(this);
 		let data = frm.serializeFormJSON();
 		//~ console.log( data);
 
-		_cms_.post({
-			url : _cms_.url('property_photolog'),
+		_.post({
+			url : _.url('<?= $this->route ?>'),
 			data : data,
 
 		}).then( function( d) {
-			_cms_.growl( d);
+			_.growl( d);
 			frm.closest('.modal').trigger( 'brayworth.success', d).modal('hide');
 
 		});
@@ -53,5 +53,5 @@ $(document).ready( function() {
 
 	});
 
-});
+}) (_brayworth_); });
 </script>
