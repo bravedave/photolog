@@ -1,0 +1,380 @@
+<?php
+/*
+	David Bray
+	BrayWorth Pty Ltd
+	e. david@brayworth.com.au
+
+	This work is licensed under a Creative Commons Attribution 4.0 International Public License.
+		http://creativecommons.org/licenses/by/4.0/
+	*/
+
+	$uid = strings::rand();
+	$dto = $this->data->dto;
+
+	?>
+<style>
+#<?= $uid; ?>row .has-advanced-upload {
+	padding-top: 40%;
+	margin-bottom: 1rem;
+
+}
+
+#<?= $uid; ?>row .has-advanced-upload::after {
+	content: "drag files here to watermark";
+}
+</style>
+
+<div class="row">
+	<div class="col"><?= $dto->address_street ?></div>
+	<div class="col"><?= $dto->subject ?></div>
+	<div class="col">date : <?= strings::asShortDate( $dto->date) ?></div>
+
+</div>
+
+<div id="<?= $uid; ?>row" class="row"></div>
+<script>
+/*
+	David Bray
+	BrayWorth Pty Ltd
+	e. david@brayworth.com.au
+
+	This work is licensed under a Creative Commons Attribution 4.0 International Public License.
+		http://creativecommons.org/licenses/by/4.0/
+
+	Apply drag drop capabilities to a container
+
+	load:
+		$.getScript( _brayworth_.urlwrite('js/_brayworth_.fileDragDropHandler.js'));
+
+	test:
+		let c = _brayworth_.fileDragDropContainer().appendTo('body');	// or where ever you want to append to;
+		maybe:
+			let c = _brayworth_.fileDragDropContainer().appendTo('body');
+			_brayworth_.fileDragDropHandler.call( c, {
+				url : url
+			});
+
+	*/
+(function( _b_ ) {
+	_b_.fileDragDropContainer = function() {
+		let c = $('<div />');
+
+		$('<div class="progress-bar progress-bar-striped box__fill" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" />')
+			.appendTo( $('<div class="progress box__uploading" />').appendTo( c));
+
+		$('<div class="progress-bar progress-bar-striped progress-queue text-center" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">queue</div>')
+			.appendTo( $('<div class="progress d-none mt-2" />').appendTo( c));
+
+		return ( c);
+
+
+	}
+	;
+	let queue = [];
+	let enqueue = function( params) {
+		let options = $.extend({
+			postData : {},
+			droppedFiles : {},
+
+		}, params);
+
+		/*
+		* create forms with 10 elements
+		*/
+
+		let data = new FormData();
+		for(let o in options.postData) {
+			data.append( o, options.postData[o]);
+
+		}
+
+		$.each( options.droppedFiles, function(i, file) {
+			if ( i > 0 && i % 10 == 0) {
+				queue.push( data);
+
+				data = new FormData();
+				for(let o in options.postData) {
+					data.append( o, options.postData[o]);
+
+				}
+
+			}
+
+			data.append('files-'+i, file);
+
+		});
+
+		queue.push( data);
+
+		let progressQue = $('.progress-queue', options.host);
+		if ( queue.length > 0) {
+			progressQue
+				.data('items', queue.length)
+				.css('width', '0')
+				.attr('aria-valuenow', '0');
+
+			progressQue.parent().removeClass( 'd-none');
+
+		}
+
+		//~ console.log( queue.length)
+		let queueHandler = function() {
+			if ( queue.length > 0) {
+				let data = queue.shift();
+				let p = ( progressQue.data('items') - queue.length) / progressQue.data('items') * 100;
+				console.log( 'queue', p)
+				progressQue
+					.css('width', p + '%')
+					.attr('aria-valuenow', p);
+
+				//~ console.log( data, queue.length)
+				sendData.call( data, options).then( queueHandler);
+
+			}
+			else {
+				progressQue.parent().addClass( 'd-none');
+
+			}
+
+		}
+
+		queueHandler();
+
+	}
+
+	let sendData = function( params) {
+			//~ droppedFiles : {},
+			//~ postData : {},
+		let options = $.extend({
+			url : false,
+			onUpload : function( response) {},
+			host : $('body'),
+
+		}, params);
+
+		let formData = this;
+		// Display the key/value pairs
+		//~ for (var pair of formData.entries()) {
+		    //~ console.log(pair[0]+ ', ' + pair[1]);
+		//~ }
+
+		return new Promise( function( resolve, reject) {
+
+			// this is a form
+			let progressBar = $('.box__fill', options.host);
+			progressBar
+				.css('width', '0')
+				.attr('aria-valuenow', '0');
+
+			options.host.addClass('is-uploading');
+
+			$.ajax({
+				url: options.url,
+				type: 'POST',
+				data: formData,
+				dataType: 'json',
+				cache: false,
+				contentType: false,
+				processData: false,
+				xhr: function() {
+					let xhr = new window.XMLHttpRequest();
+					xhr.upload.addEventListener("progress", function (e) {
+						//~ if (e.lengthComputable)
+							//~ $('.box__fill', options.host).css('width', ( e.loaded / e.total * 100) + '%');
+						if (e.lengthComputable) {
+							progressBar
+								.css('width', ( e.loaded / e.total * 100) + '%')
+								.attr('aria-valuenow', ( e.loaded / e.total * 100));
+
+						}
+
+					})
+
+					return xhr;
+
+				}
+
+			})
+			.done( function( d) {
+				if ( 'ack' == d.response) {
+					$.each( d.data, function( i, j) {
+						$('body').growl( j);
+
+					})
+
+				}
+				else {
+					$('body').growl( d);
+
+				}
+
+				options.onUpload( d);
+
+				resolve()
+
+			})
+			.always( function( r) {
+				options.host.removeClass('is-uploading');
+
+			})
+			.fail( function( r) {
+				console.warn(r);
+				_b_.modal({
+					title : 'Upload Error',
+					text : 'there was an error uploading the attachments<br />we recommend you reload your browser'
+				});
+
+			});
+
+		});
+
+	}
+
+	let uploader = function( params) {
+			//~ url : false,
+			//~ onUpload : function( response) {},
+			//~ host : false,
+		let options = $.extend({
+			postData : {},
+			droppedFiles : {},
+
+		}, params);
+
+		let data = new FormData();
+		for(let o in options.postData) { data.append( o, options.postData[o]); }
+
+		$.each( options.droppedFiles, function(i, file) { data.append('files-'+i, file); });
+
+		sendData.call( data, options);
+
+	}
+	;
+	_b_.fileDragDropHandler = function( params) {
+		let _el = $(this);
+
+		let options = $.extend( {
+			url : false,
+			queue : false,
+			host : _el
+
+		}, params);
+
+		if ( !options.url)
+			throw 'Invalid upload url';
+
+		let isAdvancedUpload = (function() {
+			let div = document.createElement('div');
+			return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
+		})();
+
+		if ( isAdvancedUpload && !options.host.hasClass('has-advanced-upload')) {
+
+			//~ console.log( 'setup has-advanced-upload');
+			options.host
+			.addClass('has-advanced-upload')
+			.on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {
+				e.preventDefault(); e.stopPropagation();
+			})
+			.on('dragover dragenter', function() { $(this).addClass('is-dragover'); })
+			.on('dragleave dragend drop', function() { $(this).removeClass('is-dragover'); })
+			.on('drop', function(e) {
+				e.preventDefault();
+				options.droppedFiles = e.originalEvent.dataTransfer.files;
+
+				if ( options.droppedFiles) {
+					options.queue ? enqueue( options) : uploader( options);
+
+				}
+
+			});
+
+		}	// if (isAdvancedUpload && !options.host.hasClass('has-advanced-upload'))
+
+	}
+	;
+
+})( _brayworth_ );
+</script>
+<script>
+$(document).ready( function() {
+	let cContainer = $('<div class="col-sm-4 col-md-3 mb-1" />').appendTo( '#<?= $uid ?>row');
+	let c = _brayworth_.fileDragDropContainer().appendTo( cContainer);
+
+	let displayCard = function( file) {
+		let col = $('<div class="col-sm-4 col-md-3 mb-1" />');
+		let card = $('<div class="card" />').appendTo( col);
+		let img = $('<img class="card-img-top" />').attr( 'src', file.url).appendTo( card);
+		let body = $('<div class="card-body py-1" />').appendTo( card);
+		let menu = $('<ul class="list-inline" />');
+		let openLink = $('<a target="_blank" title="open in new tab" class="px-2 btn btn-light btn-sm"><i class="fa fa-external-link" /></a>').attr( 'href', file.url);
+			$('<li class="list-inline-item" />').append( openLink).appendTo( menu);
+		//~ let downloadLink = $('<a title="download" class="px-2 btn btn-light btn-sm"><i class="fa fa-download" /></a>').attr( 'download', file.description).attr( 'href', file.url);
+			//~ $('<li class="list-inline-item" />').append( downloadLink).appendTo( menu);
+		//~ let deleteLink = $('<button data-delete type="button" title="delete" class="px-2 btn btn-light btn-sm"><i class="fa fa-trash" /></button>').on( 'click', function( e) {
+			//~ _cms_.post({
+				//~ url : _cms_.url('watermark'),
+				//~ data : {
+					//~ action : 'delete',
+					//~ file : file.description
+
+				//~ }
+
+			//~ })
+			//~ .then( function( d) {
+				//~ _cms_.growl( d);
+				//~ if ( 'ack' == d.response) {
+					//~ col.remove();
+
+				//~ }
+
+				//~ allDeleteVisibility();
+				//~ allDownloadVisibility();
+
+			//~ });
+
+		//~ });
+
+		//~ $('<li class="list-inline-item" />').append( deleteLink).appendTo( menu);
+		$('<div class="card-text" />').append( menu).appendTo( body);
+
+		col.appendTo('#<?= $uid; ?>row');
+
+		//~ allDeleteVisibility();
+		//~ allDownloadVisibility();
+
+	}
+
+	_brayworth_.fileDragDropHandler.call( c, {
+		url : _cms_.url( 'property_photolog'),
+		queue : true,
+		postData : {
+			action : 'upload',
+			id : <?= $dto->id ?>
+		},
+		onUpload : function( d) {
+			//~ console.log( d);
+			if ( 'ack' == d.response) {
+				//~ displayCard( d);
+				$.each( d.files, function( i, file) {
+					//~ console.log( file);
+					displayCard( file);
+
+				});
+
+			}
+
+		}
+
+	});
+
+	(function( cards) {
+		$.each( cards, function( i, file) {
+			//~ console.log( file);
+			displayCard( file);
+
+		});
+
+	})( <?php print json_encode( $this->data->files) ?>);
+
+});
+</script>
