@@ -170,7 +170,7 @@ class property_photolog extends _dao {
           $files[] = (object)[
             'description' => $fileName,
             'extension' => $file->getExtension(),
-            'url' => strings::url( sprintf( 'property_photolog/img/%d?img=%s&t=%s', $dto->id, urlencode( $file->getFilename()), $file->getMTime())),
+            'url' => strings::url( sprintf( $this->route . '/img/%d?img=%s&t=%s', $dto->id, urlencode( $file->getFilename()), $file->getMTime())),
             'error' => false,
             'size' => $file->getSize(),
             'location' => $location,
@@ -208,7 +208,7 @@ class property_photolog extends _dao {
             $files[] = (object)[
               'description' => $fileName,
               'extension' => $file->getExtension(),
-              'url' => strings::url( sprintf( 'property_photolog/img/%d?img=%s', $dto->id, urlencode( $file->getFilename()))),
+              'url' => strings::url( sprintf( $this->route . '/img/%d?img=%s', $dto->id, urlencode( $file->getFilename()))),
               'error' => file_exists( $errfile) || 10 > $file->getSize(),
               'size' => $file->getSize(),
               'location' => $location,

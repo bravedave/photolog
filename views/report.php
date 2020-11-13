@@ -128,11 +128,11 @@ $(document).ready( () => { ( _ => {
 
 		_tr.addClass( 'pointer').on( 'click', function( e) {
 		<?php if ( isset( $this->data->dto->id) && (int)$this->data->dto->id) {	?>
-			window.location.href = _.url( 'property_photolog/view/' + _tr.data('id') + '?f=<?= $this->data->dto->id ?>');
+			window.location.href = _.url( '<?= $this->route ?>/view/' + _tr.data('id') + '?f=<?= $this->data->dto->id ?>');
 
 		<?php }
 			else {	?>
-			window.location.href = _.url( 'property_photolog/view/' + _tr.data('id'));
+			window.location.href = _.url( '<?= $this->route ?>/view/' + _tr.data('id'));
 
 		<?php }	// if ( isset( $this->data->dto->id) && (int)$this->data->dto->id)	?>
 
@@ -150,11 +150,11 @@ $(document).ready( () => { ( _ => {
 
 			(function() {
 		<?php if ( isset( $this->data->dto->id) && (int)$this->data->dto->id) {	?>
-				let href = _.url( 'property_photolog/view/' + _tr.data('id') + '?f=<?= $this->data->dto->id ?>');
+				let href = _.url( '<?= $this->route ?>/view/' + _tr.data('id') + '?f=<?= $this->data->dto->id ?>');
 
 		<?php }
 			else {	?>
-				let href = _.url( 'property_photolog/view/' + _tr.data('id'));
+				let href = _.url( '<?= $this->route ?>/view/' + _tr.data('id'));
 
 		<?php }	// if ( isset( $this->data->dto->id) && (int)$this->data->dto->id)	?>
 
@@ -171,7 +171,7 @@ $(document).ready( () => { ( _ => {
 					//~ beforeOpen : function() {},
 					//~ onClose : function() {},
 				_.loadModal({
-					url : _.url('property_photolog/entry/' + _tr.data('id')),
+					url : _.url('<?= $this->route ?>/entry/' + _tr.data('id')),
 					onSuccess : function() {
 						window.location.reload();
 
@@ -195,7 +195,7 @@ $(document).ready( () => { ( _ => {
 					_context.close();
 
 					_.post({
-						url : _.url('property_photolog'),
+						url : _.url('<?= $this->route ?>'),
 						data : {
 							id : _tr.data('id'),
 							action : 'delete-entry',

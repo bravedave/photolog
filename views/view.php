@@ -49,7 +49,8 @@
 </template>
 
 <script>
-$(document).ready( () => {
+$(document).ready( () => { ( _ => {
+
   let smokeAlarms = [];
 
 	let displayCard = ( file) => {
@@ -65,8 +66,8 @@ $(document).ready( () => {
 		//~ let downloadLink = $('<a title="download" class="px-2 btn btn-light btn-sm"><i class="fa fa-download"></i></a>').attr( 'download', file.description).attr( 'href', file.url);
 			//~ $('<li class="list-inline-item"></li>').append( downloadLink).appendTo( menu);
 		let deleteLink = $('<button data-delete type="button" title="delete" class="px-2 btn btn-light btn-sm"><i class="fa fa-trash"></i></button>').on( 'click', function( e) {
-			_cms_.post({
-				url : _cms_.url('property_photolog'),
+			_.post({
+				url : _.url('<?= $this->route ?>'),
 				data : {
 					action : 'delete',
 					id : <?= $dto->id ?>,
@@ -76,7 +77,7 @@ $(document).ready( () => {
 
 			})
 			.then( function( d) {
-				_cms_.growl( d);
+				_.growl( d);
 				if ( 'ack' == d.response) {
 					col.remove();
 
@@ -111,117 +112,114 @@ $(document).ready( () => {
 		allDeleteVisibility();
 		allDownloadVisibility();
 
-    ( _ => {
-      card
-      .data( 'file', file)
-      .on( 'clear-location', function(e) {
+		card
+		.data( 'file', file)
+		.on( 'clear-location', function(e) {
 
-        let _me = $(this);
-        let _data = _me.data();
+			let _me = $(this);
+			let _data = _me.data();
 
-        _.post({
-          url : _.url('<?= $this->route ?>'),
-          data : {
-            action : 'set-alarm-location-clear',
-            id : <?= (int)$dto->id ?>,
-            file : _data.file.description,
+			_.post({
+				url : _.url('<?= $this->route ?>'),
+				data : {
+					action : 'set-alarm-location-clear',
+					id : <?= (int)$dto->id ?>,
+					file : _data.file.description,
 
-          },
+				},
 
-        }).then( d => {
-          _.growl( d)
+			}).then( d => {
+				_.growl( d)
 
-          if ( 'ack' == d.response) {
-            _data.file.location = '';
-            _me.data('file', _data.file);
+				if ( 'ack' == d.response) {
+					_data.file.location = '';
+					_me.data('file', _data.file);
 
-          }
+				}
 
-        });
+			});
 
-      })
-      .on( 'set-location', function(e, location) {
+		})
+		.on( 'set-location', function(e, location) {
 
-        let _me = $(this);
-        let _data = _me.data();
+			let _me = $(this);
+			let _data = _me.data();
 
-        _.post({
-          url : _.url('<?= $this->route ?>'),
-          data : {
-            action : 'set-alarm-location',
-            id : <?= (int)$dto->id ?>,
-            file : _data.file.description,
-            location : location
-
-
-          },
-
-        }).then( d => {
-          _.growl( d)
-
-          if ( 'ack' == d.response) {
-            _data.file.location = location;
-            _me.data('file', _data.file);
-
-          }
-
-        });
-
-      })
-      .on( 'contextmenu', function( e) {
-        if ( e.shiftKey)
-          return;
-
-        e.stopPropagation();e.preventDefault();
-
-        _.hideContexts();
-
-        if ( smokeAlarms.length > 0) {
-          // console.log( smokeAlarms);
-
-          let _me = $(this);
-          let _data = _me.data();
-          let _context = _.context();
-
-          $.each( smokeAlarms, (i, alarm) => {
-            let ctrl = $('<a href="#"></a>');
-            ctrl
-            .data( 'file', _data.file)
-            .data( 'location', alarm.location)
-            .html( alarm.location)
-            .on( 'click', function( e) {
-              e.stopPropagation();e.preventDefault();
-
-              let _me = $(this);
-              let _data = _me.data();
-
-              if ( _data.file.location == _data.location) {
-                card.trigger('clear-location');
-
-              }
-              else {
-                card.trigger('set-location', _data.location);
-
-              }
-
-              _context.close();
-
-            });
-
-            if ( _data.file.location == alarm.location) ctrl.prepend( '<i class="fa fa-check"></i>');
-
-            _context.append( ctrl);
-
-          });
+			_.post({
+				url : _.url('<?= $this->route ?>'),
+				data : {
+					action : 'set-alarm-location',
+					id : <?= (int)$dto->id ?>,
+					file : _data.file.description,
+					location : location
 
 
-          _context.open( e);
+				},
 
-        }
+			}).then( d => {
+				_.growl( d)
 
-      });
+				if ( 'ack' == d.response) {
+					_data.file.location = location;
+					_me.data('file', _data.file);
 
-    }) (_brayworth_);
+				}
+
+			});
+
+		})
+		.on( 'contextmenu', function( e) {
+			if ( e.shiftKey)
+				return;
+
+			e.stopPropagation();e.preventDefault();
+
+			_.hideContexts();
+
+			if ( smokeAlarms.length > 0) {
+				// console.log( smokeAlarms);
+
+				let _me = $(this);
+				let _data = _me.data();
+				let _context = _.context();
+
+				$.each( smokeAlarms, (i, alarm) => {
+					let ctrl = $('<a href="#"></a>');
+					ctrl
+					.data( 'file', _data.file)
+					.data( 'location', alarm.location)
+					.html( alarm.location)
+					.on( 'click', function( e) {
+						e.stopPropagation();e.preventDefault();
+
+						let _me = $(this);
+						let _data = _me.data();
+
+						if ( _data.file.location == _data.location) {
+							card.trigger('clear-location');
+
+						}
+						else {
+							card.trigger('set-location', _data.location);
+
+						}
+
+						_context.close();
+
+					});
+
+					if ( _data.file.location == alarm.location) ctrl.prepend( '<i class="fa fa-check"></i>');
+
+					_context.append( ctrl);
+
+				});
+
+
+				_context.open( e);
+
+			}
+
+		});
 
 	};
 
@@ -234,14 +232,13 @@ $(document).ready( () => {
 	cContainer.append('<div class="alert alert-warning"><h5 class="alert-heading">disk space low</h5>uploaded disabled</div>');
 	<?php	}
 			else {	?>
-	let c = _brayworth_.fileDragDropContainer({fileControl : true}).appendTo( cContainer);
+	let c = _.fileDragDropContainer({fileControl : true}).appendTo( cContainer);
 	<?php	}	?>
 
-	let allDownload =  $('<a title="download zip" class="px-2 btn btn-light btn-sm d-none"><i class="fa fa-fw fa-download" title="download as zip file"></i>Zip</a>').attr( 'href', _cms_.url('property_photolog/zip/<?= $dto->id ?>'));
+	let allDownload =  $('<a title="download zip" class="px-2 btn btn-light btn-sm d-none"><i class="fa fa-fw fa-download" title="download as zip file"></i>Zip</a>').attr( 'href', _.url('<?= $this->route ?>/zip/<?= $dto->id ?>'));
 
 	let allDelete =  $('<button title="delete all" class="px-2 btn btn-light btn-sm d-none"><i class="fa fa-fw fa-trash"></i>Delete All</button>');
 	let btnNotepad =  $('<button title="notepad" class="px-2 btn btn-light btn-sm"><i class="fa fa-fw fa-pencil"></i>note</button>');
-	//~ if ( !_cms_.currentUser.isDavid) btnNotepad.addClass( 'd-none');
 
 	let bRow = $('<div class="row"></div>').appendTo( cContainer);
 	let bCol = $('<div class="col text-center"></div>').appendTo( bRow);
@@ -284,8 +281,8 @@ $(document).ready( () => {
 	btnNotepad.on( 'click', function( e) {
 		e.stopPropagation(); e.preventDefault();
 
-		_brayworth_.loadModal({
-			url : _brayworth_.url('property_photolog/notepad/<?= $dto->id ?>'),
+		_.loadModal({
+			url : _.url('<?= $this->route ?>/notepad/<?= $dto->id ?>'),
 			onSuccess : function( e, d) {
 				if ( 'ack' == d.response) {
 					//~ console.log( d);
@@ -300,25 +297,22 @@ $(document).ready( () => {
 	});
 
 	<?php	if ( !$diskSpace->exceeded) {	?>
-  ( _ => {
-    _.fileDragDropHandler.call( c, {
-      url : _.url( 'property_photolog'),
-      queue : true,
-      postData : {
-        action : 'upload',
-        id : <?= $dto->id ?>
-      },
-      onUpload : d => {
-        if ( 'ack' == d.response) {
-          $.each( d.files, ( i, file) => displayCard( file));
+	_.fileDragDropHandler.call( c, {
+		url : _.url( '<?= $this->route ?>'),
+		queue : true,
+		postData : {
+			action : 'upload',
+			id : <?= $dto->id ?>
+		},
+		onUpload : d => {
+			if ( 'ack' == d.response) {
+				$.each( d.files, ( i, file) => displayCard( file));
 
-        }
+			}
 
-      }
+		}
 
-    });
-
-  }) (_brayworth_);
+	});
 	<?php	}	// if ( !$diskSpace->exceeded)	?>
 
 
@@ -327,26 +321,23 @@ $(document).ready( () => {
 
 	})( <?= json_encode( $this->data->files) ?>);
 
-  ( _ => {
-    _.post({
-      url : _.url('<?= $this->route ?>'),
-      data : {
-        action : 'property-smokealarms',
-        id : <?= (int)$dto->id ?>
+	_.post({
+		url : _.url('<?= $this->route ?>'),
+		data : {
+			action : 'property-smokealarms',
+			id : <?= (int)$dto->id ?>
 
-      },
+		},
 
-    }).then( d => {
-      if ( 'ack' == d.response) {
-        // console.log( d.alarms);
-        smokeAlarms = d.alarms;
-        // _.growl( d);
+	}).then( d => {
+		if ( 'ack' == d.response) {
+			// console.log( d.alarms);
+			smokeAlarms = d.alarms;
+			// _.growl( d);
 
-      }
+		}
 
-    });
+	});
 
-  }) (_brayworth_);
-
-});
+}) (_brayworth_); });
 </script>

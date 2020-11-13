@@ -222,7 +222,7 @@ class controller extends \Controller {
 					'primary' => 'view',
 					'secondary' => 'index',
 					'data' => (object)[
-						'pageUrl' => strings::url('property_photolog/view/' . $dto->id),
+						'pageUrl' => strings::url( $this->route . '/view/' . $dto->id),
 
 					],
 

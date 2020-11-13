@@ -161,7 +161,7 @@ $(document).ready( () => { ( _ => {
 		_tr
 		.addClass( 'pointer')
 		.on( 'click', function( e) {
-			window.location.href = _.url( 'property_photolog/?property=' + _tr.data('id'));
+			window.location.href = _.url( '<?= $this->route ?>/?property=' + _tr.data('id'));
 
 		}).on( 'contextmenu', function( e) {
 			if ( e.shiftKey)
@@ -173,7 +173,7 @@ $(document).ready( () => { ( _ => {
 
 			let _context = _brayworth_.context();
 
-			_context.append( $('<a class="font-weight-bold" />').html( 'Photolog : ' + $('td[data-role="address_street"]', _tr).html()).attr( 'href', _.url( 'property_photolog/?property=' + _tr.data('id'))));
+			_context.append( $('<a class="font-weight-bold" />').html( 'Photolog : ' + $('td[data-role="address_street"]', _tr).html()).attr( 'href', _.url( '<?= $this->route ?>/?property=' + _tr.data('id'))));
 			_context.append( $('<a />').html( 'Goto : ' + $('td[data-role="address_street"]', _tr).html()).attr( 'href', _.url( 'property/view/' + _tr.data('id'))));
 
 			_context.open( e);

@@ -316,7 +316,7 @@
 
 </ul>
 <script>
-$(document).ready( () => {
+$(document).ready( () => { ( _ => {
 	$('a[carousel]').on( 'click', function( e) {
 		e.stopPropagation(); e.preventDefault();
 
@@ -348,7 +348,7 @@ $(document).ready( () => {
 
 			});
 
-			_cms_.modal({
+			_.modal({
 				beforeOpen : function() {
 					let modal = this;
 					$( '.modal-dialog', modal).addClass( 'modal-lg');
@@ -366,5 +366,5 @@ $(document).ready( () => {
 
 	});
 
-});
+}) (_brayworth_); });
 </script>
