@@ -91,6 +91,9 @@ class controller extends \Controller {
 	}
 
 	protected function posthandler() {
+		$debug = false;
+    //~ $debug = currentUser::isDavid();
+
 		$action = $this->getPost('action');
 
 		if ( 'add-entry' == $action || 'update-entry' == $action) {
@@ -132,6 +135,109 @@ class controller extends \Controller {
 				Json::ack( $action)
 					->add( 'term', $term)
 					->add( 'data', green\search::properties( $term));
+
+			} else { Json::nak( $action); }
+
+    }
+    elseif ( 'upload' == $action) {
+
+			if ( $id = $this->getPost( 'id')) {
+				$dao = new dao\property_photolog;
+				if ( $dto = $dao->getByID( $id)) {
+					$path = $dao->store( $dto->id, $create = true);
+					$queue = sprintf( '%s/queue', $path);
+					if ( ! is_dir( $queue)) {
+						mkdir( $queue, 0777); chmod( $queue, 0777);
+
+					}
+
+					if ( $debug) sys::logger( sprintf( '<%s> %s', $path, __METHOD__));
+
+					$response = [
+						'response' => 'ack',
+						'description' => '',
+						'files' => []	];
+
+					foreach ( $_FILES as $file ) {
+						set_time_limit( 60);
+						if ( $debug) sys::logger( sprintf( '<%s> %s', $file['name'], __METHOD__));
+
+						if ( $file['error'] == 2 ) {
+							sys::logger( sprintf( '<%s is too large> %s', $file['name'], __METHOD__));
+							$response['response'] = 'nak';
+							$response['description'] = $file['name'] . ' is too large ..';
+
+						}
+						elseif ( is_uploaded_file( $file['tmp_name'] )) {
+							$strType = $file['type'];
+							if ( $debug) sys::logger( sprintf( '<%s (%s)> %s', $file['name'], $strType, __METHOD__));
+
+							$videoTypes = [ 'video/quicktime', 'video/mp4'];
+							$accept = [
+								'application/pdf',
+								'image/jpeg',
+								'image/pjpeg',
+								'image/png',
+								'video/quicktime',
+								'video/mp4'
+
+							];
+							if ( in_array( $strType, $accept)) {
+								if ( $debug) sys::logger( sprintf( '<%s (%s) acceptable> : %s', $file['name'], $strType, __METHOD__));
+								$source = $file['tmp_name'];
+								if (  'application/pdf' == $strType || in_array( $strType, $videoTypes)) {
+									$target = sprintf( '%s/%s', $path, $file['name']);
+
+								}
+								else {
+									$target = sprintf( '%s/%s', $queue, $file['name']);
+
+								}
+
+								if ( file_exists( $target )) unlink( $target );
+
+								if (move_uploaded_file( $source, $target)) {
+									chmod( $target, 0666 );
+
+									if ( $debug) sys::logger( sprintf( 'upload: %s (%s) accepted : %s', $file['name'], $strType, __METHOD__));
+									$response['files'][] = [
+										'description' => $file['name'],
+										'url' => strings::url( sprintf( $this->route . '/img/%d?img=%s&t=%s', $dto->id, $file['name'], filemtime( $target)))
+
+									];
+
+								}
+								else {
+									sys::logger("Possible file property_photolog/upload attack!  Here's some debugging info:\n" . var_export($_FILES, TRUE));
+
+								}
+
+							}
+							elseif ( $strType == "" ) {
+								sys::logger( sprintf( '<%s invalid file type> : %s', $file['name'], __METHOD__));
+								$response['response'] = 'nak';
+								$response['description'] = $file['name'] . ' invalid file type ..';
+
+							}
+							else {
+								sys::notifySupport( 'CMS Error', sprintf( 'Trying to upload File Type %s in %s', $strType, __METHOD__));
+
+								$response['response'] = 'nak';
+								$response['description'] = $file['name'] . ' file type not permitted ..: ' . $strType;
+
+							}
+
+						} else {
+              sys::logger( sprintf('<%s> %s', 'what the dickens ?', __METHOD__));
+
+            }
+						// elseif ( is_uploaded_file( $file['tmp_name'] )) {
+
+					}
+
+					new Json( $response);
+
+				} else { Json::nak( $action); }
 
 			} else { Json::nak( $action); }
 
@@ -222,7 +328,7 @@ class controller extends \Controller {
 					'primary' => 'view',
 					'secondary' => 'index',
 					'data' => (object)[
-						'pageUrl' => strings::url('property_photolog/view/' . $dto->id),
+						'pageUrl' => strings::url( $this->route . '/view/' . $dto->id),
 
 					],
 
