@@ -200,4 +200,40 @@ class controller extends \Controller {
 
   }
 
+	public function view( $id) {
+		if ( $id = (int)$id) {
+			$dao = new dao\property_photolog;
+			if ( $dto = $dao->getByID( $id)) {
+				$this->data = (object)[
+					'dto' => $dto,
+					'files' => $dao->getFiles( $dto),
+					'referer' => false,
+
+				];
+
+				if ( $referer = $this->getParam( 'f')) {
+					$daoP = new dao\properties;
+					$this->data->referer = $daoP->getByID( $referer);
+
+        }
+
+				$render = [
+					'title' => $this->title = sprintf( '%s - view', $this->label),
+					'primary' => 'view',
+					'secondary' => 'index',
+					'data' => (object)[
+						'pageUrl' => strings::url('property_photolog/view/' . $dto->id),
+
+					],
+
+				];
+
+				$this->render( $render);
+
+			} else { print 'not found'; }
+
+		} else { print 'invalid'; }
+
+  }
+
 }
