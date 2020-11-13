@@ -18,8 +18,6 @@ class config extends \config {
   static protected $_PHOTOLOG_VERSION = 0;
 
 	static function photolog_checkdatabase() {
-		return;
-
 		if ( self::photolog_version() < self::photolog_db_version) {
       $dao = new dao\dbinfo;
 			$dao->dump( $verbose = false);
@@ -55,4 +53,22 @@ class config extends \config {
 
 	}
 
+  static function photolog_init() {
+    $_a = [
+      'photolog_version' => self::$_PHOTOLOG_VERSION,
+
+    ];
+
+		if ( file_exists( $config = self::photolog_config())) {
+
+      $j = (object)array_merge( $_a, (array)Json::read( $config));
+
+      self::$_PHOTOLOG_VERSION = (float)$j->photolog_version;
+
+		}
+
+  }
+
 }
+
+config::photolog_init();
