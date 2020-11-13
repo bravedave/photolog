@@ -266,7 +266,7 @@ class property_photolog extends _dao {
 		 */
 		$this->Q(
 			'CREATE TEMPORARY TABLE _t(
-				`id` INT PRIMARY KEY,
+				`id` INT PRIMARY KEY AUTO_INCREMENT,
 				property_id INT,
 				address_street TEXT,
 				address_suburb TEXT,
