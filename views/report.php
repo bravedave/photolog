@@ -122,17 +122,17 @@ $uid = strings::rand();	?>
 		?>
 </table>
 <script>
-$(document).ready( function() {
+$(document).ready( () => { ( _ => {
 	$('tbody > tr', '#<?= $uid ?>').each( function( i, tr) {
 		let _tr = $(tr);
 
 		_tr.addClass( 'pointer').on( 'click', function( e) {
 		<?php if ( isset( $this->data->dto->id) && (int)$this->data->dto->id) {	?>
-			window.location.href = _cms_.url( 'property_photolog/view/' + _tr.data('id') + '?f=<?= $this->data->dto->id ?>');
+			window.location.href = _.url( 'property_photolog/view/' + _tr.data('id') + '?f=<?= $this->data->dto->id ?>');
 
 		<?php }
 			else {	?>
-			window.location.href = _cms_.url( 'property_photolog/view/' + _tr.data('id'));
+			window.location.href = _.url( 'property_photolog/view/' + _tr.data('id'));
 
 		<?php }	// if ( isset( $this->data->dto->id) && (int)$this->data->dto->id)	?>
 
@@ -144,17 +144,17 @@ $(document).ready( function() {
 
 			e.stopPropagation();e.preventDefault();
 
-			_brayworth_.hideContexts();
+			_.hideContexts();
 
-			let _context = _brayworth_.context();
+			let _context = _.context();
 
 			(function() {
 		<?php if ( isset( $this->data->dto->id) && (int)$this->data->dto->id) {	?>
-				let href = _cms_.url( 'property_photolog/view/' + _tr.data('id') + '?f=<?= $this->data->dto->id ?>');
+				let href = _.url( 'property_photolog/view/' + _tr.data('id') + '?f=<?= $this->data->dto->id ?>');
 
 		<?php }
 			else {	?>
-				let href = _cms_.url( 'property_photolog/view/' + _tr.data('id'));
+				let href = _.url( 'property_photolog/view/' + _tr.data('id'));
 
 		<?php }	// if ( isset( $this->data->dto->id) && (int)$this->data->dto->id)	?>
 
@@ -170,8 +170,8 @@ $(document).ready( function() {
 					//~ headerClass : '',
 					//~ beforeOpen : function() {},
 					//~ onClose : function() {},
-				_brayworth_.loadModal({
-					url : _cms_.url('property_photolog/entry/' + _tr.data('id')),
+				_.loadModal({
+					url : _.url('property_photolog/entry/' + _tr.data('id')),
 					onSuccess : function() {
 						window.location.reload();
 
@@ -183,7 +183,7 @@ $(document).ready( function() {
 
 			let pid = _tr.data('property_id');
 			if ( pid > 0) {
-				_context.append( $('<a>Goto ' + $('td[data-address]', _tr).html() + '</a>').attr( 'href', _cms_.url('property/view/' + pid)));
+				_context.append( $('<a>Goto ' + $('td[data-address]', _tr).html() + '</a>').attr( 'href', _.url('property/view/' + pid)));
 
 			}
 
@@ -194,8 +194,8 @@ $(document).ready( function() {
 
 					_context.close();
 
-					_cms_.post({
-						url : _cms_.url('property_photolog'),
+					_.post({
+						url : _.url('property_photolog'),
 						data : {
 							id : _tr.data('id'),
 							action : 'delete-entry',
@@ -208,7 +208,7 @@ $(document).ready( function() {
 
 						}
 						else {
-							_cms_.growl( d);
+							_.growl( d);
 
 						}
 
@@ -224,5 +224,5 @@ $(document).ready( function() {
 
 	});
 
-});
+}) (_brayworth_); });
 </script>

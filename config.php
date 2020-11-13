@@ -37,6 +37,19 @@ class config extends \config {
 
   }
 
+	public static function photologStore() {
+		$path = self::cmsStore() . 'photolog/';
+
+		if ( ! is_dir( $path)) {
+			mkdir( $path, 0777);
+			chmod( $path, 0777);
+
+		}
+
+		return ( $path);
+
+	}
+
 	static protected function photolog_version( $set = null) {
 		$ret = self::$_PHOTOLOG_VERSION;
 

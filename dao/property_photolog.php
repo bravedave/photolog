@@ -15,6 +15,7 @@ use FilesystemIterator;
 use strings;
 
 use dao\_dao;
+use photolog\config;
 
 class property_photolog extends _dao {
 	protected $_db_name = 'property_photolog';
@@ -265,7 +266,7 @@ class property_photolog extends _dao {
 		 *  SQLite compatible statement
 		 */
 
-		$ai = 'sqlite' == \config::$DB_TYPE ? '' : 'AUTO_INCREMENT';
+		$ai = 'sqlite' == config::$DB_TYPE ? '' : 'AUTO_INCREMENT';
 		$this->Q( sprintf(
 			'CREATE TEMPORARY TABLE _t(
 				`id` INT PRIMARY KEY %s,
@@ -434,7 +435,7 @@ class property_photolog extends _dao {
   }
 
 	public function store( int $id, bool $create = false) {
-    $path = sprintf( '%s%d', \config::photologStore(), (int)$id);
+    $path = sprintf( '%s%d', config::photologStore(), (int)$id);
 
     if ( $create && !is_dir( $path)) {
       mkdir( $path, 0777);

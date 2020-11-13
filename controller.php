@@ -10,6 +10,8 @@
 
 namespace photolog;
 
+use green;
+use Json;
 use Response;
 use sys;
 
@@ -94,7 +96,7 @@ class controller extends \Controller {
 		if ( 'add-entry' == $action || 'update-entry' == $action) {
 			if ( $property_id = $this->getPost( 'property_id')) {
 				$a = [
-					'updated' => db::dbTimeStamp(),
+					'updated' => \db::dbTimeStamp(),
 					'property_id' => $property_id,
 					'subject' => $this->getPost( 'subject'),
 					'date' => $this->getPost( 'date')
@@ -107,22 +109,22 @@ class controller extends \Controller {
 					if ( $id = (int)$this->getPost('id')) {
 						$dao->UpdateByID( $a, $id);
 
-						\Json::ack( $action)
+						Json::ack( $action)
 							->add( 'id', $id);
 
-					} else { \Json::nak( $action); }
+					} else { Json::nak( $action); }
 
 				}
 				else {
 					$a['created'] = $a['updated'];
 					$id = $dao->Insert( $a);
 
-					\Json::ack( $action)
+					Json::ack( $action)
 						->add( 'id', $id);
 
 				}
 
-			} else { \Json::nak( $action); }
+			} else { Json::nak( $action); }
 
 		}
     elseif ( 'search-properties' == $action) {

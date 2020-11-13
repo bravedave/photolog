@@ -21,9 +21,9 @@
 
 			</li>
 			<script>
-			$(document).ready( () => {
-				_cms_.post({
-					url : _cms_.url( '<?= $this->route ?>'),
+			$(document).ready( () => { ( _ => {
+				_.post({
+					url : _.url( '<?= $this->route ?>'),
 					data : {
 						action : 'get-photolog',
 						property : <?= $this->data->referer->id ?>
@@ -39,10 +39,10 @@
 								let li = $('<li></li>').appendTo( ul);
 								let a = $('<a />').html( entry.subject + ' (' + entry.files.total + ')').appendTo( li);
 
-								let m = _cms_.moment( entry.date);
+								let m = _.dayjs( entry.date);
 								li.attr( 'title', m.format( 'l'));
 
-								a.attr( 'href', _cms_.url( '<?= $this->route ?>/view/' + entry.id + '?f=<?= $this->data->referer->id ?>'));
+								a.attr( 'href', _.url( '<?= $this->route ?>/view/' + entry.id + '?f=<?= $this->data->referer->id ?>'));
 
 							});
 
@@ -52,13 +52,13 @@
 
 					}
 					else {
-						_cms_.growl( d);
+						_.growl( d);
 
 					}
 
 				});
 
-			});
+			}) (_brayworth_); });
 			</script>
 
 			<li class="nav-item"><a class="nav-link" href="<?= strings::url('property/view/' . $this->data->referer->id); ?>"><?= $this->data->referer->address_street ?></a></li>
@@ -316,7 +316,7 @@
 
 </ul>
 <script>
-$(document).ready( function() {
+$(document).ready( () => {
 	$('a[carousel]').on( 'click', function( e) {
 		e.stopPropagation(); e.preventDefault();
 

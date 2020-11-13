@@ -10,4 +10,6 @@
 
 namespace photolog\dao;
 
-class properties extends \dao\properties {}
+use green;
+
+class properties extends green\properties\dao\properties {}

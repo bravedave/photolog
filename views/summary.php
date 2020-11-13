@@ -141,19 +141,19 @@
 </table>
 
 <script>
-$(document).ready( function() {
-    $('#<?= $uid ?>').on('update-line-numbers', function( i, tr) {
-        let _table = $(this);
-        let lines = $('> tbody > tr', this);
-        $('> thead > tr > td[line-number]', this).html( lines.length);
+$(document).ready( () => { ( _ => {
+	$('#<?= $uid ?>').on('update-line-numbers', function( i, tr) {
+		let _table = $(this);
+		let lines = $('> tbody > tr', this);
+		$('> thead > tr > td[line-number]', this).html( lines.length);
 
-        lines.each( function( i, tr) {
-            $('> td[line-number]', tr).html( i+1);
+		lines.each( function( i, tr) {
+				$('> td[line-number]', tr).html( i+1);
 
-        });
+		});
 
-    })
-    .trigger('update-line-numbers');
+	})
+	.trigger('update-line-numbers');
 
 	$('tbody > tr', '#<?= $uid ?>').each( function( i, tr) {
 		let _tr = $(tr);
@@ -161,7 +161,7 @@ $(document).ready( function() {
 		_tr
 		.addClass( 'pointer')
 		.on( 'click', function( e) {
-			window.location.href = _cms_.url( 'property_photolog/?property=' + _tr.data('id'));
+			window.location.href = _.url( 'property_photolog/?property=' + _tr.data('id'));
 
 		}).on( 'contextmenu', function( e) {
 			if ( e.shiftKey)
@@ -173,8 +173,8 @@ $(document).ready( function() {
 
 			let _context = _brayworth_.context();
 
-			_context.append( $('<a class="font-weight-bold" />').html( 'Photolog : ' + $('td[data-role="address_street"]', _tr).html()).attr( 'href', _cms_.url( 'property_photolog/?property=' + _tr.data('id'))));
-			_context.append( $('<a />').html( 'Goto : ' + $('td[data-role="address_street"]', _tr).html()).attr( 'href', _cms_.url( 'property/view/' + _tr.data('id'))));
+			_context.append( $('<a class="font-weight-bold" />').html( 'Photolog : ' + $('td[data-role="address_street"]', _tr).html()).attr( 'href', _.url( 'property_photolog/?property=' + _tr.data('id'))));
+			_context.append( $('<a />').html( 'Goto : ' + $('td[data-role="address_street"]', _tr).html()).attr( 'href', _.url( 'property/view/' + _tr.data('id'))));
 
 			_context.open( e);
 
@@ -182,5 +182,5 @@ $(document).ready( function() {
 
 	});
 
-});
+}) (_brayworth_); });
 </script>
