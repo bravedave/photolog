@@ -1,14 +1,15 @@
 <?php
 /*
-	David Bray
-	BrayWorth Pty Ltd
-	e. david@brayworth.com.au
+ * David Bray
+ * BrayWorth Pty Ltd
+ * e. david@brayworth.com.au
+ *
+ * MIT License
+ *
+*/
 
-	This work is licensed under a Creative Commons Attribution 4.0 International Public License.
-		http://creativecommons.org/licenses/by/4.0/
-	*/
-	$uid = strings::rand();
-	?>
+$uid = strings::rand(); ?>
+
 <h3 class="d-none d-print-block"><?= $this->title ?></h3>
 <table class="table table-sm" id="<?= $uid ?>" data-role="photolog-table">
 	<thead class="small">
@@ -26,6 +27,7 @@
 
 	<tbody>
 <?php
+		$entries = 0;
 		$totFiles = 0;
 		$totProcessed = 0;
 		$totQueued = 0;
@@ -42,7 +44,11 @@
 			<td class="text-center" line-number>&nbsp;&nbsp;</td>
 			<td><?=  $dto->address_suburb ?></td>
 			<td data-role="address_street"><?=  $dto->address_street ?></td>
-			<td><?=  $dto->entries ?></td>
+      <td><?php
+        $entries += (int)$dto->entries;
+        print $dto->entries;
+
+      ?></td>
 			<td><?php
 
 				$totFiles += $dto->files->total;
@@ -85,6 +91,7 @@
 	<tfoot>
 		<tr>
 			<td colspan="3">&nbsp;</td>
+			<td><?= number_format( $entries) ?></td>
 			<td><?php
 				print number_format( $totFiles);
 				if ( $totQueued > 0) {

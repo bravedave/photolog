@@ -13,6 +13,9 @@ namespace photolog;
 use Json;
 
 class config extends \config {
+  const default_image800x600 =  __DIR__ . '/default.png';
+  const default_image800x600_inqueue =  __DIR__ . '/default-in-queue.png';
+
 	const photolog_db_version = 0.01;
 
   static protected $_PHOTOLOG_VERSION = 0;
