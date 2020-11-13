@@ -1,0 +1,35 @@
+{
+  "name": "bravedave/photolog",
+  "description": "Photo Log",
+  "minimum-stability": "dev",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Dave Bray",
+      "email": "david@brayworth.com.au"
+    }
+  ],
+  "require": {
+    "bravedave/dvc": "*",
+    "bravedave/green": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "photolog\\": ""
+
+    }
+
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "": "src/application/app/"
+
+    }
+
+  },
+  "scripts": {
+    "x-post-update-cmd": "smokealarm\\postUpdate::upgrade"
+
+  }
+
+}
