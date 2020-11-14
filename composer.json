@@ -10,15 +10,14 @@
     }
   ],
   "repositories": [
-    {
-      "type": "git",
-      "url": "https://github.com/bravedave/dvc"
-    }
+    { "type": "git", "url": "https://github.com/bravedave/dvc" },
+    { "type": "git", "url": "https://github.com/bravedave/smokealarm" }
   ],
   "require": {
     "ext-zip": "*",
     "bravedave/dvc": "*",
-    "bravedave/green": "*"
+    "bravedave/green": "*",
+    "bravedave/smokealarm": "*"
   },
   "autoload": {
     "psr-4": {
@@ -36,8 +35,9 @@
   },
   "scripts": {
     "post-update-cmd": "photolog\\postUpdate::upgrade",
-    "cron-cmd": "photolog\\postUpdate::cron"
-
+    "cron-cmd": "photolog\\postUpdate::cron",
+    "smokealarm-importcsv-cmd": "smokealarm\\postUpdate::importcsv",
+    "smokealarm-import-property-status-cmd": "smokealarm\\postUpdate::importpropertystatuscsv"
   }
 
 }

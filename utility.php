@@ -265,7 +265,7 @@ class utility {
 		imagesavealpha( $dstImg, true);	// save the alpha
 
 		$textcolor = imagecolorallocate($dstImg, 255, 255, 255);							// allocate white for the text
-		$font_path = sprintf( '%s/app/resources/tahoma.ttf', \application::app()->getRootPath());	// set path to font file
+		$font_path = __DIR__ . '/resources/tahoma.ttf';	// set path to font file
 		//~ imagettftext( $dstImg, 14, 0, $newwidth-360, $newheight-10, $textcolor, $font_path, date( \config::$DATETIME_FORMAT));	// print text on image
 		$timestamp = date( config::$DATETIME_FORMAT);
 		if ( strtotime( $date) > 0) {

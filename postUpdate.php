@@ -13,6 +13,7 @@ namespace photolog;
 use application;
 use dvc;
 use green;
+use smokealarm;
 
 class postUpdate extends dvc\service {
   protected function _upgrade() {
@@ -35,10 +36,13 @@ class postUpdate extends dvc\service {
     green\properties\config::green_properties_checkdatabase();
     echo( sprintf('%s : %s%s', 'green updated', __METHOD__, PHP_EOL));
 
+    smokealarm\config::smokealarm_checkdatabase();
+    config::route_register( 'smokealarm', 'smokealarm\controller');
+    config::route_register( 'smokealarmtypes', '');
+    config::route_register( 'smokealarmlocations', 'smokealarm\controllerSmokeAlarmLocations');
+    echo( sprintf('%s : %s%s', 'smokealarm  updated', __METHOD__, PHP_EOL));
+
     config::photolog_checkdatabase();
-    // config::route_register( 'smokealarm', 'smokealarm\controller');
-    // config::route_register( 'smokealarmtypes', '');
-    // config::route_register( 'smokealarmlocations', 'smokealarm\controllerSmokeAlarmLocations');
     echo( sprintf('%s : %s%s', 'photolog  updated', __METHOD__, PHP_EOL));
 
   }
@@ -51,6 +55,7 @@ class postUpdate extends dvc\service {
 
   protected function _cron() {
     utility::stamp();
+    \sys::logger( sprintf('<%s> %s', 'complete', __METHOD__));
 
   }
 
