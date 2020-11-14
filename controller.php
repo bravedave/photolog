@@ -131,13 +131,196 @@ class controller extends \Controller {
 			} else { Json::nak( $action); }
 
 		}
-    elseif ( 'search-properties' == $action) {
+    elseif ( 'delete' == $action) {
+			if ( $id = $this->getPost( 'id')) {
+				$dao = new dao\property_photolog;
+				if ( $dto = $dao->getByID( $id)) {
+					$path = $dao->store( $dto->id);
+					$_file = trim( $this->getPost( 'file'), './ ');
+					$file = $path . '/' . $_file;
+					$qfile = $path . '/queue/' . $_file;
+					//~ sys::logger( sprintf( 'delete : %s || %s', $file, $qfile));
+
+					if ( file_exists( $file)) unlink(  $file);
+					if ( file_exists( $qfile)) {
+						$parts = pathinfo( $qfile);
+
+						$errfile = sprintf( '%s/%s.err',
+							$parts['dirname'],
+							$parts['filename']
+							);
+
+						//~ sys::logger( $errfile);
+
+						if ( file_exists( $errfile)) unlink( $errfile);
+						unlink(  $qfile);
+						sys::logger( sprintf( '<unlink( %s)> : %s', $qfile, __METHOD__));
+
+					}
+					else {
+						sys::logger( sprintf( '<qfile not found ( %s)> : %s', $qfile, __METHOD__));
+
+					}
+
+					Json::ack( $action);
+
+				} else { Json::nak( $action); }
+
+			} else { Json::nak( $action); }
+
+		}
+		elseif ( 'delete-entry' == $action) {
+			if ( $id = $this->getPost( 'id')) {
+				$dao = new dao\property_photolog;
+				if ( $dto = $dao->getByID( $id)) {
+
+					if ( 0 == $dto->files->total) {
+						$path = $dao->store( $dto->id);
+						$qpath = $path . '/queue/';
+						//~ \Json::nak( sprintf( '%s : %s, %s, %d files', $action, $path, $qpath, $dto->files->total));
+
+						if ( is_dir( $qpath)) rmdir( $qpath);
+						if ( is_dir( $path)) rmdir( $path);
+						$dao->delete( $id);
+						Json::ack( $action);
+
+					}
+					else {
+						Json::nak( sprintf( '%s %d files', $action, $dto->files->total));
+
+					}
+
+				} else { Json::nak( $action); }
+
+			} else { Json::nak( $action); }
+
+		}
+		elseif ( 'get-photolog' == $action) {
+      /*
+      ( _ => {
+        _.post({
+          url : _.url( 'property_photolog'),
+          data : {
+            action : 'get-photolog',
+            property : 40998
+
+          }
+
+        }).then( function( d) {
+          if ( 'ack' == d.response) {
+            console.table( d.data);
+
+          }
+          else {
+            _.growl( d);
+
+          }
+
+        });
+
+      })(_brayworth_);
+      */
+			if ( $pid = (int)$this->getPost('property')) {
+				$dao = new dao\property_photolog;
+				Json::ack( $action)
+					->add( 'data', $dao->getForProperty( $pid));	// dtoSet
+
+			} else { Json::nak( $action); }
+
+		}
+		elseif ( 'property-smokealarms' == $action) {
+      /*
+      ( _ => {
+        _.post({
+          url : _.url('property_photolog'),
+          data : {
+            action : 'property-smokealarms',
+            id : 3694
+
+          },
+
+        }).then( d => {
+          console.log( d);
+          _.growl( d);
+
+        });
+
+      }) (_brayworth_);
+      */
+
+      if ( $id = (int)$this->getPost('id')) {
+        $alarms = [];
+        if ( class_exists('smokealarm\dao\smokealarm')) {
+          $dao = new dao\property_photolog;
+          if ( $dto = $dao->getByID( $id)) {
+            $dao = new smokealarm\dao\smokealarm;
+            if ( $res = $dao->getForProperty( $dto->property_id)) {
+              $alarms = (array)$res->dtoSet();
+
+            }
+
+          }
+
+        }
+
+        Json::ack( $action)
+          ->add('alarms', $alarms);
+
+      }
+      else {
+        Json::nak( $action);
+
+      }
+
+    }
+		elseif ( 'search-properties' == $action) {
 			if ( $term = $this->getPost('term')) {
 				Json::ack( $action)
 					->add( 'term', $term)
 					->add( 'data', green\search::properties( $term));
 
 			} else { Json::nak( $action); }
+
+    }
+		elseif ( 'set-alarm-location' == $action) {
+      if ( $id = $this->getPost( 'id')) {
+        if ( $file = $this->getPost( 'file')) {
+          if ( $location = $this->getPost( 'location')) {
+            $dao = new dao\property_photolog;
+            if ( $dto = $dao->getByID( $id)) {
+              $info = $dao->getImageInfo( $dto, $file);
+              $info->location = $location;
+              $dao->setImageInfo( $dto, $file, $info);
+              Json::ack( $action);
+
+            } else { Json::nak( $action); }
+
+          } else { Json::nak( $action); }
+
+        } else { Json::nak( $action); }
+
+      } else { Json::nak( $action); }
+
+    }
+		elseif ( 'set-alarm-location-clear' == $action) {
+      if ( $id = $this->getPost( 'id')) {
+        if ( $file = $this->getPost( 'file')) {
+          $dao = new dao\property_photolog;
+          if ( $dto = $dao->getByID( $id)) {
+            $info = $dao->getImageInfo( $dto, $file);
+            if ( isset($info->location)) {
+              unset( $info->location);
+              $dao->setImageInfo( $dto, $file, $info);
+
+            }
+
+            Json::ack( $action);
+
+          } else { Json::nak( $action); }
+
+        } else { Json::nak( $action); }
+
+      } else { Json::nak( $action); }
 
     }
     elseif ( 'upload' == $action) {
@@ -354,6 +537,54 @@ class controller extends \Controller {
     print $js;
 
   }
+
+	public function notepad( $id) {
+		if ( $id = (int)$id) {
+			$dao = new dao\property_photolog;
+			if ( $dto = $dao->getByID( $id)) {
+				$this->data = (object)[
+					'dto' => $dto,
+
+				];
+
+				$this->modal([
+					'title' => $this->title = sprintf( '%s - notepad', $this->label),
+					'load' => 'notepad'
+
+				]);
+
+			} else { print 'not found'; }
+
+		} else { print 'invalid'; }
+
+	}
+
+	public function publicLink( $id) {
+		if ( $id = (int)$id) {
+			$dao = new dao\property_photolog;
+			if ( $dto = $dao->getByID( $id)) {
+				$this->data = (object)[
+					'title' => $this->title = 'Public Link',
+					'dto' => $dto,
+
+				];
+
+				$this->load( 'public-link');
+				// $this->load( 'invalid');
+
+			}
+			else {
+				$this->load( 'invalid');
+
+			}
+
+		}
+		else {
+			$this->load( 'invalid');
+
+		}
+
+	}
 
 	public function view( $id) {
 		if ( $id = (int)$id) {
