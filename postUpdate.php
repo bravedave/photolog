@@ -17,7 +17,7 @@ use smokealarm;
 
 class postUpdate extends dvc\service {
   protected function _upgrade() {
-    // config::route_register( 'people', 'green\\people\\controller');
+    config::route_register( 'people', 'green\\people\\controller');
     // config::route_register( 'property', 'green\\properties\\controller'); // for some cms compatibility
     config::route_register( 'properties', 'green\\properties\\controller');
     config::route_register( 'beds', 'green\\beds_list\\controller');
@@ -32,7 +32,7 @@ class postUpdate extends dvc\service {
     // green\property_diary\config::green_property_diary_checkdatabase();
     // green\users\config::green_users_checkdatabase();
 
-    // green\people\config::green_people_checkdatabase();
+    green\people\config::green_people_checkdatabase();
     green\properties\config::green_properties_checkdatabase();
     echo( sprintf('%s : %s%s', 'green updated', __METHOD__, PHP_EOL));
 
