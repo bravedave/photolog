@@ -324,7 +324,7 @@ class controller extends \Controller {
 
 					}
 					elseif ( file_exists( $_queue)) {
-						sys::serve( config::default_image800x600_inqueue);
+						sys::serve( config::photolog_default_image800x600_inqueue);
 
 					}
 
@@ -334,7 +334,7 @@ class controller extends \Controller {
 
 		}
 		else {
-			sys::serve( config::default_image800x600);
+			sys::serve( config::photolog_default_image800x600);
 
 		}
 

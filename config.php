@@ -13,12 +13,12 @@ namespace photolog;
 use Json;
 
 class config extends \config {
-  const default_image800x600 = __DIR__ . '/images/default.png';
-  const default_image800x600_inqueue = __DIR__ . '/images/default-in-queue.png';
+  const photolog_default_image800x600 = __DIR__ . '/resources/images/default.png';
+  const photolog_default_image800x600_inqueue = __DIR__ . '/resources/images/default-in-queue.png';
 
 	const photolog_db_version = 0.01;
 
-  static $PHOTOLOG_STAMP = __DIR__ . '/images/stamp.png';
+  static $PHOTOLOG_STAMP = __DIR__ . '/resources/images/stamp.png';
   static protected $_PHOTOLOG_VERSION = 0;
 
 	static function photolog_checkdatabase() {
