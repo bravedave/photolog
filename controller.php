@@ -93,7 +93,7 @@ class controller extends \Controller {
 
 	protected function posthandler() {
 		$debug = false;
-    //~ $debug = currentUser::isDavid();
+    // $debug = currentUser::isDavid();
 
 		$action = $this->getPost('action');
 
@@ -177,7 +177,7 @@ class controller extends \Controller {
 					if ( 0 == $dto->files->total) {
 						$path = $dao->store( $dto->id);
 						$qpath = $path . '/queue/';
-						//~ \Json::nak( sprintf( '%s : %s, %s, %d files', $action, $path, $qpath, $dto->files->total));
+						//~ Json::nak( sprintf( '%s : %s, %s, %d files', $action, $path, $qpath, $dto->files->total));
 
 						if ( is_dir( $qpath)) rmdir( $qpath);
 						if ( is_dir( $path)) rmdir( $path);
@@ -273,6 +273,82 @@ class controller extends \Controller {
       }
 
     }
+		elseif ( 'public-link-clear' == $action) {
+			if ( $id = $this->getPost( 'id')) {
+				$dao = new dao\property_photolog;
+				if ( $dto = $dao->getByID( $id)) {
+
+					$a = [
+						'public_link' => '',
+						'public_link_expires' => ''
+
+					];
+					$dao->UpdateByID( $a, $dto->id);
+					Json::ack( $action);
+
+				} else { Json::nak( $action); }
+
+			} else { Json::nak( $action); }
+
+		}
+		elseif ( 'public-link-create' == $action) {
+			if ( $id = $this->getPost( 'id')) {
+				$dao = new dao\property_photolog;
+				if ( $dto = $dao->getByID( $id)) {
+
+					$a = ['public_link_expires' => ''];
+					if ( strtotime( $this->getPost('public_link_expires')) > time()) {
+						$a = [
+							'public_link' => bin2hex( random_bytes( 11)),
+							'public_link_expires' => $this->getPost('public_link_expires')
+
+						];
+
+					}
+
+					$dao->UpdateByID( $a, $dto->id);
+					Json::ack( $action);
+
+				} else { Json::nak( $action); }
+
+			} else { Json::nak( $action); }
+
+		}
+		elseif ( 'public-link-get' == $action) {
+			if ( $id = $this->getPost( 'id')) {
+				$dao = new dao\property_photolog;
+				if ( $dto = $dao->getByID( $id)) {
+					if ( strtotime( $dto->public_link_expires) > time()) {
+						Json::ack( $action)
+							->add('url', sprintf( '%spl/%s', config::$PORTAL, $dto->public_link))
+							->add('expires', $dto->public_link_expires);
+
+					} else { Json::nak( $action); }
+
+				} else { Json::nak( $action); }
+
+			} else { Json::nak( $action); }
+
+		}
+		elseif ( 'save-notepad' == $action) {
+			if ( $id = $this->getPost( 'id')) {
+				$dao = new dao\property_photolog;
+				if ( $dto = $dao->getByID( $id)) {
+
+					$a = [
+						'notes' => $this->getPost( 'notes')
+
+					];
+
+					$dao->UpdateByID($a, $dto->id);
+					Json::ack( $action)
+						->add( 'data', $a);
+
+				} else { Json::nak( $action); }
+
+			} else { Json::nak( $action); }
+
+		}
 		elseif ( 'search-properties' == $action) {
 			if ( $term = $this->getPost('term')) {
 				Json::ack( $action)
