@@ -311,7 +311,7 @@ class utility {
 		//~ $limit = $afterHours ? 20 : 5;
 		$icount = 0;	// count won't raise above $limit
 
-		$dao = new \dao\property_photolog;
+		$dao = new dao\property_photolog;
 		if ( $res = $dao->Result( 'SELECT id, date FROM property_photolog')) {
 			$res->dtoSet( function( $dto) use ($dao, &$icount, $limit, $afterHours, $debug) {
 

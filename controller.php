@@ -14,6 +14,7 @@ use green;
 use Json;
 use Response;
 use sys;
+use strings;
 
 class controller extends \Controller {
   protected $viewPath = __DIR__ . '/views/';
@@ -360,7 +361,7 @@ class controller extends \Controller {
 			if ( $dto = $dao->getByID( $id)) {
 				$this->data = (object)[
 					'dto' => $dto,
-					'files' => $dao->getFiles( $dto),
+					'files' => $dao->getFiles( $dto, $this->route),
 					'referer' => false,
 
 				];

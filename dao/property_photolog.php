@@ -132,6 +132,37 @@ class property_photolog extends _dao {
 
 	}
 
+  protected function _getInfoFile( \dao\dto\dto $dto) : string {
+    return implode( DIRECTORY_SEPARATOR, [
+      $this->store( $dto->id),
+      '_info.json'
+
+    ]);
+
+	}
+
+  protected function _getInfo( \dao\dto\dto $dto) : object {
+    if ( $path = realpath( $this->_getInfoFile( $dto))) {
+      if ( file_exists( $path)) {
+        return (object)json_decode( file_get_contents( $path));
+
+      }
+
+    }
+
+    return (object)[];
+
+  }
+
+  protected function _setInfo( \dao\dto\dto $dto, object $info) {
+    $this->store( $dto->id, $create = true);
+    if ( $path = $this->_getInfoFile( $dto)) {
+      \file_put_contents( $path, json_encode( $info, JSON_PRETTY_PRINT));
+
+    }
+
+  }
+
 	public function getByID( $id) {
 		if ( $dto = parent::getByID( $id)) {
 			$dto = $this->_dtoExpand( $dto);
@@ -145,7 +176,7 @@ class property_photolog extends _dao {
 
 	}
 
-  public function getFiles( \dao\dto\dto $dto) : array {
+  public function getFiles( \dao\dto\dto $dto, string $route) : array {
 
     $files = [];
     $path = $this->store( $dto->id);
@@ -170,7 +201,7 @@ class property_photolog extends _dao {
           $files[] = (object)[
             'description' => $fileName,
             'extension' => $file->getExtension(),
-            'url' => strings::url( sprintf( 'property_photolog/img/%d?img=%s&t=%s', $dto->id, urlencode( $file->getFilename()), $file->getMTime())),
+            'url' => strings::url( sprintf( '%s/img/%d?img=%s&t=%s', $route, $dto->id, urlencode( $file->getFilename()), $file->getMTime())),
             'error' => false,
             'size' => $file->getSize(),
             'location' => $location,
@@ -208,7 +239,7 @@ class property_photolog extends _dao {
             $files[] = (object)[
               'description' => $fileName,
               'extension' => $file->getExtension(),
-              'url' => strings::url( sprintf( 'property_photolog/img/%d?img=%s', $dto->id, urlencode( $file->getFilename()))),
+              'url' => strings::url( sprintf( '%s/img/%d?img=%s', $route, $dto->id, urlencode( $file->getFilename()))),
               'error' => file_exists( $errfile) || 10 > $file->getSize(),
               'size' => $file->getSize(),
               'location' => $location,
@@ -228,23 +259,28 @@ class property_photolog extends _dao {
   }
 
 	public function getForProperty( $pid) {
-		$sql = sprintf( 'SELECT
-				property_photolog.id,
-				property_photolog.date,
-				property_photolog.property_id,
+		$sql = sprintf(
+			'SELECT
+				photolog.id,
+				photolog.date,
+				photolog.property_id,
 				prop.address_street,
-				property_photolog.subject,
-				property_photolog.updated,
-				property_photolog.dirModTime,
-				property_photolog.dirStats
+				photolog.subject,
+				photolog.updated,
+				photolog.dirModTime,
+				photolog.dirStats
 			FROM
-				property_photolog
+				`%s` photolog
 				LEFT JOIN
-					properties prop ON prop.id = property_photolog.property_id
+					properties prop ON prop.id = photolog.property_id
 			WHERE
-				property_photolog.property_id = %d
+				photolog.property_id = %d
 			ORDER BY
-				date DESC' , $pid);
+				`date` DESC' ,
+				$this->db_name(),
+				$pid
+
+		);
 
 		//~ return $this->Result( $sql);
 		if ( $res = $this->Result( $sql)) {
@@ -276,8 +312,8 @@ class property_photolog extends _dao {
 				street_index TEXT,
 				entries INT)', $ai));
 
-		$sql =
-		'INSERT INTO _t(
+		$sql = sprintf(
+			'INSERT INTO _t(
 				`property_id`,
 				`address_street`,
 				`address_suburb`,
@@ -291,10 +327,14 @@ class property_photolog extends _dao {
 				prop.street_index,
 				count( *) entries
 			FROM
-				property_photolog pl
+				`%s` pl
 				LEFT JOIN
 					properties prop ON prop.id = pl.property_id
-			GROUP BY pl.property_id';
+			GROUP BY pl.property_id',
+			$this->db_name()
+
+		);
+
 
 		$this->Q( $sql);
 
@@ -336,7 +376,16 @@ class property_photolog extends _dao {
 
 				}
 
-				if ( $timer) \sys::logger( sprintf( 'dao\property_photolog->getPropertySummary : getDirDetail : %s : %ss', $dto->address_street, $timer->elapsed()));
+				if ( $timer) \sys::logger(
+					sprintf(
+						'<getDirDetail : %s : %ss> %s',
+						$dto->address_street,
+						$timer->elapsed(),
+						__METHOD__
+
+					)
+
+				);
 
 				return ( $dto);
 
@@ -349,59 +398,32 @@ class property_photolog extends _dao {
 	}
 
 	public function getRecent() {
-		$sql = 'SELECT
-				property_photolog.id,
-				property_photolog.date,
-				property_photolog.property_id,
+		$sql = sprintf(
+		'SELECT
+				photolog.id,
+				photolog.date,
+				photolog.property_id,
 				prop.address_street,
-				property_photolog.subject,
-				property_photolog.updated
+				photolog.subject,
+				photolog.updated
 			FROM
-				property_photolog
+				`%s` photolog
 				LEFT JOIN
-					properties prop ON prop.id = property_photolog.property_id
+					properties prop ON prop.id = photolog.property_id
 			ORDER BY
 				date DESC
-			LIMIT 20';
+			LIMIT 20',
+			$this->db_name()
 
-		//~ return $this->Result( $sql);
+		);
+
+
 		if ( $res = $this->Result( $sql)) {
 			return $this->_dtoSet( $res);
 
 		}
 
 		return [];
-
-  }
-
-  protected function _getInfoFile( \dao\dto\dto $dto) : string {
-    return implode( DIRECTORY_SEPARATOR, [
-      $this->store( $dto->id),
-      '_info.json'
-
-    ]);
-
-  }
-
-  protected function _getInfo( \dao\dto\dto $dto) : object {
-    if ( $path = realpath( $this->_getInfoFile( $dto))) {
-      if ( file_exists( $path)) {
-        return (object)json_decode( file_get_contents( $path));
-
-      }
-
-    }
-
-    return (object)[];
-
-  }
-
-  protected function _setInfo( \dao\dto\dto $dto, object $info) {
-    $this->store( $dto->id, $create = true);
-    if ( $path = $this->_getInfoFile( $dto)) {
-      \file_put_contents( $path, json_encode( $info, JSON_PRETTY_PRINT));
-
-    }
 
   }
 

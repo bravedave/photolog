@@ -49,4 +49,15 @@ class postUpdate extends dvc\service {
 
   }
 
+  protected function _cron() {
+    utility::stamp();
+
+  }
+
+  static function cron() {
+    $app = new self( application::startDir());
+    $app->_cron();
+
+  }
+
 }

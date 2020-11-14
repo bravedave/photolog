@@ -16,6 +16,7 @@
     }
   ],
   "require": {
+    "ext-zip": "*",
     "bravedave/dvc": "*",
     "bravedave/green": "*"
   },
@@ -34,7 +35,8 @@
 
   },
   "scripts": {
-    "post-update-cmd": "photolog\\postUpdate::upgrade"
+    "post-update-cmd": "photolog\\postUpdate::upgrade",
+    "cron-cmd": "photolog\\postUpdate::cron"
 
   }
 
