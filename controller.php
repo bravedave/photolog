@@ -100,7 +100,6 @@ class controller extends \Controller {
 		if ( 'add-entry' == $action || 'update-entry' == $action) {
 			if ( $property_id = $this->getPost( 'property_id')) {
 				$a = [
-					'updated' => \db::dbTimeStamp(),
 					'property_id' => $property_id,
 					'subject' => $this->getPost( 'subject'),
 					'date' => $this->getPost( 'date')
@@ -111,8 +110,8 @@ class controller extends \Controller {
 
 				if ( 'update-entry' == $action) {
 					if ( $id = (int)$this->getPost('id')) {
-						$dao->UpdateByID( $a, $id);
 
+						$dao->UpdateByID( $a, $id);
 						Json::ack( $action)
 							->add( 'id', $id);
 
@@ -120,9 +119,7 @@ class controller extends \Controller {
 
 				}
 				else {
-					$a['created'] = $a['updated'];
 					$id = $dao->Insert( $a);
-
 					Json::ack( $action)
 						->add( 'id', $id);
 
@@ -401,7 +398,65 @@ class controller extends \Controller {
     }
     elseif ( 'upload' == $action) {
 
-			if ( $id = $this->getPost( 'id')) {
+			$id = (int)$this->getPost( 'id');
+			$location = '';
+
+			if ( $tag = $this->getPost( 'tag')) {
+
+				$id = 0;
+
+				if ( class_exists('smokealarm\dao\smokealarm')) {
+					if ( 'smokealarm' == $tag) {
+						if ( $smokealarm_id = (int)$this->getPost( 'smokealarm_id')) {
+							$dao = new \smokealarm\dao\smokealarm;
+							if ( $dto = $dao->getByID( $smokealarm_id)) {
+								if ( $dto->properties_id) {
+									$dao = new dao\property_photolog;
+									if ( $logs = $dao->getForProperty( $dto->properties_id)) {
+										foreach ($logs as $log) {
+											if ( preg_match( '@^smoke alarm audit@i', $log->subject)) {
+												if ( ($t = strtotime( $log->date)) > 0) {
+													if ( date('Y-m') == date('Y-m', $t)) {
+														// use this one ..
+														$id = $log->id;
+														break;
+
+													}
+
+												}
+
+											}
+
+										}
+
+									}
+
+								}
+
+								if ( !$id) {
+									$dao = new dao\property_photolog;
+									$id = $dao->Insert([
+										'property_id' => $dto->properties_id,
+										'subject' => sprintf( 'Smoke Alarm Audit %s', date('')),
+										'date' => date('Y-m-d')
+
+									]);
+
+								}
+
+								$location = $this->getPost('location');
+
+							}
+
+						}
+
+					}
+
+				}
+
+			}
+
+			if ( $id) {
 				$dao = new dao\property_photolog;
 				if ( $dto = $dao->getByID( $id)) {
 					$path = $dao->store( $dto->id, $create = true);
@@ -465,6 +520,24 @@ class controller extends \Controller {
 										'url' => strings::url( sprintf( $this->route . '/img/%d?img=%s&t=%s', $dto->id, $file['name'], filemtime( $target)))
 
 									];
+
+									if ( $location) {
+										if ( !('application/pdf' == $strType || in_array( $strType, $videoTypes))) {
+											// do this now to improve response for autoupdate
+											utility::stampone(
+												$target,
+												sprintf( '%s/%s', $path, $file['name']),
+												$dto
+
+											);
+
+										}
+
+										$info = $dao->getImageInfo( $dto, $file['name']);
+										$info->location = $location;
+										$dao->setImageInfo( $dto, $file['name'], $info);
+
+									}
 
 								}
 								else {
@@ -542,12 +615,7 @@ class controller extends \Controller {
 
 		}
 
-
-		$this->modal([
-			'title' => $this->title,
-			'load' => 'entry'
-
-		]);
+		$this->load('entry');
 
 	}
 

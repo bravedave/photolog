@@ -359,4 +359,12 @@ class utility {
 
 	}
 
+	public static function stampone( $src, $stamped, $dto) {
+		if ( self::_stamp( $src, $stamped, $dto->date)) {
+			if ( file_exists( $stamped )) unlink( $src );
+
+		}
+
+	}
+
 }

@@ -440,8 +440,29 @@ class property_photolog extends _dao {
 
   }
 
+	public function Insert( $a) {
+		$a[ 'created'] = $a['updated'] = self::dbTimeStamp();
+		return parent::Insert( $a);
+
+	}
+
   public function setImageInfo( \dao\dto\dto $dto, string $file, object $info) {
     if ( $json = $this->_getInfo( $dto)) {
+			if ( isset( $info->location) && $info->location) {
+				// must be unique
+				foreach ( $json as $k => $o) {
+					if ( isset( $o->location)) {
+						if ( $info->location == $o->location) {
+							$json->{$k}->location = '';
+
+						}
+
+					}
+
+				}
+
+			}
+
       $json->{$file} = $info;
       $this->_setInfo( $dto, $json);
 
@@ -466,6 +487,12 @@ class property_photolog extends _dao {
     }
 
     return $path;
+
+	}
+
+	public function UpdateByID( $a, $id) {
+		$a['updated'] = self::dbTimeStamp();
+		return parent::UpdateByID( $a, $id);
 
 	}
 

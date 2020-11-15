@@ -167,17 +167,8 @@ $(document).ready( () => { ( _ => {
 
 				_context.close();
 
-					//~ headerClass : '',
-					//~ beforeOpen : function() {},
-					//~ onClose : function() {},
-				_.loadModal({
-					url : _.url('<?= $this->route ?>/entry/' + _tr.data('id')),
-					onSuccess : function() {
-						window.location.reload();
-
-					},
-
-				});
+				_.get.modal( _.url('<?= $this->route ?>/entry/' + _tr.data('id')))
+				.then( d => d.on( 'success', ( e, href) => window.location.reload()));
 
 			}));
 

@@ -52,10 +52,14 @@
 $(document).ready( () => { ( _ => {
 
   let smokeAlarms = [];
+	let allCards = [];
 
 	let displayCard = ( file) => {
 		let col = $('<div class="col-sm-4 col-md-3 col-xl-2 mb-1"></div>');
 		let card = $('<div class="card"></div>').appendTo( col);
+
+		allCards.push( card);
+
 		let img = $('<img class="card-img-top" data-logimage />').attr( 'title', file.description).attr( 'src', file.url).appendTo( card);
 
 		//~ console.log( file.url);
@@ -107,7 +111,7 @@ $(document).ready( () => { ( _ => {
 
 		}
 
-		col.appendTo('#<?= $uid; ?>row');
+		col.appendTo('#<?= $uid ?>row');
 
 		allDeleteVisibility();
 		allDownloadVisibility();
@@ -160,6 +164,20 @@ $(document).ready( () => { ( _ => {
 				_.growl( d)
 
 				if ( 'ack' == d.response) {
+					$.each( allCards, (i, card) => {
+						let _me = $(card);
+						let _data = _me.data();
+
+						console.log( 'check', _data.file);
+
+						if ( _data.file.location == location) {
+							_data.file.location = '';
+							_me.data('file', _data.file);
+
+						}
+
+					});
+
 					_data.file.location = location;
 					_me.data('file', _data.file);
 

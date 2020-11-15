@@ -87,22 +87,16 @@
 
 			<li class="nav-item"><a class="nav-link" href="#" id="<?= $uid = strings::rand() ?>">add entry on <?= $this->data->dto->address_street ?></a></li>
 			<script>
-			$(document).ready( () => {
+			( _ => $(document).ready( () => {
 				$('#<?= $uid ?>').on( 'click', e => {
 					e.preventDefault();
 
-					( _ => {
-						_.loadModal({
-							url : _.url('<?= $this->route ?>/entry?property=<?= (int)$this->data->dto->property_id ?>'),
-							onSuccess : ( e, href) => window.location.href = href,
-
-						});
-
-					}) (_brayworth_);
+					_.get.modal( _.url('<?= $this->route ?>/entry?property=<?= (int)$this->data->dto->property_id ?>'))
+					.then( d => d.on( 'success', ( e, href) => window.location.href = href));
 
 				});
 
-			});
+			}))( _brayworth_);
 			</script>
 
 		<?php
@@ -131,22 +125,16 @@
 
 			<li class="nav-item"><a class="nav-link" href="#" id="<?= $uid = strings::rand() ?>">add entry on <?= $this->data->referer->address_street ?></a></li>
 			<script>
-			$(document).ready( () => {
+			( _ => $(document).ready( () => {
 				$('#<?= $uid ?>').on( 'click', e => {
 					e.preventDefault();
 
-					( _ => {
-						_.loadModal({
-							url : _.url('<?= $this->route ?>/entry?property=<?= (int)$this->data->referer->id ?>'),
-							onSuccess : ( e, href) => window.location.href = href,
-
-						});
-
-					}) (_brayworth_);
+					_.get.modal( _.url('<?= $this->route ?>/entry?property=<?= (int)$this->data->referer->id ?>'))
+					.then( d => d.on( 'success', ( e, href) => window.location.href = href));
 
 				});
 
-			});
+			}))( _brayworth_);
 			</script>
 
 		<?php
@@ -225,7 +213,7 @@
 					$('#<?= $uid ?>public').closest('.nav-item').removeClass('d-none');
 
 					$('#<?= $uid ?>public').val(d.url);
-					$('#<?= $uid ?>public_expires').html('expires : '+_.moment(d.expires).format('l'));
+					$('#<?= $uid ?>public_expires').html('expires : '+_.dayjs(d.expires).format('l'));
 
 				}
 				else {
@@ -296,22 +284,16 @@
 
 	<li class="nav-item pt-4"><a class="nav-link btn btn-outline-primary" href="#" id="<?= $uid = strings::rand() ?>">add entry</a></li>
 	<script>
-	$(document).ready( () => {
+	( _ => $(document).ready( () => {
 		$('#<?= $uid ?>').on( 'click', e => {
 			e.preventDefault();
 
-			( _ => {
-				_.loadModal({
-					url : _.url('<?= $this->route ?>/entry'),
-					onSuccess : ( e, href) => window.location.href = href,
-
-				});
-
-			}) (_brayworth_);
+			_.get.modal( _.url('<?= $this->route ?>/entry'))
+			.then( d => d.on( 'success', ( e, href) => window.location.href = href));
 
 		});
 
-	});
+	}))( _brayworth_);
 	</script>
 
 </ul>
