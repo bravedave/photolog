@@ -437,7 +437,7 @@ class controller extends \Controller {
 									$dao = new dao\property_photolog;
 									$id = $dao->Insert([
 										'property_id' => $dto->properties_id,
-										'subject' => sprintf( 'Smoke Alarm Audit %s', date('')),
+										'subject' => sprintf( 'Smoke Alarm Audit %s', date('M Y')),
 										'date' => date('Y-m-d')
 
 									]);
