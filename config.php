@@ -42,7 +42,16 @@ class config extends \config {
   }
 
 	public static function photologStore() {
-		$path = self::cmsStore() . 'photolog/';
+
+		$path = implode( DIRECTORY_SEPARATOR, [
+			rtrim( self::dataPath(), '/ '),
+			'photolog/'
+
+		]);
+
+		// checking for this class is legacy, i developed this out of cms ..
+		if ( \method_exists( __CLASS__, 'cmsStore')) $path = self::cmsStore() . 'photolog/';
+
 
 		if ( ! is_dir( $path)) {
 			mkdir( $path, 0777);

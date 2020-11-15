@@ -29,6 +29,11 @@ use dvc\icon;    ?>
 
         </li>
 
+        <li class="nav-item pt-1">
+          <a class="nav-link pb-0" href="<?= strings::url('smokealarm') ?>">Smoke Alarm</a>
+
+        </li>
+
         <li class="nav-item pt-1 dropdown">
           <a class="nav-link pb-0 dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Admin

@@ -253,7 +253,7 @@ class controller extends \Controller {
         if ( class_exists('smokealarm\dao\smokealarm')) {
           $dao = new dao\property_photolog;
           if ( $dto = $dao->getByID( $id)) {
-            $dao = new smokealarm\dao\smokealarm;
+            $dao = new \smokealarm\dao\smokealarm;
             if ( $res = $dao->getForProperty( $dto->property_id)) {
               $alarms = (array)$res->dtoSet();
 
