@@ -174,8 +174,11 @@ class controller extends \Controller {
 					if ( 0 == $dto->files->total) {
 						$path = $dao->store( $dto->id);
 						$qpath = $path . '/queue/';
+						$infofile = $path . '/_info.json';
+
 						//~ Json::nak( sprintf( '%s : %s, %s, %d files', $action, $path, $qpath, $dto->files->total));
 
+						if ( file_exists( $infofile)) unlink( $infofile);
 						if ( is_dir( $qpath)) rmdir( $qpath);
 						if ( is_dir( $path)) rmdir( $path);
 						$dao->delete( $id);
