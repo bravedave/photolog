@@ -155,7 +155,7 @@ class controller extends \Controller {
 
 					}
 					else {
-						sys::logger( sprintf( '<qfile not found ( %s)> : %s', $qfile, __METHOD__));
+						if ( $debug) sys::logger( sprintf( '<qfile not found ( %s)> : %s', $qfile, __METHOD__));
 
 					}
 

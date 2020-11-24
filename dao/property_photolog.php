@@ -55,7 +55,9 @@ class property_photolog extends _dao {
 
 				$files = new FilesystemIterator( $path, FilesystemIterator::SKIP_DOTS);
 				$filter= new CallbackFilterIterator($files, function($cur, $key, $iter) {
+					if ( '_info.json' == $cur->getFilename()) return false;
 					return $cur->isFile();
+
 				});
 
 				$i = iterator_count( $filter);
