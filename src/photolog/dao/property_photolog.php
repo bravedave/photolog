@@ -450,20 +450,26 @@ class property_photolog extends _dao {
 
   public function setImageInfo( \dao\dto\dto $dto, string $file, object $info) {
     if ( $json = $this->_getInfo( $dto)) {
-			if ( isset( $info->location) && $info->location) {
-				// must be unique
-				foreach ( $json as $k => $o) {
-					if ( isset( $o->location)) {
-						if ( $info->location == $o->location) {
-							$json->{$k}->location = '';
 
-						}
+			/**
+			 * forum : 6300
+			 * allow multiple alamrs to share a location
+			 */
 
-					}
+			// if ( isset( $info->location) && $info->location) {
+			// 	// must be unique
+			// 	foreach ( $json as $k => $o) {
+			// 		if ( isset( $o->location)) {
+			// 			if ( $info->location == $o->location) {
+			// 				$json->{$k}->location = '';
 
-				}
+			// 			}
 
-			}
+			// 		}
+
+			// 	}
+
+			// }
 
       $json->{$file} = $info;
       $this->_setInfo( $dto, $json);

@@ -17,6 +17,7 @@ use smokealarm;
 
 class postUpdate extends dvc\service {
   protected function _upgrade() {
+    config::route_register( 'photolog', 'photolog\\controller');
     config::route_register( 'people', 'green\\people\\controller');
     // config::route_register( 'property', 'green\\properties\\controller'); // for some cms compatibility
     config::route_register( 'properties', 'green\\properties\\controller');

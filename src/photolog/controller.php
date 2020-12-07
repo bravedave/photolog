@@ -626,8 +626,11 @@ class controller extends \Controller {
 		//~ $default = sprintf( '%sdefault.jpg', \config::photologStore());
 
 		if ( $id = (int)$id) {
+			sys::logger( sprintf( 'property_photolog/img/%d : %s', $id, __METHOD__));
+
 			if ( $img = $this->getParam( 'img')) {
-				//~ sys::logger( sprintf( 'property_photolog/img/%d - %s', $id, $img));
+				sys::logger( sprintf( 'property_photolog/img/%d - %s : %s', $id, $img, __METHOD__));
+
 				if ( !( preg_match( '@(\.\.|\/)@', $img)) && preg_match( '@.(png|jp[e]?g|mov|mp4|pdf)$@i', $img)) {
 					$dao = new dao\property_photolog;
 					$path = $dao->store( $id);

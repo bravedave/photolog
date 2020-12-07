@@ -164,19 +164,23 @@ $(document).ready( () => { ( _ => {
 				_.growl( d)
 
 				if ( 'ack' == d.response) {
-					$.each( allCards, (i, card) => {
-						let _me = $(card);
-						let _data = _me.data();
+					/**
+					* forum : 6300
+					* allow multiple alamrs to share a location
+					*/
+					// $.each( allCards, (i, card) => {
+					// 	let _me = $(card);
+					// 	let _data = _me.data();
 
-						console.log( 'check', _data.file);
+					// 	console.log( 'check', _data.file);
 
-						if ( _data.file.location == location) {
-							_data.file.location = '';
-							_me.data('file', _data.file);
+					// 	if ( _data.file.location == location) {
+					// 		_data.file.location = '';
+					// 		_me.data('file', _data.file);
 
-						}
+					// 	}
 
-					});
+					// });
 
 					_data.file.location = location;
 					_me.data('file', _data.file);
