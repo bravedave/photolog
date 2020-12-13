@@ -278,7 +278,7 @@ class utility {
 		imagettftext( $dstImg, 14, 0, $dst_x, $newheight-10, $textcolor, $font_path, $timestamp);	// print text on image
 
 		imagejpeg( $dstImg, $target, 90);
-		chmod( $dstImg, 0666);
+		chmod( $target, 0666);
 		imagedestroy( $srcImg);
 		imagedestroy( $dstImg);
 		imagedestroy( $stamp);

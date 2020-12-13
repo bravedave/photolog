@@ -54,6 +54,27 @@ $(document).ready( () => { ( _ => {
   let smokeAlarms = [];
 	let allCards = [];
 
+	let confirmDeleteAction = () => {
+		return new Promise( resolve => {
+			_.ask({
+				headClass: 'text-white bg-danger',
+				text: 'Are you sure ?',
+				title: 'Confirm Delete',
+				buttons : {
+					yes : function(e) {
+						$(this).modal('hide');
+						resolve();
+
+					}
+
+				}
+
+			});
+
+		});
+
+	};
+
 	let displayCard = ( file) => {
 		let col = $('<div class="col-sm-4 col-md-3 col-xl-2 mb-1"></div>');
 		let card = $('<div class="card"></div>').appendTo( col);
@@ -69,7 +90,11 @@ $(document).ready( () => { ( _ => {
 		let openLink = $('<a target="_blank" title="open in new tab" class="px-2 btn btn-light btn-sm"><i class="fa fa-external-link"></i></a>').attr( 'href', file.url + '&v=full');
 		//~ let downloadLink = $('<a title="download" class="px-2 btn btn-light btn-sm"><i class="fa fa-download"></i></a>').attr( 'download', file.description).attr( 'href', file.url);
 			//~ $('<li class="list-inline-item"></li>').append( downloadLink).appendTo( menu);
-		let deleteLink = $('<button data-delete type="button" title="delete" class="px-2 btn btn-light btn-sm"><i class="fa fa-trash"></i></button>').on( 'click', function( e) {
+
+		let deleteLink = $('<button data-delete type="button" title="delete" class="px-2 btn btn-light btn-sm"><i class="fa fa-trash"></i></button>')
+
+		deleteLink
+		.on( 'delete-confirmed', function( e) {
 			_.post({
 				url : _.url('<?= $this->route ?>'),
 				data : {
@@ -80,17 +105,22 @@ $(document).ready( () => { ( _ => {
 				}
 
 			})
-			.then( function( d) {
+			.then( d => {
 				_.growl( d);
-				if ( 'ack' == d.response) {
-					col.remove();
 
-				}
+				if ( 'ack' == d.response) col.remove();
 
 				allDeleteVisibility();
 				allDownloadVisibility();
 
 			});
+
+		})
+		.on( 'click', function( e) {
+			e.stopPropagation();
+
+			let _me = $(this);
+			confirmDeleteAction().then( () => _me.trigger('delete-confirmed'));
 
 		});
 
@@ -264,10 +294,24 @@ $(document).ready( () => { ( _ => {
 
 	let bRow = $('<div class="row"></div>').appendTo( cContainer);
 	let bCol = $('<div class="col text-center"></div>').appendTo( bRow);
-	$('<div class="btn-group"></div>').appendTo( bCol).append( allDownload).append( allDelete).append( btnNotepad);
 
-	allDelete.on( 'click', function( e) {
-		$('button[data-delete]').each( function( i, el) { el.click(); });
+	$('<div class="btn-group"></div>')
+	.append( allDownload)
+	.append( allDelete)
+	.append( btnNotepad)
+	.appendTo( bCol);
+
+	allDelete.on( 'click', e => {
+		e.stopPropagation();
+
+		confirmDeleteAction()
+		.then( () => {
+			$('button[data-delete]').each( (i,el) => {
+				$(el).trigger('delete-confirmed');
+
+			});
+
+		});
 
 	});
 
@@ -338,10 +382,7 @@ $(document).ready( () => { ( _ => {
 	<?php	}	// if ( !$diskSpace->exceeded)	?>
 
 
-	(cards => {
-		$.each( cards, ( i, file) => displayCard( file));
-
-	})( <?= json_encode( $this->data->files) ?>);
+	(cards => $.each( cards, ( i, file) => displayCard( file)))( <?= json_encode( $this->data->files) ?>);
 
 	_.post({
 		url : _.url('<?= $this->route ?>'),
