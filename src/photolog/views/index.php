@@ -76,7 +76,7 @@
 
 			<li class="nav-item">
 				<a class="nav-link" href="<?= strings::url( sprintf( '%s/?property=%d', $this->route, $this->data->dto->property_id)); ?>">
-					<i class="fa fa-level-up"></i>
+					<i class="bi bi-arrow-left-short"></i>
 					<?= $this->data->dto->address_street ?>
 
 				</a>
@@ -118,7 +118,7 @@
 			</li>
 
 			<li class="nav-item"><a class="nav-link" href="<?= strings::url($this->route); ?>">
-				<i class="fa fa-level-up"></i>
+				<i class="bi bi-arrow-left-short"></i>
 				list all
 
 			</a></li>
@@ -170,11 +170,11 @@
 		<div class="row">
 			<div class="col">
 				<div class="btn-group btn-group-sm d-flex" aria-label="Public link toolbar">
-					<button class="btn btn-light flex-fill" type="button" title="copy to clipboard" id="<?= $uid ?>copy"><i class="fa fa-clipboard"></i></button>
-					<button class="btn btn-light flex-fill" type="button" title="clear link" id="<?= $uid ?>clear"><i class="fa fa-trash"></i></button>
-					<button class="btn btn-light flex-fill" type="button" title="email link" id="<?= $uid ?>email"><i class="fa fa-send-o"></i></button>
-					<button class="btn btn-light flex-fill" type="button" title="regenerate link" id="<?= $uid ?>regenerate"><i class="fa fa-recycle"></i></button>
-					<button class="btn btn-light flex-fill" type="button" title="view on portal" id="<?= $uid ?>view"><i class="fa fa-external-link"></i></button>
+					<button class="btn btn-light flex-fill" type="button" title="copy to clipboard" id="<?= $uid ?>copy"><i class="bi bi-clipboard"></i></button>
+					<button class="btn btn-light flex-fill" type="button" title="clear link" id="<?= $uid ?>clear"><i class="bi bi-trash"></i></button>
+					<button class="btn btn-light flex-fill" type="button" title="email link" id="<?= $uid ?>email"><i class="bi bi-cursor"></i></button>
+					<button class="btn btn-light flex-fill" type="button" title="regenerate link" id="<?= $uid ?>regenerate"><i class="bi bi-arrow-repeat"></i></button>
+					<button class="btn btn-light flex-fill" type="button" title="view on portal" id="<?= $uid ?>view"><i class="bi bi-box-arrow-up-right></i></button>
 
 				</div>
 

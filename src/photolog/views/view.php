@@ -83,15 +83,11 @@ $(document).ready( () => { ( _ => {
 
 		let img = $('<img class="card-img-top" data-logimage />').attr( 'title', file.description).attr( 'src', file.url).appendTo( card);
 
-		//~ console.log( file.url);
-
 		let body = $('<div class="card-body py-1"></div>').appendTo( card);
 		let menu = $('<ul class="list-inline"></ul>');
-		let openLink = $('<a target="_blank" title="open in new tab" class="px-2 btn btn-light btn-sm"><i class="fa fa-external-link"></i></a>').attr( 'href', file.url + '&v=full');
-		//~ let downloadLink = $('<a title="download" class="px-2 btn btn-light btn-sm"><i class="fa fa-download"></i></a>').attr( 'download', file.description).attr( 'href', file.url);
-			//~ $('<li class="list-inline-item"></li>').append( downloadLink).appendTo( menu);
+		let openLink = $('<a target="_blank" title="open in new tab" class="px-2 btn btn-light btn-sm"><i class="bi bi-box-arrow-up-right"></i></a>').attr( 'href', file.url + '&v=full');
 
-		let deleteLink = $('<button data-delete type="button" title="delete" class="px-2 btn btn-light btn-sm"><i class="fa fa-trash"></i></button>')
+		let deleteLink = $('<button data-delete type="button" title="delete" class="px-2 btn btn-light btn-sm"><i class="bi bi-trash"></i></button>')
 
 		deleteLink
 		.on( 'delete-confirmed', function( e) {
@@ -260,7 +256,7 @@ $(document).ready( () => { ( _ => {
 
 					});
 
-					if ( _data.file.location == alarm.location) ctrl.prepend( '<i class="fa fa-check"></i>');
+					if ( _data.file.location == alarm.location) ctrl.prepend( '<i class="bi bi-check"></i>');
 
 					_context.append( ctrl);
 
@@ -287,10 +283,10 @@ $(document).ready( () => { ( _ => {
 	let c = _.fileDragDropContainer({fileControl : true}).appendTo( cContainer);
 	<?php	}	?>
 
-	let allDownload =  $('<a title="download zip" class="px-2 btn btn-light btn-sm d-none"><i class="fa fa-fw fa-download" title="download as zip file"></i>Zip</a>').attr( 'href', _.url('<?= $this->route ?>/zip/<?= $dto->id ?>'));
+	let allDownload =  $('<a title="download zip" class="px-2 btn btn-light btn-sm d-none"><i class="bi bi-download" title="download as zip file"></i>Zip</a>').attr( 'href', _.url('<?= $this->route ?>/zip/<?= $dto->id ?>'));
 
-	let allDelete =  $('<button title="delete all" class="px-2 btn btn-light btn-sm d-none"><i class="fa fa-fw fa-trash"></i>Delete All</button>');
-	let btnNotepad =  $('<button title="notepad" class="px-2 btn btn-light btn-sm"><i class="fa fa-fw fa-pencil"></i>note</button>');
+	let allDelete =  $('<button title="delete all" class="px-2 btn btn-light btn-sm d-none"><i class="bi bi-trash"></i> Delete All</button>');
+	let btnNotepad =  $('<button title="notepad" class="px-2 btn btn-light btn-sm"><i class="bi bi-pencil"></i> note</button>');
 
 	let bRow = $('<div class="row"></div>').appendTo( cContainer);
 	let bCol = $('<div class="col text-center"></div>').appendTo( bRow);
