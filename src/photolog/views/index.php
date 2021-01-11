@@ -23,7 +23,7 @@ $_uidCarousel = false;	?>
 
 			</li>
 			<script>
-			$(document).ready( () => { ( _ => {
+			( _ => $(document).ready( () => {
 				_.post({
 					url : _.url( '<?= $this->route ?>'),
 					data : {
@@ -32,7 +32,7 @@ $_uidCarousel = false;	?>
 
 					}
 
-				}).then( function( d) {
+				}).then( d => {
 					if ( 'ack' == d.response) {
 						//~ console.table( d.data);
 						if ( d.data.length > 0) {
@@ -52,17 +52,14 @@ $_uidCarousel = false;	?>
 
 						}
 
-					}
-					else {
-						_.growl( d);
-
-					}
+					} else { _.growl( d); }
 
 				});
 
-			}) (_brayworth_); });
+			}))( _brayworth_);
 			</script>
 
+			<li class="nav-item"><a class="nav-link" href="#" id="<?= $_uidCarousel = strings::rand()  ?>" data-title="<?= htmlentities( $this->data->dto->address_street) ?>">carousel</a></li>
 			<li class="nav-item"><a class="nav-link" href="<?= strings::url('property/view/' . $this->data->referer->id); ?>"><?= $this->data->referer->address_street ?></a></li>
 
 		<?php
