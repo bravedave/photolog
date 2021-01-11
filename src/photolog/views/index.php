@@ -83,7 +83,7 @@
 
 			</li>
 
-			<li class="nav-item"><a class="nav-link" href="#" carousel data-title=<?= json_encode( $this->data->dto->address_street, JSON_UNESCAPED_SLASHES) ?>>carousel</a></li>
+			<li class="nav-item"><a class="nav-link" href="#" id="<?= $_uidCarousel = strings::rand()  ?>" data-title="<?= htmlentities( $this->data->dto->address_street) ?>">carousel</a></li>
 
 			<li class="nav-item"><a class="nav-link" href="#" id="<?= $uid = strings::rand() ?>">add entry on <?= $this->data->dto->address_street ?></a></li>
 			<script>
@@ -174,7 +174,7 @@
 					<button class="btn btn-light flex-fill" type="button" title="clear link" id="<?= $uid ?>clear"><i class="bi bi-trash"></i></button>
 					<button class="btn btn-light flex-fill" type="button" title="email link" id="<?= $uid ?>email"><i class="bi bi-cursor"></i></button>
 					<button class="btn btn-light flex-fill" type="button" title="regenerate link" id="<?= $uid ?>regenerate"><i class="bi bi-arrow-repeat"></i></button>
-					<button class="btn btn-light flex-fill" type="button" title="view on portal" id="<?= $uid ?>view"><i class="bi bi-box-arrow-up-right></i></button>
+					<button class="btn btn-light flex-fill" type="button" title="view on portal" id="<?= $uid ?>view"><i class="bi bi-box-arrow-up-right"></i></button>
 
 				</div>
 
@@ -298,8 +298,8 @@
 
 </ul>
 <script>
-$(document).ready( () => { ( _ => {
-	$('a[carousel]').on( 'click', function( e) {
+( _ => {
+	$('#<?= $_uidCarousel ?>').on( 'click', function( e) {
 		e.stopPropagation(); e.preventDefault();
 
 		let _me = $(this);
@@ -315,7 +315,7 @@ $(document).ready( () => { ( _ => {
 			ctrl.append( '<a class="carousel-control-next" href="#' + id + '" role="button" data-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span><span class="sr-only">Next</span></a>');
 
 			let first = true;
-			imgs.each( function( i, el) {
+			imgs.each( (i,el) => {
 				let img = $(el);
 
 				let _indicator = $('<li data-target="#' + id + '" data-slide-to="' + i + '"></li>').appendTo( indicators);
@@ -330,23 +330,17 @@ $(document).ready( () => { ( _ => {
 
 			});
 
-			_.modal({
-				beforeOpen : function() {
-					let modal = this;
-					$( '.modal-dialog', modal).addClass( 'modal-lg');
-					$( '.modal-title', modal).html( _me.data( 'title'));
-					$( '.modal-body', modal).append( ctrl);
-					ctrl.carousel('cycle');
-
-				}
+			_.get.modal().then( modal => {
+				$( '.modal-dialog', modal).addClass( 'modal-lg');
+				$( '.modal-title', modal).html( _me.data( 'title'));
+				$( '.modal-body', modal).append( ctrl);
+				ctrl.carousel('cycle');
 
 			});
 
 		}
 
-		//~ console.log( imgs);
-
 	});
 
-}) (_brayworth_); });
+})( _brayworth_);
 </script>
