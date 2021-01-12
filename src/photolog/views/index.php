@@ -59,7 +59,7 @@ $_uidCarousel = false;	?>
 			}))( _brayworth_);
 			</script>
 
-			<li class="nav-item"><a class="nav-link" href="#" id="<?= $_uidCarousel = strings::rand()  ?>" data-title="<?= htmlentities( $this->data->dto->address_street) ?>">carousel</a></li>
+			<li class="nav-item"><a class="nav-link" href="#" id="<?= $_uidCarousel = strings::rand()  ?>">carousel</a></li>
 			<li class="nav-item"><a class="nav-link" href="<?= strings::url('property/view/' . $this->data->referer->id); ?>"><?= $this->data->referer->address_street ?></a></li>
 
 		<?php
@@ -82,7 +82,7 @@ $_uidCarousel = false;	?>
 
 			</li>
 
-			<li class="nav-item"><a class="nav-link" href="#" id="<?= $_uidCarousel = strings::rand()  ?>" data-title="<?= htmlentities( $this->data->dto->address_street) ?>">carousel</a></li>
+			<li class="nav-item"><a class="nav-link" href="#" id="<?= $_uidCarousel = strings::rand() ?>">carousel</a></li>
 
 			<li class="nav-item"><a class="nav-link" href="#" id="<?= $uid = strings::rand() ?>">add entry on <?= $this->data->dto->address_street ?></a></li>
 			<script>
@@ -296,44 +296,7 @@ $_uidCarousel = false;	?>
 	<?php	if ( $_uidCarousel) {	?>
 		$('#<?= $_uidCarousel ?>').on( 'click', function( e) {
 			e.stopPropagation(); e.preventDefault();
-
-			let _me = $(this);
-			let imgs = $('img.card-img-top');
-
-			if ( imgs.length > 0) {
-				let id = 'carousel_' + String( Math.ceil( Math.random() * 10000));
-				let ctrl = $('<div class="carousel slide" data-interval="5000"></div>').attr( 'id', id);
-				let indicators = $('<ol class="carousel-indicators"></ol>').appendTo( ctrl);
-				let inner = $('<div class="carousel-inner"></div>').appendTo( ctrl);
-
-				ctrl.append( '<a class="carousel-control-prev" href="#' + id + '" role="button" data-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="sr-only">Previous</span></a>');
-				ctrl.append( '<a class="carousel-control-next" href="#' + id + '" role="button" data-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span><span class="sr-only">Next</span></a>');
-
-				let first = true;
-				imgs.each( (i,el) => {
-					let img = $(el);
-
-					let _indicator = $('<li data-target="#' + id + '" data-slide-to="' + i + '"></li>').appendTo( indicators);
-					let envelope = $( '<div class="carousel-item"></div>').appendTo( inner);
-					$( '<img class="d-block w-100" alt="..." />').attr( 'src', img.attr( 'src')).appendTo( envelope);
-					if ( first) {
-						_indicator.addClass('active');
-						envelope.addClass('active');
-
-					}
-					first = false;
-
-				});
-
-				_.get.modal().then( modal => {
-					$( '.modal-dialog', modal).addClass( 'modal-lg');
-					$( '.modal-title', modal).html( _me.data( 'title'));
-					$( '.modal-body', modal).append( ctrl);
-					ctrl.carousel('cycle');
-
-				});
-
-			}
+			$(document).trigger( 'photolog-carousel');
 
 		});
 
