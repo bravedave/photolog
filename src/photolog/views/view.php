@@ -237,7 +237,7 @@ $(document).ready( () => { ( _ => {
 			let _context = _.context();
 
 			_context.append(
-				$('<a target="_blank" title="open in new tab"><i class="bi bi-image"></i>Start Carousel</a>')
+				$('<a href="#" title="open in new tab"><i class="bi bi-collection-play"></i>Start Carousel</a>')
 				.on( 'click', function( e) {
 					e.stopPropagation();e.preventDefault();
 
