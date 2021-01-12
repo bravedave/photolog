@@ -76,8 +76,7 @@ $(document).ready( () => { ( _ => {
 	};
 
 	let displayCard = ( file) => {
-		let col = $('<div class="col-sm-4 col-md-3 col-xl-2 mb-1"></div>');
-		let card = $('<div class="card"></div>').appendTo( col);
+		let card = $('<div class="card"></div>');
 
 		allCards.push( card);
 
@@ -86,56 +85,9 @@ $(document).ready( () => { ( _ => {
 		img
 		.attr( 'title', file.description)
 		.attr( 'src', file.url)
-		.appendTo( card)
-		.on( 'click', function( e) {
-			e.stopPropagation();e.preventDefault();
-
-			let _me = $(this);
-
-			$(document).trigger( 'photolog-carousel', file.description);
-
-		});
+		.appendTo( card);
 
 		let body = $('<div class="card-body px-2 py-1"></div>').appendTo( card);
-		// let menu = $('<ul class="list-inline"></ul>');
-		// let openLink = $('<a target="_blank" title="open in new tab" class="px-2 btn btn-light btn-sm"><i class="bi bi-box-arrow-up-right"></i></a>').attr( 'href', file.url + '&v=full');
-
-		// let deleteLink = $('<button data-delete type="button" title="delete" class="px-2 btn btn-light btn-sm"><i class="bi bi-trash"></i></button>')
-
-		// deleteLink
-		// .on( 'delete-confirmed', function( e) {
-		// 	_.post({
-		// 		url : _.url('<?= $this->route ?>'),
-		// 		data : {
-		// 			action : 'delete',
-		// 			id : <?= $dto->id ?>,
-		// 			file : file.description,
-
-		// 		}
-
-		// 	})
-		// 	.then( d => {
-		// 		_.growl( d);
-
-		// 		if ( 'ack' == d.response) col.remove();
-
-		// 		allDeleteVisibility();
-		// 		allDownloadVisibility();
-
-		// 	});
-
-		// })
-		// .on( 'click', function( e) {
-		// 	e.stopPropagation();
-
-		// 	let _me = $(this);
-		// 	confirmDeleteAction().then( () => _me.trigger('delete-confirmed'));
-
-		// });
-
-		// $('<li class="list-inline-item"></li>').append( openLink).appendTo( menu);
-		// $('<li class="list-inline-item"></li>').append( deleteLink).appendTo( menu);
-		// $('<li class="list-inline-item text-truncate small" style="max-width: 100%;"></li>').attr( 'title', file.description).prependTo( menu);
 
 		$('<div class="card-title text-truncate"></div>')
 		.html( file.description)
@@ -154,7 +106,7 @@ $(document).ready( () => { ( _ => {
 
 		}
 
-		col.appendTo('#<?= $uid ?>row');
+		$('<div class="col-sm-4 col-md-3 col-xl-2 mb-1"></div>').append( card).appendTo('#<?= $uid ?>row');
 
 		allDeleteVisibility();
 		allDownloadVisibility();
@@ -185,6 +137,14 @@ $(document).ready( () => { ( _ => {
 				}
 
 			});
+
+		})
+		.on( 'click', function( e) {
+			e.stopPropagation();e.preventDefault();
+
+			let _me = $(this);
+			let _data = _me.data();
+			$(document).trigger( 'photolog-carousel', _data.file.description);
 
 		})
 		.on( 'delete', function( e) {
@@ -278,13 +238,21 @@ $(document).ready( () => { ( _ => {
 
 			_context.append(
 				$('<a target="_blank" title="open in new tab"><i class="bi bi-image"></i>Start Carousel</a>')
-				.attr( 'href', _data.file.url + '&v=full')
+				.on( 'click', function( e) {
+					e.stopPropagation();e.preventDefault();
+
+
+					$(document).trigger( 'photolog-carousel', _data.file.description);
+					_context.close();
+
+				})
 
 			);
 
 			_context.append(
 				$('<a target="_blank" title="open in new tab"><i class="bi bi-box-arrow-up-right"></i>Open in new Window</a>')
 				.attr( 'href', _data.file.url + '&v=full')
+				.on( 'click', e => _context.close())
 
 			);
 
