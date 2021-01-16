@@ -170,7 +170,7 @@ $(document).ready( () => { ( _ => {
 			.then( d => {
 				_.growl( d);
 
-				if ( 'ack' == d.response) col.remove();
+				if ( 'ack' == d.response) _me.parent().remove();
 
 				allDeleteVisibility();
 				allDownloadVisibility();
