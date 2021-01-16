@@ -217,7 +217,7 @@ class property_photolog extends _dao {
       if ( is_dir( $queue = $path . '/queue')) {
         $_files = new FilesystemIterator( $queue);
         foreach($_files as $file) {
-          if ( preg_match( '@(png|jp[e]?g)$@i', $file->getExtension())) {
+          if ( preg_match( '@(heic|png|jp[e]?g)$@i', $file->getExtension())) {
 
             $parts = pathinfo( $file->getRealpath());
             $errfile = sprintf( '%s/%s.err',

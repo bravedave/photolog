@@ -324,6 +324,21 @@ class utility {
 				if ( is_dir( $path)) {
 					$files = new \FilesystemIterator( $path . '/queue');
 					foreach($files as $file) {
+						if ( 'heic' == $file->getExtension()) {
+							\sys::logger( sprintf('<%s> %s', 'heic file', __METHOD__));
+							$imagick = new \Imagick();
+							$jpg = \preg_replace( '@\.heic$@i', '.jpg', $file->getPathname());
+							$imagick->readImage($file->getPathname());
+							$imagick->writeImage($jpg);
+
+							unlink( $file->getPathname());
+
+						}
+
+					}
+
+					$files = new \FilesystemIterator( $path . '/queue');
+					foreach($files as $file) {
 						if ( preg_match( '@(jp[e]?g|png)$@i', $file->getExtension())) {
 							if ( 10 < $file->getSize()) {
 								$stamped = sprintf( '%s/%s', $path, $file->getFilename());

@@ -474,7 +474,9 @@ class controller extends \Controller {
 					$response = [
 						'response' => 'ack',
 						'description' => '',
-						'files' => []	];
+						'files' => []
+
+					];
 
 					foreach ( $_FILES as $file ) {
 						set_time_limit( 60);
@@ -487,10 +489,12 @@ class controller extends \Controller {
 
 						}
 						elseif ( is_uploaded_file( $file['tmp_name'] )) {
-							$strType = $file['type'];
+							// $strType = $file['type'];
+							$strType = mime_content_type ( $file['tmp_name']);
 							if ( $debug) sys::logger( sprintf( '<%s (%s)> %s', $file['name'], $strType, __METHOD__));
 
 							$videoTypes = [ 'video/quicktime', 'video/mp4'];
+
 							$accept = [
 								'application/pdf',
 								'image/jpeg',
@@ -500,6 +504,14 @@ class controller extends \Controller {
 								'video/mp4'
 
 							];
+
+							/** heic are not current supported on fedora */
+							if ( config::enable_heic) {
+								$accept[] = 'image/heic';
+								$accept[] = 'image/heif';
+
+							}
+
 							if ( in_array( $strType, $accept)) {
 								if ( $debug) sys::logger( sprintf( '<%s (%s) acceptable> : %s', $file['name'], $strType, __METHOD__));
 								$source = $file['tmp_name'];
@@ -556,6 +568,7 @@ class controller extends \Controller {
 
 							}
 							else {
+								\sys::logger( sprintf('<file type not permitted : %s> %s', $strType, __METHOD__));
 								sys::notifySupport( 'CMS Error', sprintf( 'Trying to upload File Type %s in %s', $strType, __METHOD__));
 
 								$response['response'] = 'nak';
@@ -631,7 +644,7 @@ class controller extends \Controller {
 			if ( $img = $this->getParam( 'img')) {
 				// sys::logger( sprintf( 'property_photolog/img/%d - %s : %s', $id, $img, __METHOD__));
 
-				if ( !( preg_match( '@(\.\.|\/)@', $img)) && preg_match( '@.(png|jp[e]?g|mov|mp4|pdf)$@i', $img)) {
+				if ( !( preg_match( '@(\.\.|\/)@', $img)) && preg_match( '@.(png|jp[e]?g|mov|mp4|pdf|heic)$@i', $img)) {
 					$dao = new dao\property_photolog;
 					$path = $dao->store( $id);
 
