@@ -506,7 +506,7 @@ class controller extends \Controller {
 							];
 
 							/** heic are not current supported on fedora */
-							if ( config::enable_heic) {
+							if ( config::photolog_enable_heic) {
 								$accept[] = 'image/heic';
 								$accept[] = 'image/heif';
 
