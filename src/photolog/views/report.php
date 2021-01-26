@@ -14,12 +14,12 @@ $uid = strings::rand();	?>
 <table class="table table-sm" id="<?= $uid ?>" data-role="photolog-table">
 	<thead class="small">
 		<tr>
-			<td role="sort-header" data-key="date">date</td>
-			<td>address</td>
-			<td role="sort-header" data-key="subject">subject</td>
-			<td role="sort-header" data-key="files" data-sorttype="numeric">files</td>
-			<td role="sort-header" data-key="size" data-sorttype="numeric">size</td>
-			<td>updated</td>
+			<td data-role="sort-header" data-key="date">date</td>
+			<td class="d-none d-md-table-cell">address</td>
+			<td data-role="sort-header" data-key="subject">subject</td>
+			<td class="text-center" data-role="sort-header" data-key="files" data-sorttype="numeric">files</td>
+			<td class="text-center" data-role="sort-header" data-key="size" data-sorttype="numeric">size</td>
+			<td class="d-none d-md-table-cell">updated</td>
 
 		</tr>
 
@@ -43,9 +43,12 @@ $uid = strings::rand();	?>
 			class="<?= (bool)$dto->files->errors ? 'text-danger' : '' ?>"
 			>
 			<td><?= strings::asShortDate( $dto->date) ?></td>
-			<td data-address><?= strings::GoodStreetString( $dto->address_street) ?></td>
-			<td><?= $dto->subject ?></td>
-			<td><?php
+			<td  class="d-none d-md-table-cell" data-address><?= strings::GoodStreetString( $dto->address_street) ?></td>
+			<td>
+				<?= $dto->subject ?>
+				<div class="d-md-none text-muted small font-italic"><?= strings::GoodStreetString( $dto->address_street) ?></div>
+			</td>
+			<td class="text-center"><?php
 
 				$totProcessed += $dto->files->processed;
 				$totQueued += $dto->files->queued;
@@ -57,7 +60,7 @@ $uid = strings::rand();	?>
 				}
 
 			?></td>
-			<td><?php
+			<td class="text-center"><?php
 
 				$totSize += $dto->files->dirSize;
 				if ( $dto->files->dirSize > 1024000) {
@@ -74,7 +77,7 @@ $uid = strings::rand();	?>
 				}
 
 			?></td>
-			<td><?= strings::asShortDate( $dto->updated) ?></td>
+			<td class="d-none d-md-table-cell"><?= strings::asShortDate( $dto->updated) ?></td>
 
 		</tr>
 
@@ -88,8 +91,9 @@ $uid = strings::rand();	?>
 
 	<tfoot>
 		<tr>
-			<td colspan="3">&nbsp;</td>
-			<td><?php
+			<td class="d-none d-md-table-cell">&nbsp;</td>
+			<td colspan="2">&nbsp;</td>
+			<td class="text-center"><?php
 				print number_format( $totFiles);
 				if ( $totQueued > 0) {
 					printf( '<sup title="processed/unprocessed">(%d/%d)</sup>', $totProcessed, $totQueued );
@@ -97,7 +101,7 @@ $uid = strings::rand();	?>
 				}
 
 			?></td>
-			<td><?php
+			<td class="text-center"><?php
 				if ( $totSize > 1024000) {
 					printf( '%dG', $totSize / 1024000 );
 
@@ -112,7 +116,7 @@ $uid = strings::rand();	?>
 				}
 
 			?></td>
-			<td>&nbsp;</td>
+			<td class="d-none d-md-table-cell">&nbsp;</td>
 		</tr>
 
 	</tfoot>
