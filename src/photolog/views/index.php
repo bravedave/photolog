@@ -116,13 +116,15 @@ $_uidCarousel = false;	?>
 
 			</li>
 
-			<li class="nav-item"><a class="nav-link" href="<?= strings::url($this->route); ?>">
-				<i class="bi bi-arrow-left-short"></i>
-				list all
+			<li class="nav-item">
+				<a class="nav-link" href="<?= strings::url($this->route); ?>"><i class="bi bi-arrow-left-short"></i> list all</a>
 
-			</a></li>
+			</li>
 
-			<li class="nav-item"><a class="nav-link" href="#" id="<?= $uid = strings::rand() ?>">add entry on <?= $this->data->referer->address_street ?></a></li>
+			<li class="nav-item">
+				<a class="nav-link" href="#" id="<?= $uid = strings::rand() ?>"><i class="bi bi-plus"></i> add entry on <?= $this->data->referer->address_street ?></a>
+
+			</li>
 			<script>
 			( _ => $(document).ready( () => {
 				$('#<?= $uid ?>').on( 'click', e => {
