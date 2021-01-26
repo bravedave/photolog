@@ -15,11 +15,11 @@ $uid = strings::rand(); ?>
 	<thead class="small">
 		<tr>
 			<td class="align-bottom text-center" line-number>#</td>
-			<td role="sort-header" data-key="suburb">suburb</td>
-			<td role="sort-header" data-key="address">address</td>
-			<td role="sort-header" data-key="entries" data-sorttype="numeric" style="width: 17%;">entries</td>
-			<td role="sort-header" data-key="files" data-sorttype="numeric" style="width: 17%;">files</td>
-			<td role="sort-header" data-key="size" data-sorttype="numeric" style="width: 17%;">size</td>
+			<td class="d-none d-md-table-cell" data-role="sort-header" data-key="suburb">suburb</td>
+			<td data-role="sort-header" data-key="address">address</td>
+			<td class="text-center" data-role="sort-header" data-key="entries" data-sorttype="numeric" style="width: 17%;">entries</td>
+			<td class="text-center" data-role="sort-header" data-key="files" data-sorttype="numeric" style="width: 17%;">files</td>
+			<td class="text-center" data-role="sort-header" data-key="size" data-sorttype="numeric" style="width: 17%;">size</td>
 
 		</tr>
 
@@ -42,14 +42,18 @@ $uid = strings::rand(); ?>
 			class="<?= (bool)$dto->files->errors ? 'text-danger' : '' ?>"
 			>
 			<td class="text-center" line-number>&nbsp;&nbsp;</td>
-			<td><?=  $dto->address_suburb ?></td>
-			<td data-role="address_street"><?=  $dto->address_street ?></td>
-      <td><?php
+			<td class="d-none d-md-table-cell"><?=  $dto->address_suburb ?></td>
+			<td data-role="address_street">
+				<?=  $dto->address_street ?>
+				<div class="d-md-none small text-muted font-italic"><?=  $dto->address_suburb ?></div>
+
+			</td>
+      <td class="text-center"><?php
         $entries += (int)$dto->entries;
         print $dto->entries;
 
       ?></td>
-			<td><?php
+			<td class="text-center"><?php
 
 				$totFiles += $dto->files->total;
 				$totProcessed += $dto->files->processed;
@@ -61,7 +65,7 @@ $uid = strings::rand(); ?>
 				}
 
 			?></td>
-			<td><?php
+			<td class="text-center"><?php
 
 				$totSize += $dto->files->dirSize;
 				if ( $dto->files->dirSize > 1024000) {
@@ -90,9 +94,10 @@ $uid = strings::rand(); ?>
 
 	<tfoot>
 		<tr>
-			<td colspan="3">&nbsp;</td>
-			<td><?= number_format( $entries) ?></td>
-			<td><?php
+			<td class="d-none d-md-table-cell">&nbsp;</td>
+			<td colspan="2">&nbsp;</td>
+			<td class="text-center"><?= number_format( $entries) ?></td>
+			<td class="text-center"><?php
 				print number_format( $totFiles);
 				if ( $totQueued > 0) {
 					printf( '<sup title="processed/unprocessed">(%d/%d)</sup>', $totProcessed, $totQueued );
@@ -101,7 +106,7 @@ $uid = strings::rand(); ?>
 
 			?></td>
 
-			<td><?php
+			<td class="text-center"><?php
 				if ( $totSize > 1024000) {
 					printf( '%0.1fG', $totSize / 1024000 );
 
@@ -120,6 +125,7 @@ $uid = strings::rand(); ?>
 
 	<?php	if ( $totFiles > 0) {	?>
 		<tr>
+			<td class="d-none d-md-table-cell">&nbsp;</td>
 			<td colspan="5"><em class="text-muteds  small">Average File Size: <?php
 				$av = $totSize / $totFiles;
 				if ( $av > 1024000) {
