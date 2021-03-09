@@ -47,6 +47,8 @@ use dvc\icon;    ?>
             <a class="dropdown-item" href="<?= strings::url('baths') ?>">Baths</a>
             <a class="dropdown-item" href="<?= strings::url('property_type') ?>">Property Type</a>
             <a class="dropdown-item" href="<?= strings::url('postcodes') ?>">Postcodes</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="<?= strings::url('info') ?>">Info</a>
 
           </div>
 

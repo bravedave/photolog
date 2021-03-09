@@ -18,7 +18,7 @@ class config extends \config {
 
 	const photolog_db_version = 0.01;
 
-	const photolog_enable_heic = false;
+	const photolog_enable_heic = true;
 
   static $PHOTOLOG_STAMP = __DIR__ . '/resources/images/stamp.png';
   static protected $_PHOTOLOG_VERSION = 0;

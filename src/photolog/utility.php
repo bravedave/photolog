@@ -326,7 +326,7 @@ class utility {
 					foreach($files as $file) {
 						if ( 'heic' == $file->getExtension()) {
 							\sys::logger( sprintf('<%s> %s', 'heic file', __METHOD__));
-							$imagick = new \Imagick();
+							$imagick = new \Imagick;
 							$jpg = \preg_replace( '@\.heic$@i', '.jpg', $file->getPathname());
 							$imagick->readImage($file->getPathname());
 							$imagick->writeImage($jpg);
@@ -339,9 +339,14 @@ class utility {
 
 					$files = new \FilesystemIterator( $path . '/queue');
 					foreach($files as $file) {
-						if ( preg_match( '@(jp[e]?g|png)$@i', $file->getExtension())) {
+						if ( preg_match( '@(jp[e]?g|jfif|png)$@i', $file->getExtension())) {
 							if ( 10 < $file->getSize()) {
 								$stamped = sprintf( '%s/%s', $path, $file->getFilename());
+								if ( preg_match( '@\.jfif$@', $stamped)) {
+									$stamped = preg_replace( '@\.jfif$@', '.jpg', $stamped);
+
+								}
+
 								$src = $file->getPathname();
 
 								if ( file_exists( $stamped )) unlink( $stamped );

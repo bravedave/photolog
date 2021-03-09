@@ -644,7 +644,7 @@ class controller extends \Controller {
 			if ( $img = $this->getParam( 'img')) {
 				// sys::logger( sprintf( 'property_photolog/img/%d - %s : %s', $id, $img, __METHOD__));
 
-				if ( !( preg_match( '@(\.\.|\/)@', $img)) && preg_match( '@.(png|jp[e]?g|mov|mp4|pdf|heic)$@i', $img)) {
+				if ( !( preg_match( '@(\.\.|\/)@', $img)) && preg_match( '@.(png|jp[e]?g|jfif|mov|mp4|pdf|heic)$@i', $img)) {
 					$dao = new dao\property_photolog;
 					$path = $dao->store( $id);
 

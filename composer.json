@@ -23,16 +23,12 @@
   "autoload": {
     "psr-4": {
       "photolog\\": "src/photolog/"
-
     }
-
   },
   "autoload-dev": {
     "psr-4": {
       "": "src/application/app/"
-
     }
-
   },
   "scripts": {
     "post-update-cmd": "photolog\\postUpdate::upgrade",

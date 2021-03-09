@@ -8,4 +8,11 @@
  *
 */
 
-class home extends photolog\controller {}
+class home extends photolog\controller {
+
+  public function info() {
+    phpinfo();
+
+  }
+
+}
