@@ -20,6 +20,10 @@
     "bravedave/green": "*",
     "bravedave/smokealarm": "*"
   },
+  "require-dev": {
+    "ext-apcu": "*",
+    "matthiasmullie/scrapbook": "*"
+  },
   "autoload": {
     "psr-4": {
       "photolog\\": "src/photolog/"

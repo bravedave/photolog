@@ -8,8 +8,8 @@
  *
 */
 
-namespace photolog\dao;
+namespace dao;
 
-use dao;
+use green;
 
-class properties extends dao\properties {}
+class properties extends green\properties\dao\properties {}
