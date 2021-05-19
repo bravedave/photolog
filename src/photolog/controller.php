@@ -639,10 +639,12 @@ class controller extends \Controller {
 		//~ $default = sprintf( '%sdefault.jpg', \config::photologStore());
 
 		if ( $id = (int)$id) {
-			// sys::logger( sprintf( 'property_photolog/img/%d : %s', $id, __METHOD__));
+
+			// sys::logger( sprintf( 'img/%d : %s', $id, __METHOD__));
 
 			if ( $img = $this->getParam( 'img')) {
-				// sys::logger( sprintf( 'property_photolog/img/%d - %s : %s', $id, $img, __METHOD__));
+
+				// sys::logger( sprintf( 'img/%d - %s: %s', $id, $img, __METHOD__));
 
 				if ( !( preg_match( '@(\.\.|\/)@', $img)) && preg_match( '@.(png|jp[e]?g|jfif|mov|mp4|pdf|heic)$@i', $img)) {
 					$dao = new dao\property_photolog;
@@ -651,16 +653,20 @@ class controller extends \Controller {
 					$_file = sprintf( '%s/%s', $path, $img);
 					$_queue = sprintf( '%s/queue/%s', $path, $img);
 					if ( file_exists( $_file)) {
-						if ( 'full' != $this->getParam('v') && 'application/pdf' == mime_content_type(  $_file)) {
-							sys::serve( sprintf( '%s/acrobat.png', config::imagePath()));
+						$mimetype = '';
+						if ( 'full' != $this->getParam('v')) $mimetype = mime_content_type(  $_file);
+
+						if ( 'full' != $this->getParam('v') && 'application/pdf' == $mimetype) {
+							// sys::logger( sprintf( '%s/resources/images/acrobat.png', __DIR__));
+							sys::serve( sprintf( '%s/resources/images/acrobat.png', __DIR__));
 
 						}
-						elseif ( 'full' != $this->getParam('v') && 'video/quicktime' == mime_content_type(  $_file)) {
-							sys::serve( sprintf( '%s/mov-extension-filetype.png', config::imagePath()));
+						elseif ( 'full' != $this->getParam('v') && 'video/quicktime' == $mimetype) {
+							sys::serve( sprintf( '%s/resources/images/mov-extension-filetype.png', __DIR__));
 
 						}
-						elseif ( 'full' != $this->getParam('v') && 'video/mp4' == mime_content_type(  $_file)) {
-							sys::serve( sprintf( '%s/mp4-extension-filetype.png', config::imagePath()));
+						elseif ( 'full' != $this->getParam('v') && 'video/mp4' == $mimetype) {
+							sys::serve( sprintf( '%s/resources/images/mp4-extension-filetype.png', __DIR__));
 
 						}
 						else {

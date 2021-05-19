@@ -397,12 +397,36 @@ $(document).ready( () => { ( _ => {
 	});
 
 	<?php	if ( !$diskSpace->exceeded) {	?>
+		// console.log( 'assign');
 	_.fileDragDropHandler.call( c, {
 		url : _.url( '<?= $this->route ?>'),
 		queue : true,
 		postData : {
 			action : 'upload',
 			id : <?= $dto->id ?>
+		},
+		accept:[
+			'application/pdf',
+			'image/jpeg',
+			'image/pjpeg',
+			'image/png',
+			'video/quicktime',
+			'video/mp4'
+
+		],
+		onError : d => {
+			console.log( 'error', d);
+
+		},
+		onReject : d => {
+			console.log( 'reject', d);
+			let alert = $('<div class="alert alert-danger"></div>');
+
+			alert.html( d.description);
+			$('<h5 class="alert-heading"></h5>').html( d.file.name).prependTo( alert);
+			alert.appendTo( cContainer);
+			// console.log( d.file);
+
 		},
 		onUpload : d => {
 			if ( 'ack' == d.response) {
@@ -427,9 +451,7 @@ $(document).ready( () => { ( _ => {
 
 	}).then( d => {
 		if ( 'ack' == d.response) {
-			// console.log( d.alarms);
 			smokeAlarms = d.alarms;
-			// _.growl( d);
 
 		}
 
