@@ -419,7 +419,7 @@ $(document).ready( () => { ( _ => {
 
 		},
 		onReject : d => {
-			console.log( 'reject', d);
+			// console.log( 'reject', d);
 			let alert = $('<div class="alert alert-danger"></div>');
 
 			alert.html( d.description);
