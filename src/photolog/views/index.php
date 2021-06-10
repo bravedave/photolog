@@ -15,13 +15,16 @@ $_uidCarousel = false;	?>
 	if ( isset( $this->data->dto) && $this->data->dto) {
 		if ( isset( $this->data->referer) && $this->data->referer) {	?>
 
-			<li class="nav-item" id="<?= $uid = strings::rand(); ?>">
+			<li class="nav-item">
 				<a href="<?= strings::url( sprintf( '%s/view/%d?f=%d', $this->route, $this->data->dto->id, $this->data->referer->id)); ?>">
 					<h6><?= $this->title ?> #<?= $this->data->dto->id ?></h6>
 
 				</a>
 
 			</li>
+			<li class="nav-item"><a class="nav-link" href="#" id="<?= $_uidCarousel = strings::rand()  ?>">carousel</a></li>
+			<li class="nav-item" id="<?= $uid = strings::rand(); ?>"><a class="nav-link" href="<?= strings::url('property/view/' . $this->data->referer->id); ?>"><?= $this->data->referer->address_street ?></a></li>
+
 			<script>
 			( _ => $(document).ready( () => {
 				_.post({
@@ -58,9 +61,6 @@ $_uidCarousel = false;	?>
 
 			}))( _brayworth_);
 			</script>
-
-			<li class="nav-item"><a class="nav-link" href="#" id="<?= $_uidCarousel = strings::rand()  ?>">carousel</a></li>
-			<li class="nav-item"><a class="nav-link" href="<?= strings::url('property/view/' . $this->data->referer->id); ?>"><?= $this->data->referer->address_street ?></a></li>
 
 		<?php
 		}
