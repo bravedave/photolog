@@ -512,6 +512,8 @@ class controller extends \Controller {
 
 							}
 
+							// \sys::logger( sprintf('<%s> %s', $strType, __METHOD__));
+
 							if ( in_array( $strType, $accept)) {
 								if ( $debug) sys::logger( sprintf( '<%s (%s) acceptable> : %s', $file['name'], $strType, __METHOD__));
 								$source = $file['tmp_name'];

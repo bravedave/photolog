@@ -8,6 +8,11 @@
  *
 */
 
+namespace photolog;
+
+use strings;
+use sys;
+
 $uid = strings::rand();
 $dto = $this->data->dto;
 
@@ -417,6 +422,7 @@ $diskSpace = sys::diskspace();
 					'image/png',
 					'video/quicktime',
 					'video/mp4'
+					<?= config::photolog_enable_heic ? ',\'image/heic\'' : '' ?>
 
 				],
 				onError: d => {

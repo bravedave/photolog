@@ -16,6 +16,7 @@
   "require": {
     "ext-gd": "*",
     "ext-zip": "*",
+    "ext-imagick": "*",
     "bravedave/dvc": "*",
     "bravedave/green": "*",
     "bravedave/smokealarm": "*"

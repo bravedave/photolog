@@ -324,7 +324,9 @@ class utility {
 				if ( is_dir( $path)) {
 					$files = new \FilesystemIterator( $path . '/queue');
 					foreach($files as $file) {
-						if ( 'heic' == $file->getExtension()) {
+						// \sys::logger( sprintf('<%s> %s', $file->getExtension(), __METHOD__));
+
+						if ( 'heic' == strtolower( $file->getExtension())) {
 							\sys::logger( sprintf('<%s> %s', 'heic file', __METHOD__));
 							$imagick = new \Imagick;
 							$jpg = \preg_replace( '@\.heic$@i', '.jpg', $file->getPathname());
