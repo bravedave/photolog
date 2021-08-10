@@ -12,11 +12,11 @@ $_uidCarousel = false;	?>
 
 <ul class="nav flex-column mt-2">
 	<?php
-	if ( isset( $this->data->dto) && $this->data->dto) {
-		if ( isset( $this->data->referer) && $this->data->referer) {	?>
+	if (isset($this->data->dto) && $this->data->dto) {
+		if (isset($this->data->referer) && $this->data->referer) {	?>
 
 			<li class="nav-item">
-				<a href="<?= strings::url( sprintf( '%s/view/%d?f=%d', $this->route, $this->data->dto->id, $this->data->referer->id)); ?>">
+				<a href="<?= strings::url(sprintf('%s/view/%d?f=%d', $this->route, $this->data->dto->id, $this->data->referer->id)); ?>">
 					<h6><?= $this->title ?> #<?= $this->data->dto->id ?></h6>
 
 				</a>
@@ -26,47 +26,48 @@ $_uidCarousel = false;	?>
 			<li class="nav-item" id="<?= $uid = strings::rand(); ?>"><a class="nav-link" href="<?= strings::url('property/view/' . $this->data->referer->id); ?>"><?= $this->data->referer->address_street ?></a></li>
 
 			<script>
-			( _ => $(document).ready( () => {
-				_.post({
-					url : _.url( '<?= $this->route ?>'),
-					data : {
-						action : 'get-photolog',
-						property : <?= $this->data->referer->id ?>
-
-					}
-
-				}).then( d => {
-					if ( 'ack' == d.response) {
-						//~ console.table( d.data);
-						if ( d.data.length > 0) {
-							let ul = $('<ul class="list-unstyled ml-4"></ul>').appendTo('#<?= $uid ?>');
-							$.each( d.data, function( i, entry) {
-								let li = $('<li></li>').appendTo( ul);
-								let a = $('<a />').html( entry.subject + ' (' + entry.files.total + ')').appendTo( li);
-
-								let m = _.dayjs( entry.date);
-								li.attr( 'title', m.format( 'l'));
-
-								a.attr( 'href', _.url( '<?= $this->route ?>/view/' + entry.id + '?f=<?= $this->data->referer->id ?>'));
-
-							});
-
-							$('#<?= $uid ?>').removeClass( 'd-none');
+				(_ => $(document).ready(() => {
+					_.post({
+						url: _.url('<?= $this->route ?>'),
+						data: {
+							action: 'get-photolog',
+							property: <?= $this->data->referer->id ?>
 
 						}
 
-					} else { _.growl( d); }
+					}).then(d => {
+						if ('ack' == d.response) {
+							//~ console.table( d.data);
+							if (d.data.length > 0) {
+								let ul = $('<ul class="list-unstyled ml-4"></ul>').appendTo('#<?= $uid ?>');
+								$.each(d.data, function(i, entry) {
+									let li = $('<li></li>').appendTo(ul);
+									let a = $('<a />').html(entry.subject + ' (' + entry.files.total + ')').appendTo(li);
 
-				});
+									let m = _.dayjs(entry.date);
+									li.attr('title', m.format('l'));
 
-			}))( _brayworth_);
+									a.attr('href', _.url('<?= $this->route ?>/view/' + entry.id + '?f=<?= $this->data->referer->id ?>'));
+
+								});
+
+								$('#<?= $uid ?>').removeClass('d-none');
+
+							}
+
+						} else {
+							_.growl(d);
+						}
+
+					});
+
+				}))(_brayworth_);
 			</script>
 
 		<?php
-		}
-		else {	?>
+		} else {	?>
 			<li class="nav-item">
-				<a href="<?= strings::url( $this->route . '/view/' . $this->data->dto->id); ?>">
+				<a href="<?= strings::url($this->route . '/view/' . $this->data->dto->id); ?>">
 					<h6><?= $this->title ?> #<?= $this->data->dto->id ?></h6>
 
 				</a>
@@ -74,7 +75,7 @@ $_uidCarousel = false;	?>
 			</li>
 
 			<li class="nav-item">
-				<a class="nav-link" href="<?= strings::url( sprintf( '%s/?property=%d', $this->route, $this->data->dto->property_id)); ?>">
+				<a class="nav-link" href="<?= strings::url(sprintf('%s/?property=%d', $this->route, $this->data->dto->property_id)); ?>">
 					<i class="bi bi-arrow-left-short"></i>
 					<?= $this->data->dto->address_street ?>
 
@@ -86,30 +87,30 @@ $_uidCarousel = false;	?>
 
 			<li class="nav-item"><a class="nav-link" href="#" id="<?= $uid = strings::rand() ?>">add entry on <?= $this->data->dto->address_street ?></a></li>
 			<script>
-			( _ => $(document).ready( () => {
-				$('#<?= $uid ?>').on( 'click', e => {
-					e.preventDefault();
+				(_ => $(document).ready(() => {
+					$('#<?= $uid ?>').on('click', e => {
+						e.preventDefault();
 
-					_.get.modal( _.url('<?= $this->route ?>/entry?property=<?= (int)$this->data->dto->property_id ?>'))
-					.then( d => d.on( 'success', ( e, href) => window.location.href = href));
+						_.get.modal(_.url('<?= $this->route ?>/entry?property=<?= (int)$this->data->dto->property_id ?>'))
+							.then(d => d.on('success', (e, href) => window.location.href = href));
 
-				});
+					});
 
-			}))( _brayworth_);
+				}))(_brayworth_);
 			</script>
 
 		<?php
-		}	// if ( isset( $this->data->referer) && $this->data->referer)	?>
+		}	// if ( isset( $this->data->referer) && $this->data->referer)
+		?>
 
-		<li class="nav-item"><a class="nav-link" href="<?= strings::url( $this->route); ?>">list all</a></li>
+		<li class="nav-item"><a class="nav-link" href="<?= strings::url($this->route); ?>">list all</a></li>
 
-	<?php
-	}
-	else {
-		if ( isset( $this->data->referer) && $this->data->referer) {	?>
+		<?php
+	} else {
+		if (isset($this->data->referer) && $this->data->referer) {	?>
 
 			<li class="nav-item">
-				<a href="<?= strings::url( sprintf( '%s/?property=%d', $this->route, $this->data->referer->id)); ?>">
+				<a href="<?= strings::url(sprintf('%s/?property=%d', $this->route, $this->data->referer->id)); ?>">
 					<h6><?= $this->data->referer->address_street ?></h6>
 
 				</a>
@@ -126,21 +127,20 @@ $_uidCarousel = false;	?>
 
 			</li>
 			<script>
-			( _ => $(document).ready( () => {
-				$('#<?= $uid ?>').on( 'click', e => {
-					e.preventDefault();
+				(_ => $(document).ready(() => {
+					$('#<?= $uid ?>').on('click', e => {
+						e.preventDefault();
 
-					_.get.modal( _.url('<?= $this->route ?>/entry?property=<?= (int)$this->data->referer->id ?>'))
-					.then( d => d.on( 'success', ( e, href) => window.location.href = href));
+						_.get.modal(_.url('<?= $this->route ?>/entry?property=<?= (int)$this->data->referer->id ?>'))
+							.then(d => d.on('success', (e, href) => window.location.href = href));
 
-				});
+					});
 
-			}))( _brayworth_);
+				}))(_brayworth_);
 			</script>
 
 		<?php
-		}
-		else {	?>
+		} else {	?>
 			<li class="nav-item">
 				<a href="<?= strings::url($this->route); ?>">
 					<h6><?= $this->title ?></h6>
@@ -149,135 +149,142 @@ $_uidCarousel = false;	?>
 
 			</li>
 
-		<?php
+	<?php
 		}	// if ( isset( $this->data->referer) && $this->data->referer)
 
-	}	// if ( isset( $this->data->dto) && $this->data->dto->id)	?>
+	}	// if ( isset( $this->data->dto) && $this->data->dto->id)
+	?>
 
 	<?php
-	if ( isset( $this->data->dto) && $this->data->dto) {	?>
+	if (isset($this->data->dto) && $this->data->dto) {	?>
 
-	<li class="nav-item"><a class="nav-link" href="#" id="<?= $uid = strings::rand() ?>">generate public link</a></li>
-	<li class="nav-item d-none">
-		<div class="row">
-			<div class="col">
-				<input type="text" class="form-control" readonly id="<?= $uid ?>public" />
+		<li class="nav-item"><a class="nav-link" href="#" id="<?= $uid = strings::rand() ?>">generate public link</a></li>
+		<li class="nav-item d-none">
+			<div class="row">
+				<div class="col">
+					<input type="text" class="form-control" readonly id="<?= $uid ?>public" />
 					<div class="form-text text-right" id="<?= $uid ?>public_expires"></div>
-
-			</div>
-
-		</div>
-
-		<div class="row">
-			<div class="col">
-				<div class="btn-group btn-group-sm d-flex" aria-label="Public link toolbar">
-					<button class="btn btn-light flex-fill" type="button" title="copy to clipboard" id="<?= $uid ?>copy"><i class="bi bi-clipboard"></i></button>
-					<button class="btn btn-light flex-fill" type="button" title="clear link" id="<?= $uid ?>clear"><i class="bi bi-trash"></i></button>
-					<button class="btn btn-light flex-fill" type="button" title="email link" id="<?= $uid ?>email"><i class="bi bi-cursor"></i></button>
-					<button class="btn btn-light flex-fill" type="button" title="regenerate link" id="<?= $uid ?>regenerate"><i class="bi bi-arrow-repeat"></i></button>
-					<button class="btn btn-light flex-fill" type="button" title="view on portal" id="<?= $uid ?>view"><i class="bi bi-box-arrow-up-right"></i></button>
 
 				</div>
 
 			</div>
 
-		</div>
+			<div class="row">
+				<div class="col">
+					<div class="btn-group btn-group-sm d-flex" aria-label="Public link toolbar">
+						<button class="btn btn-light flex-fill" type="button" title="copy to clipboard" id="<?= $uid ?>copy"><i class="bi bi-clipboard"></i></button>
+						<button class="btn btn-light flex-fill" type="button" title="clear link" id="<?= $uid ?>clear"><i class="bi bi-trash"></i></button>
+						<button class="btn btn-light flex-fill" type="button" title="email link" id="<?= $uid ?>email"><i class="bi bi-cursor"></i></button>
+						<button class="btn btn-light flex-fill" type="button" title="regenerate link" id="<?= $uid ?>regenerate"><i class="bi bi-arrow-repeat"></i></button>
+						<button class="btn btn-light flex-fill" type="button" title="view on portal" id="<?= $uid ?>view"><i class="bi bi-box-arrow-up-right"></i></button>
 
-	</li>
-	<script>
-	( _ => {
-		$('#<?= $uid ?>copy').on( 'click', e => {
-			let el = $('#<?= $uid ?>public')[0];
+					</div>
 
-			/* Select the text field */
-			el.select();
-			el.setSelectionRange(0, 99999); /*For mobile devices*/
+				</div>
 
-			document.execCommand("copy");	/* Copy the text inside the text field */
+			</div>
 
-			_.growl('Copied');
+		</li>
+		<script>
+			(_ => {
+				$('#<?= $uid ?>copy').on('click', e => {
+					let el = $('#<?= $uid ?>public')[0];
 
-		});
+					/* Select the text field */
+					el.select();
+					el.setSelectionRange(0, 99999); /*For mobile devices*/
 
-		$('#<?= $uid ?>')
-		.on( 'refresh', function( e) {
-			_.post({
-				url : _.url('<?= $this->route ?>'),
-				data : {
-					action : 'public-link-get',
-					id : <?= $this->data->dto->id ?>
-				},
+					document.execCommand("copy"); /* Copy the text inside the text field */
 
-			}).then( d => {
-				if ( 'ack' == d.response) {
-					$('#<?= $uid ?>').closest('.nav-item').addClass('d-none');
-					$('#<?= $uid ?>public').closest('.nav-item').removeClass('d-none');
+					_.growl('Copied');
 
-					$('#<?= $uid ?>public').val(d.url);
-					$('#<?= $uid ?>public_expires').html('expires : '+_.dayjs(d.expires).format('l'));
+				});
 
-				}
-				else {
-					$('#<?= $uid ?>').closest('.nav-item').removeClass('d-none');
-					$('#<?= $uid ?>public').closest('.nav-item').addClass('d-none');
+				$('#<?= $uid ?>')
+					.on('refresh', function(e) {
+						_.post({
+							url: _.url('<?= $this->route ?>'),
+							data: {
+								action: 'public-link-get',
+								id: <?= $this->data->dto->id ?>
+							},
 
-				}
+						}).then(d => {
+							if ('ack' == d.response) {
+								$('#<?= $uid ?>').closest('.nav-item').addClass('d-none');
+								$('#<?= $uid ?>public').closest('.nav-item').removeClass('d-none');
 
-			});
+								$('#<?= $uid ?>public').val(d.url);
+								$('#<?= $uid ?>public_expires').html('expires : ' + _.dayjs(d.expires).format('l'));
 
-		})
-		.on( 'clear-link', function( e) {
-			_.post({
-				url : _.url('<?= $this->route ?>'),
-				data : {
-					action : 'public-link-clear',
-					id : <?= $this->data->dto->id ?>
-				},
+							} else {
+								$('#<?= $uid ?>').closest('.nav-item').removeClass('d-none');
+								$('#<?= $uid ?>public').closest('.nav-item').addClass('d-none');
 
-			}).then( d => {
-				_.growl(d);
-				if ( 'ack' == d.response) {
-					$('#<?= $uid ?>').trigger( 'refresh');
+							}
 
-				}
+						});
 
-			});
+					})
+					.on('clear-link', function(e) {
+						_.post({
+							url: _.url('<?= $this->route ?>'),
+							data: {
+								action: 'public-link-clear',
+								id: <?= $this->data->dto->id ?>
+							},
 
-		})
-		.on( 'create-link', function( e) {
-			_.get( _.url('<?= $this->route ?>/publicLink/<?= $this->data->dto->id ?>'))
-			.then( html => {
-				let _html = $(html)
-				_html.appendTo( 'body');
+						}).then(d => {
+							_.growl(d);
+							if ('ack' == d.response) {
+								$('#<?= $uid ?>').trigger('refresh');
 
-				$('.modal', _html).on( 'success', d => $('#<?= $uid ?>').trigger( 'refresh'))
+							}
 
-			});
+						});
 
-		})
-		.on( 'click', function( e) {
-			e.stopPropagation();e.preventDefault();
+					})
+					.on('create-link', function(e) {
+						_.get(_.url('<?= $this->route ?>/publicLink/<?= $this->data->dto->id ?>'))
+							.then(html => {
+								let _html = $(html)
+								_html.appendTo('body');
 
-			$(this).trigger( 'create-link');
+								$('.modal', _html).on('success', d => $('#<?= $uid ?>').trigger('refresh'))
 
-		})
-		.on( 'email-link', function(e) {
-			_cms_.email.activate({
-				subject : '<?= htmlspecialchars( sprintf('%s - %s', $this->data->dto->address_street, $this->data->dto->subject)) ?>',
-				message : '<br /><br />View the images on our portal <a href="' + $('#<?= $uid ?>public').val() + '">here</a><br /><br />' + _cms_.currentUser.signoff
+							});
 
-			})
+					})
+					.on('click', function(e) {
+						e.stopPropagation();
+						e.preventDefault();
 
-		});
+						$(this).trigger('create-link');
 
-		$('#<?= $uid ?>clear').on( 'click', e => $('#<?= $uid ?>').trigger( 'clear-link'));
-		$('#<?= $uid ?>regenerate').on( 'click', e => $('#<?= $uid ?>').trigger( 'create-link'));
-		$('#<?= $uid ?>email').on( 'click', e => $('#<?= $uid ?>').trigger( 'email-link'));
-		$('#<?= $uid ?>view').on( 'click', e => window.open( $('#<?= $uid ?>public').val()));
-		$('#<?= $uid ?>').trigger( 'refresh');
+					})
+					.on('email-link', function(e) {
+						_cms_.email.activate({
+							subject: <?= json_encode(
+													sprintf(
+														'%s - %s',
+														$this->data->dto->address_street,
+														$this->data->dto->subject
+													)
+												) ?>,
+							message: '<br /><br />View the images on our portal <a href="' + $('#<?= $uid ?>public').val() + '">here</a><br /><br />' + _cms_.currentUser.signoff
 
-	}) (_brayworth_);
-	</script>
+						})
+
+					});
+
+				$('#<?= $uid ?>clear').on('click', e => $('#<?= $uid ?>').trigger('clear-link'));
+				$('#<?= $uid ?>regenerate').on('click', e => $('#<?= $uid ?>').trigger('create-link'));
+				$('#<?= $uid ?>email').on('click', e => $('#<?= $uid ?>').trigger('email-link'));
+				$('#<?= $uid ?>view').on('click', e => window.open($('#<?= $uid ?>public').val()));
+				$('#<?= $uid ?>').trigger('refresh');
+
+			})(_brayworth_);
+		</script>
 
 	<?php
 	}	?>
@@ -286,23 +293,24 @@ $_uidCarousel = false;	?>
 
 </ul>
 <script>
-( _ => {
-	$('#<?= $_uidAdd ?>').on( 'click', e => {
-		e.preventDefault();
+	(_ => {
+		$('#<?= $_uidAdd ?>').on('click', e => {
+			e.preventDefault();
 
-		_.get.modal( _.url('<?= $this->route ?>/entry'))
-		.then( d => d.on( 'success', ( e, href) => window.location.href = href));
-
-	});
-
-	<?php	if ( $_uidCarousel) {	?>
-		$('#<?= $_uidCarousel ?>').on( 'click', function( e) {
-			e.stopPropagation(); e.preventDefault();
-			$(document).trigger( 'photolog-carousel');
+			_.get.modal(_.url('<?= $this->route ?>/entry'))
+				.then(d => d.on('success', (e, href) => window.location.href = href));
 
 		});
 
-	<?php	}	?>
+		<?php if ($_uidCarousel) {	?>
+			$('#<?= $_uidCarousel ?>').on('click', function(e) {
+				e.stopPropagation();
+				e.preventDefault();
+				$(document).trigger('photolog-carousel');
 
-})( _brayworth_);
+			});
+
+		<?php	}	?>
+
+	})(_brayworth_);
 </script>

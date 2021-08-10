@@ -1,16 +1,14 @@
 <?php
 /*
-	David Bray
-	BrayWorth Pty Ltd
-	e. david@brayworth.com.au
+ * David Bray
+ * BrayWorth Pty Ltd
+ * e. david@brayworth.com.au
+ *
+ * MIT License
+ *
+*/
 
-	This work is licensed under a Creative Commons Attribution 4.0 International Public License.
-		http://creativecommons.org/licenses/by/4.0/
-	*/
-
-	$uid = strings::rand();
-
-	?>
+$uid = strings::rand();	?>
 <form id="<?= $uid ?>frm">
 	<input type="hidden" name="id" value="<?= $this->data->dto->id ?>" />
 	<input type="hidden" name="action" value="save-notepad" />
@@ -33,25 +31,26 @@
 
 </form>
 <script>
-$(document).ready( () => { ( _ => {
-	$('#<?= $uid ?>frm').on( 'submit', function( e) {
-		let frm = $(this);
-		let data = frm.serializeFormJSON();
-		//~ console.log( data);
+	(_ => {
+		$('#<?= $uid ?>frm')
+			.on('submit', function(e) {
+				let frm = $(this);
+				let data = frm.serializeFormJSON();
+				//~ console.log( data);
 
-		_.post({
-			url : _.url('<?= $this->route ?>'),
-			data : data,
+				_.post({
+					url: _.url('<?= $this->route ?>'),
+					data: data,
 
-		}).then( function( d) {
-			_.growl( d);
-			frm.closest('.modal').trigger( 'brayworth.success', d).modal('hide');
+				}).then(function(d) {
+					_.growl(d);
+					frm.closest('.modal').trigger('brayworth.success', d).modal('hide');
 
-		});
+				});
 
-		return false;
+				return false;
 
-	});
+			});
 
-}) (_brayworth_); });
+	})(_brayworth_);
 </script>
