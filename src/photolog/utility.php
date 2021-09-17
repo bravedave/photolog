@@ -351,9 +351,17 @@ class utility {
 
 								$src = $file->getPathname();
 
-								if ( file_exists( $stamped )) unlink( $stamped );
+								if ( file_exists( $stamped )) {
+									unlink( $stamped );
+									clearstatcache();
+								}
+
 								if ( self::_stamp( $src, $stamped, $dto->date)) {
-									if ( file_exists( $stamped )) unlink( $src );
+									if ( file_exists( $stamped )) {
+										unlink( $src );
+										clearstatcache();
+									}
+									
 									if ( ++$icount >= $limit) break;
 									sleep( $afterHours ? 1 : 3);
 
