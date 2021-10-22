@@ -580,6 +580,7 @@ class controller extends \Controller {
 
 						} else {
               sys::logger( sprintf('<%s> %s', 'what the dickens ?', __METHOD__));
+              sys::logger( sprintf('<%s> %s', $file['error'], __METHOD__));
 
             }
 						// elseif ( is_uploaded_file( $file['tmp_name'] )) {
