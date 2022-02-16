@@ -448,8 +448,7 @@ $diskSpace = sys::diskspace();
 				}
 
 			});
-		<?php	}	// if ( !$diskSpace->exceeded)
-		?>
+		<?php	}	?>
 
 			(cards => $.each(cards, (i, file) => displayCard(file)))(<?= json_encode($this->data->files) ?>);
 

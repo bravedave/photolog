@@ -186,23 +186,10 @@ class controller extends \Controller {
           url : _.url( 'property_photolog'),
           data : {
             action : 'get-photolog',
-            property : 40998
-
+            property : 2
           }
-
-        }).then( function( d) {
-          if ( 'ack' == d.response) {
-            console.table( d.data);
-
-          }
-          else {
-            _.growl( d);
-
-          }
-
-        });
-
-      })(_brayworth_);
+        }).then( d => 'ack' == d.response ? console.table( d.data) : _.growl( d));
+			})(_brayworth_);
       */
 			if ($pid = (int)$this->getPost('property')) {
 				$dao = new dao\property_photolog;
@@ -444,6 +431,9 @@ class controller extends \Controller {
 					];
 
 					foreach ($_FILES as $file) {
+						touch($queue . '/.upload-in-progress');
+						@chmod($queue . '/.upload-in-progress', 0666);
+
 						set_time_limit(60);
 						if ($debug) sys::logger(sprintf('<%s> %s', $file['name'], __METHOD__));
 
