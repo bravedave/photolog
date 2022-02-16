@@ -115,6 +115,7 @@ class utility {
 		);
 		if (file_exists($errfile)) return false;
 
+		$exif = false;
 		try {
 			list($width, $height) = getimagesize($src);
 			if ('png' == strtolower($parts['extension'])) {
