@@ -13,6 +13,7 @@ namespace photolog;
 use currentUser;
 use dvc\userAgent;
 use green, Json, Response, sys, strings;
+use SplFileInfo;
 
 class controller extends \Controller {
 	protected $viewPath = __DIR__ . '/views/';
@@ -127,7 +128,16 @@ class controller extends \Controller {
 					$qfile = $path . '/queue/' . $_file;
 					//~ sys::logger( sprintf( 'delete : %s || %s', $file, $qfile));
 
-					if (file_exists($file)) unlink($file);
+					if (file_exists($file)) {
+						unlink($file);
+						clearstatcache();
+					}
+
+					if (file_exists($file . config::photolog_prestamp)) {
+						unlink($file . config::photolog_prestamp);
+						clearstatcache();
+					}
+
 					if (file_exists($qfile)) {
 						$parts = pathinfo($qfile);
 
@@ -141,6 +151,8 @@ class controller extends \Controller {
 
 						if (file_exists($errfile)) unlink($errfile);
 						unlink($qfile);
+						clearstatcache();
+
 						sys::logger(sprintf('<unlink( %s)> : %s', $qfile, __METHOD__));
 					} else {
 						if ($debug) sys::logger(sprintf('<qfile not found ( %s)> : %s', $qfile, __METHOD__));
@@ -289,6 +301,55 @@ class controller extends \Controller {
 					}
 				} else {
 					Json::nak($action);
+				}
+			} else {
+				Json::nak($action);
+			}
+		} elseif ('rotate-left' == $action || 'rotate-right' == $action || 'rotate-180' == $action) {
+			if ($id = $this->getPost('id')) {
+				$dao = new dao\property_photolog;
+				if ($dto = $dao->getByID($id)) {
+
+					$path = $dao->store($dto->id);
+
+					$_file = trim($this->getPost('file'), './ ');
+					$file = $path . '/' . $_file;
+
+					if (file_exists($file . config::photolog_prestamp)) {
+						if (utility::rotate(
+							$file,
+							'rotate-180' == $action ?
+								config::photolog_rotate_180 : ('rotate-left' == $action ?
+									config::photolog_rotate_left : config::photolog_rotate_right)
+						)) {
+
+							if (file_exists($file)) {
+								$info = new SplFileInfo($file);
+								$imgInfo = $dao->getImageInfo($dto, $info->getFilename());
+
+								$returnfile = (object)[
+									'description' => $info->getFilename(),
+									'extension' => $info->getExtension(),
+									'url' => strings::url(sprintf('%s/img/%d?img=%s&t=%s', $this->route, $dto->id, urlencode($info->getFilename()), $info->getMTime())),
+									'error' => false,
+									'size' => $info->getSize(),
+									'location' => $imgInfo->location ?? '',
+									'prestamp' => file_exists($info->getRealPath() . config::photolog_prestamp)
+								];
+
+								Json::ack($action)
+									->add('data', $returnfile);
+							} else {
+								Json::nak($action);
+							}
+						} else {
+							Json::nak($action);
+						}
+					} else {
+						Json::nak(sprintf('missing pre-stamp : %s', $action));
+					}
+				} else {
+					Json::nak(sprintf('not found - %s', $action));
 				}
 			} else {
 				Json::nak($action);

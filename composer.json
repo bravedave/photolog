@@ -26,7 +26,8 @@
     "ext-imagick": "*",
     "bravedave/dvc": "*",
     "bravedave/green": "*",
-    "bravedave/smokealarm": "*"
+    "bravedave/smokealarm": "*",
+    "intervention/image": "^2.7"
   },
   "require-dev": {
     "ext-apcu": "*",
