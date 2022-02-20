@@ -131,7 +131,6 @@ $uid = strings::rand();	?>
 	(_ => {
 		// _.debug = true;
 		let tbl = _('#<?= $uid ?>');
-		console.log(tbl);
 		tbl.addEventListener('update-line-numbers', function(e) {
 			let t = 0;
 			this.querySelectorAll('tbody > tr:not(.d-none) >td[line-number]').forEach(td => {
