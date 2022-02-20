@@ -32,13 +32,12 @@ $diskSpace = sys::diskspace();	?>
 	<div class="col-auto"><button type="button" class="btn btn-sm pt-0" id="<?= $_btnEditHeader = strings::rand() ?>"><i class="bi bi-pencil"></i></button></div>
 </div>
 
-<div id="<?= $uid; ?>row" class="row"></div>
+<div id="<?= $uid; ?>row" class="form-row"></div>
 
 <template id="<?= $uid ?>fileupload">
 	<div class="input-group mb-3">
 		<div class="input-group-prepend">
 			<span class="input-group-text" id="<?= $uid ?>FileAddon01">Upload</span>
-
 		</div>
 
 		<div class="custom-file">
@@ -430,7 +429,7 @@ $diskSpace = sys::diskspace();	?>
 
 				});
 
-			$('<div class="col-md-4 col-lg-3 col-xl-2 mb-1"></div>')
+			$('<div class="col-md-4 col-lg-3 col-xl-2 mb-2"></div>')
 				.append(card)
 				.appendTo('#<?= $uid ?>row');
 
@@ -442,7 +441,7 @@ $diskSpace = sys::diskspace();	?>
 		//~ console.log( '<?= $uid ?>fileupload');
 		/*--- ---[]--- ---*/
 
-		let cContainer = $('<div class="col-md-4 col-lg-3 col-xl-4 mb-1 d-print-none"></div>').appendTo('#<?= $uid ?>row');
+		let cContainer = $('<div class="col-md-8 col-lg-3 col-xl-4 mb-2 d-print-none"></div>').appendTo('#<?= $uid ?>row');
 		<?php if ($diskSpace->exceeded) {	?>
 			cContainer.append('<div class="alert alert-warning"><h5 class="alert-heading">disk space low</h5>uploaded disabled</div>');
 		<?php	} else {	?>
@@ -451,13 +450,16 @@ $diskSpace = sys::diskspace();	?>
 			}).appendTo(cContainer);
 		<?php	}	?>
 
-		let allDownload = $('<a title="download zip" class="px-2 btn btn-light btn-sm d-none"><i class="bi bi-download" title="download as zip file"></i>zip</a>').attr('href', _.url('<?= $this->route ?>/zip/<?= $dto->id ?>'));
+		let allDownload = $('<a title="download zip" class="btn btn-light btn-sm d-none"><i class="bi bi-download" title="download as zip file"></i> zip</a>').attr('href', _.url('<?= $this->route ?>/zip/<?= $dto->id ?>'));
 
-		let allDelete = $('<button title="delete all" class="px-2 btn btn-light btn-sm d-none"><i class="bi bi-trash"></i> delete all</button>');
-		let btnNotepad = $('<button title="notepad" class="px-2 btn btn-light btn-sm"><i class="bi bi-pencil"></i> note</button>');
+		let allDelete = $('<button title="delete all" class="btn btn-light btn-sm d-none"><i class="bi bi-trash"></i> delete all</button>');
+		let btnNotepad = $('<button title="notepad" class="btn btn-light btn-sm"><i class="bi bi-pencil"></i> note</button>');
 
-		let bRow = $('<div class="row"></div>').appendTo(cContainer);
-		let bCol = $('<div class="col text-center"></div>').appendTo(bRow);
+		let bCol = $('<div class="col text-center"></div>')
+
+		$('<div class="form-row"></div>')
+			.append(bCol)
+			.appendTo(cContainer);
 
 		$('<div class="btn-group"></div>')
 			.append(allDownload)
@@ -473,21 +475,21 @@ $diskSpace = sys::diskspace();	?>
 
 		});
 
-		let allDownloadVisibility = () => {
+		const allDownloadVisibility = () => {
 			$('img[logimage]').length > 0 ?
 				allDownload.removeClass('d-none') :
 				allDownload.addClass('d-none');
 
 		};
 
-		let allDeleteVisibility = () => {
+		const allDeleteVisibility = () => {
 			<?php if (currentUser::isadmin()) {	?>
 				$('.photolog-card').length > 0 ? allDelete.removeClass('d-none') : allDelete.addClass('d-none');
 			<?php }	?>
 		};
 
 		let notepad = {
-			col: $('<div class="col-sm-8 col-md-9 col-xl-8 mb-1 d-none"></div>').appendTo('#<?= $uid ?>row'),
+			col: $('<div class="col-md-4 col-lg-3 col-xl-8 mb-2 d-none"></div>').appendTo('#<?= $uid ?>row'),
 			text: $('<textarea class="form-control h-100" readonly></textarea>'),
 			val: v => {
 				let ret = notepad.text.val(v);
@@ -507,18 +509,8 @@ $diskSpace = sys::diskspace();	?>
 			e.stopPropagation();
 			e.preventDefault();
 
-			_.loadModal({
-				url: _.url('<?= $this->route ?>/notepad/<?= $dto->id ?>'),
-				onSuccess: function(e, d) {
-					if ('ack' == d.response) {
-						//~ console.log( d);
-						notepad.val(d.data.notes);
-
-					}
-
-				},
-
-			});
+			_.get.modal(_.url('<?= $this->route ?>/notepad/<?= $dto->id ?>'))
+				.then(m => m.on('success', (e, d) => notepad.val(d.data.notes)));
 
 		});
 
@@ -595,44 +587,41 @@ $diskSpace = sys::diskspace();	?>
 			let imgs = $('img.card-img-top');
 
 			if (imgs.length > 0) {
-				let id = 'carousel_' + String(Math.ceil(Math.random() * 10000));
-				let ctrl = $('<div class="carousel slide" data-interval="5000"></div>').attr('id', id);
+				let id = 'carousel_' + _.randomString();
+				let ctrl = $(`<div class="carousel slide" data-interval="5000" id=${id}></div>`);
 				let indicators = $('<ol class="carousel-indicators"></ol>').appendTo(ctrl);
 				let inner = $('<div class="carousel-inner"></div>').appendTo(ctrl);
 
-				ctrl.append('<a class="carousel-control-prev" href="#' + id + '" role="button" data-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="sr-only">Previous</span></a>');
-				ctrl.append('<a class="carousel-control-next" href="#' + id + '" role="button" data-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span><span class="sr-only">Next</span></a>');
+				ctrl
+					.append(`<a class="carousel-control-prev" href="#${id}" role="button" data-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="sr-only">Previous</span></a>`)
+					.append(`<a class="carousel-control-next" href="#${id}" role="button" data-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span><span class="sr-only">Next</span></a>`);
 
 				// console.log( file);
 				let first = true;
 				imgs.each((i, el) => {
 					let img = $(el);
+					let src = img.attr('src');
 
-					let _indicator = $('<li data-target="#' + id + '" data-slide-to="' + i + '"></li>').appendTo(indicators);
-					let envelope = $('<div class="carousel-item"></div>').appendTo(inner);
-					$('<img class="d-block w-100" alt="..." />').attr('src', img.attr('src')).appendTo(envelope);
+					let _indicator = $(`<li data-target="#${id}" data-slide-to="${i}"></li>`).appendTo(indicators);
+					let envelope = $('<div class="carousel-item"></div>')
+						.append(`<img class="d-block w-100" src="${src}" alt="...">`)
+						.appendTo(inner);
 
 					let title = String(img.attr('title'));
 					if ('' != title) {
-						let caption = $('<div class="carousel-caption d-none d-md-block"></div>').appendTo(envelope);
-						$('<h5></h5>').html(title).appendTo(caption);
-
+						envelope.append(`<div class="carousel-caption d-none d-md-block"><h5>${title}</h5></div>`);
 					}
 
 					if (!!file) {
 						if (title == file) {
 							_indicator.addClass('active');
 							envelope.addClass('active');
-
 						}
-
 					} else if (first) {
 						_indicator.addClass('active');
 						envelope.addClass('active');
-
 					}
 					first = false;
-
 				});
 
 				_.get.modal().then(modal => {
@@ -640,11 +629,8 @@ $diskSpace = sys::diskspace();	?>
 					$('.modal-title', modal).html(<?= json_encode($this->data->dto->address_street) ?>);
 					$('.modal-body', modal).append(ctrl);
 					ctrl.carousel('cycle');
-
 				});
-
 			}
-
 		});
 
 		$('#<?= $_btnEditHeader ?>').on('click', function(e) {

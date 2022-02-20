@@ -12,7 +12,7 @@ $uid = strings::rand();
 $dto = $this->data->dto;
 
 $autoFocus = 'street';
-if ( !$dto->id && $dto->property_id) $autoFocus = 'subject';	?>
+if (!$dto->id && $dto->property_id) $autoFocus = 'subject';	?>
 
 <form id="<?= $_form = strings::rand() ?>" autocomplete="off">
 	<input type="hidden" name="id" value="<?= $dto->id ?>" />
@@ -22,7 +22,7 @@ if ( !$dto->id && $dto->property_id) $autoFocus = 'subject';	?>
 	<div class="modal fade" tabindex="-1" role="dialog" id="<?= $_modal = strings::rand() ?>" aria-labelledby="<?= $_modal ?>Label" aria-hidden="true">
 		<div class="modal-dialog modal-dialog-centered" role="document">
 			<div class="modal-content">
-				<div class="modal-header bg-secondary text-white py-2">
+				<div class="modal-header <?= theme::modalHeader() ?>">
 					<h5 class="modal-title" id="<?= $_modal ?>Label"><?= $this->title ?></h5>
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 						<span aria-hidden="true">&times;</span>
@@ -33,10 +33,7 @@ if ( !$dto->id && $dto->property_id) $autoFocus = 'subject';	?>
 				<div class="modal-body">
 					<div class="form-row mb-2">
 						<div class="col">
-							<input type="text" class="form-control"
-								name="address_street" placeholder="address" required
-								<?php if ( 'street' == $autoFocus) print 'autofocus' ?>
-								autocomplete="off" value="<?= $dto->address_street ?>">
+							<input type="text" class="form-control" name="address_street" placeholder="address" required <?= 'street' == $autoFocus ? 'autofocus' : '' ?> autocomplete="off" value="<?= $dto->address_street ?>">
 
 						</div>
 
@@ -49,11 +46,7 @@ if ( !$dto->id && $dto->property_id) $autoFocus = 'subject';	?>
 						</label>
 
 						<div class="col">
-							<input type="text" class="form-control" name="subject"
-								placeholder="log entry" required
-								<?php if ( 'subject' == $autoFocus) print 'autofocus' ?>
-								id="<?= $_uid ?>"
-								value="<?= $dto->subject ?>">
+							<input type="text" class="form-control" name="subject" placeholder="log entry" required <?= 'subject' == $autoFocus ? 'autofocus' : '' ?> id="<?= $_uid ?>" value="<?= $dto->subject ?>">
 
 						</div>
 
@@ -66,8 +59,7 @@ if ( !$dto->id && $dto->property_id) $autoFocus = 'subject';	?>
 						</label>
 
 						<div class="col">
-							<input type="date" class="form-control" name="date" placeholder="log entry" required
-								id="<?= $_uid ?>" value="<?= $dto->date ?>">
+							<input type="date" class="form-control" name="date" placeholder="log entry" required id="<?= $_uid ?>" value="<?= $dto->date ?>">
 
 						</div>
 
@@ -88,49 +80,48 @@ if ( !$dto->id && $dto->property_id) $autoFocus = 'subject';	?>
 	</div>
 
 	<script>
-	( _ => $(document).ready( () => {
-		$('input[name="address_street"]', '#<?= $_form ?>').autofill({
-			autoFocus : true,
-			source: _.search.address,
-			select: function(event, ui) {
-				let o = ui.item;
-				$('input[name="property_id"]', '#<?= $_form ?>').val( o.id);
-
-			}
-
-		});
-
-		$('#<?= $_form ?>')
-		.on( 'submit', function( e) {
-			let _form = $(this);
-			let _data = _form.serializeFormJSON();
-
-			// console.table( _data);
-			// return false;
-
-			_.post({
-				url : _.url('<?= $this->route ?>'),
-				data : _data,
-
-			}).then( function( d) {
-				if ( 'ack' == d.response) {
-					$('#<?= $_modal ?>').trigger( 'success', _.url( '<?= $this->route ?>/view/' + d.id));
+		(_ => $(document).ready(() => {
+			$('input[name="address_street"]', '#<?= $_form ?>').autofill({
+				autoFocus: true,
+				source: _.search.address,
+				select: function(event, ui) {
+					let o = ui.item;
+					$('input[name="property_id"]', '#<?= $_form ?>').val(o.id);
 
 				}
-				else {
-					_.growl( d);
-
-				}
-
-				$('#<?= $_modal ?>').modal( 'hide');
 
 			});
 
-			return false;
+			$('#<?= $_form ?>')
+				.on('submit', function(e) {
+					let _form = $(this);
+					let _data = _form.serializeFormJSON();
 
-		});
+					// console.table( _data);
+					// return false;
 
-	}))( _brayworth_);
+					_.post({
+						url: _.url('<?= $this->route ?>'),
+						data: _data,
+
+					}).then(function(d) {
+						if ('ack' == d.response) {
+							$('#<?= $_modal ?>').trigger('success', _.url('<?= $this->route ?>/view/' + d.id));
+
+						} else {
+							_.growl(d);
+
+						}
+
+						$('#<?= $_modal ?>').modal('hide');
+
+					});
+
+					return false;
+
+				});
+
+		}))(_brayworth_);
 	</script>
 
 </form>

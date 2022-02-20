@@ -697,15 +697,11 @@ class controller extends \Controller {
 			$dao = new dao\property_photolog;
 			if ($dto = $dao->getByID($id)) {
 				$this->data = (object)[
+					'title' => $this->title = sprintf('%s - notepad', $this->label),
 					'dto' => $dto,
-
 				];
 
-				$this->modal([
-					'title' => $this->title = sprintf('%s - notepad', $this->label),
-					'load' => 'notepad'
-
-				]);
+				$this->load('notepad');
 			} else {
 				print 'not found';
 			}
