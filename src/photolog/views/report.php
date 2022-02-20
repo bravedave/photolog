@@ -129,7 +129,7 @@ $uid = strings::rand();	?>
 </table>
 <script>
 	(_ => {
-		_.debug = true;
+		// _.debug = true;
 		let tbl = _('#<?= $uid ?>');
 		console.log(tbl);
 		tbl.addEventListener('update-line-numbers', function(e) {
