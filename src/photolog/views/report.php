@@ -129,22 +129,25 @@ $uid = strings::rand();	?>
 </table>
 <script>
 	(_ => {
-		$('#<?= $uid ?>')
-			.on('update-line-numbers', function(e) {
-				let t = 0;
-				this.querySelectorAll('tbody > tr:not(.d-none) >td[line-number]').forEach(td => {
-					t++;
-					td.setAttribute('data-line', t);
-					td.textContent = t;
-				});
+		_.debug = true;
+		let tbl = _('#<?= $uid ?>');
+		console.log(tbl);
+		tbl.addEventListener('update-line-numbers', function(e) {
+			let t = 0;
+			this.querySelectorAll('tbody > tr:not(.d-none) >td[line-number]').forEach(td => {
+				t++;
+				td.setAttribute('data-line', t);
+				td.textContent = t;
+			});
 
-				let td = this.querySelector('thead > tr:not(.d-none) >td[line-number]');
-				if (!!td) {
-					td.setAttribute('data-count', t);
-					td.textContent = t;
-				}
-			})
-			.trigger('update-line-numbers');
+			let td = this.querySelector('thead > tr:not(.d-none) >td[line-number]');
+			if (!!td) {
+				td.setAttribute('data-count', t);
+				td.textContent = t;
+			}
+			if (_.debug) console.log('updated line numbers');
+		});
+		tbl.dispatchEvent(new Event('update-line-numbers'));
 
 		_('#<?= $uid ?> > tbody > tr').forEach(tr => {
 			$(tr)
