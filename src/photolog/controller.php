@@ -153,7 +153,7 @@ class controller extends \Controller {
 						unlink($qfile);
 						clearstatcache();
 
-						sys::logger(sprintf('<unlink( %s)> : %s', $qfile, __METHOD__));
+						if ($debug) sys::logger(sprintf('<unlink( %s)> : %s', $qfile, __METHOD__));
 					} else {
 						if ($debug) sys::logger(sprintf('<qfile not found ( %s)> : %s', $qfile, __METHOD__));
 					}

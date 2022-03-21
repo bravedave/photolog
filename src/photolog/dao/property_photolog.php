@@ -55,6 +55,7 @@ class property_photolog extends _dao {
 				$files = new FilesystemIterator($path, FilesystemIterator::SKIP_DOTS);
 				$filter = new CallbackFilterIterator($files, function ($cur, $key, $iter) {
 					if ('_info.json' == $cur->getFilename()) return false;
+					if (preg_match('/\-prestamp$/', $cur->getFilename())) return false;
 					return $cur->isFile();
 				});
 
@@ -66,6 +67,7 @@ class property_photolog extends _dao {
 					$errors = 0;
 					$files = new FilesystemIterator($qpath, FilesystemIterator::SKIP_DOTS);
 					$filter = new CallbackFilterIterator($files, function ($cur, $key, $iter) use (&$errors) {
+						if ('.upload-in-progress' == $cur->getFilename()) return false;
 						//~ \sys::logger( sprintf( 'error : %s == err', $cur->getExtension()));
 						if ($cur->getExtension() == 'err') {
 							$errors++;
