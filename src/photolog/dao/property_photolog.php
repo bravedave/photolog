@@ -122,7 +122,7 @@ class property_photolog extends _dao {
 		});
 	}
 
-	protected function _getInfoFile(\dao\dto\dto $dto): string {
+	protected function _getInfoFile(\dvc\dao\dto\dto $dto): string {
 		return implode(DIRECTORY_SEPARATOR, [
 			$this->store($dto->id),
 			'_info.json'
@@ -130,7 +130,7 @@ class property_photolog extends _dao {
 		]);
 	}
 
-	protected function _getInfo(\dao\dto\dto $dto): object {
+	protected function _getInfo(\dvc\dao\dto\dto $dto): object {
 		if ($path = realpath($this->_getInfoFile($dto))) {
 			if (file_exists($path)) {
 				return (object)json_decode(file_get_contents($path));
@@ -140,7 +140,7 @@ class property_photolog extends _dao {
 		return (object)[];
 	}
 
-	protected function _setInfo(\dao\dto\dto $dto, object $info) {
+	protected function _setInfo(\dvc\dao\dto\dto $dto, object $info) {
 		$this->store($dto->id, $create = true);
 		if ($path = $this->_getInfoFile($dto)) {
 			\file_put_contents($path, json_encode($info, JSON_PRETTY_PRINT));
@@ -158,7 +158,7 @@ class property_photolog extends _dao {
 		return $dto;
 	}
 
-	public function getFiles(\dao\dto\dto $dto, string $route): array {
+	public function getFiles(\dvc\dao\dto\dto $dto, string $route): array {
 
 		$files = [];
 		$path = $this->store($dto->id);
@@ -392,7 +392,7 @@ class property_photolog extends _dao {
 		return [];
 	}
 
-	public function getImageInfo(\dao\dto\dto $dto, string $file): object {
+	public function getImageInfo(\dvc\dao\dto\dto $dto, string $file): object {
 		if ($json = $this->_getInfo($dto)) {
 			if (isset($json->{$file})) {
 				return (object)$json->{$file};
@@ -407,7 +407,7 @@ class property_photolog extends _dao {
 		return parent::Insert($a);
 	}
 
-	public function setImageInfo(\dao\dto\dto $dto, string $file, object $info) {
+	public function setImageInfo(\dvc\dao\dto\dto $dto, string $file, object $info) {
 		if ($json = $this->_getInfo($dto)) {
 
 			/**
