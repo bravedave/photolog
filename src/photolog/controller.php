@@ -731,7 +731,7 @@ class controller extends \Controller {
 		}
 	}
 
-	public function view($id) {
+	public function view($id = 0) {
 		if ($id = (int)$id) {
 			$dao = new dao\property_photolog;
 			if ($dto = $dao->getByID($id)) {
