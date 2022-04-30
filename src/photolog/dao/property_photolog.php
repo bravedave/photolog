@@ -14,7 +14,7 @@ use CallbackFilterIterator;
 use FilesystemIterator;
 use strings;
 
-use dao\_dao;
+use dvc\dao\_dao;
 use photolog\config;
 
 class property_photolog extends _dao {
