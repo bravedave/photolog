@@ -117,8 +117,38 @@ $diskSpace = sys::diskspace();	?>
 
 					let _me = $(this);
 					let _data = _me.data();
-					$(document).trigger('photolog-carousel', _data.file.description);
+					if (/mp4|mov/.test(String(_data.file.extension))) {
+						let options = {
+							size: 'lg',
+							title: ('mov' == _data.file.extension ? 'quicktime' : 'mp4') + ' Viewer',
+							text: '',
+							headClass: '',
+							url: _data.file.url
+						};
 
+						let m = _.ask(options);
+
+						let id = _.randomString();
+
+						let video = $(`<video controls autoplay id="${id}" width="100%">
+							<source src="${_data.file.url + '&v=full'}" type="video/${ 'mov' == _data.file.extension ? 'quicktime' : 'mp4' }">
+							Sorry, your browser doesn't support embedded videos.
+						</video>`);
+
+						$('.modal-body', m)
+							.addClass('p-2')
+							.append(video);
+
+						// 			.append(`<style>
+						// @media (min-width: 768px) {
+						//   #${id} { min-height: calc(100vh - 230px) !important; }
+						// }
+						// </style>`)
+
+						console.log(_data.file);
+					} else {
+						$(document).trigger('photolog-carousel', _data.file.description);
+					}
 				})
 				.on('delete', function(e) {
 					let _me = $(this);

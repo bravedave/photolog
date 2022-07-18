@@ -46,6 +46,7 @@
     "post-update-cmd": "photolog\\postUpdate::upgrade",
     "cron": "photolog\\postUpdate::cron",
     "smokealarm-importcsv": "smokealarm\\postUpdate::importcsv",
-    "smokealarm-import-property-status": "smokealarm\\postUpdate::importpropertystatuscsv"
+    "smokealarm-import-property-status": "smokealarm\\postUpdate::importpropertystatuscsv",
+    "start": "./run.sh"
   }
 }

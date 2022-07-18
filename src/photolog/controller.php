@@ -573,7 +573,7 @@ class controller extends \Controller {
 							} else {
 								\sys::logger(sprintf('<file type not permitted : %s> %s', $strType, __METHOD__));
 								sys::notifySupport(
-									'CMS Error',
+									'PhotoLog Error',
 									implode(PHP_EOL, [
 										sprintf('Trying to upload : %s', $strType, __METHOD__),
 										sprintf('File   ...: %s(%s)', $file['name'], $strType),
