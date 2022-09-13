@@ -34,7 +34,8 @@
   },
   "autoload": {
     "psr-4": {
-      "photolog\\": "src/photolog/"
+      "photolog\\": "src/photolog/",
+      "photolog_public\\": "src/photolog_public/"
     }
   },
   "autoload-dev": {

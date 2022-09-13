@@ -16,8 +16,6 @@ use green, Json, Response, sys, strings;
 use SplFileInfo;
 
 class controller extends \Controller {
-	protected $viewPath = __DIR__ . '/views/';
-
 	protected function _index() {
 		if ($pid = (int)$this->getParam('property')) {
 
@@ -70,6 +68,8 @@ class controller extends \Controller {
 		$this->label = 'Photolog';
 		config::photolog_checkdatabase();
 		parent::before();
+
+		$this->viewPath[] = __DIR__ . '/views/';
 	}
 
 	protected function page($params) {
@@ -273,16 +273,17 @@ class controller extends \Controller {
 
 					$a = ['public_link_expires' => ''];
 					if (strtotime($this->getPost('public_link_expires')) > time()) {
+
 						$a = [
 							'public_link' => bin2hex(random_bytes(11)),
 							'public_link_expires' => $this->getPost('public_link_expires')
-
 						];
 					}
 
 					$dao->UpdateByID($a, $dto->id);
 					Json::ack($action);
 				} else {
+
 					Json::nak($action);
 				}
 			} else {
