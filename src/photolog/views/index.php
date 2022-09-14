@@ -21,7 +21,7 @@ extract((array)$this->data);	?>
 
 				<a href="<?= strings::url(sprintf('%s/view/%d?f=%d', $this->route, $dto->id, $referer->id)); ?>">
 
-					<h6><?= $title ?> #<?= $dto->id ?></h6>
+					<h6><?= $this->title ?> #<?= $dto->id ?></h6>
 				</a>
 			</li>
 
