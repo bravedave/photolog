@@ -301,7 +301,9 @@ extract((array)$this->data);	?>
 					}
 				});
 
-			if (!_.email.activate) nav.find('.js-public-link-email').addClass('d-none');
+			$(document).ready( () => {
+				if (!_.email.activate) nav.find('.js-public-link-email').addClass('d-none');
+			});
 
 			nav.find('.js-public-link-clear').on('click', e => nav.find('.js-generate-public-link').trigger('clear-link'));
 			nav.find('.js-public-link-regenerate').on('click', e => nav.find('.js-generate-public-link').trigger('create-link'));
