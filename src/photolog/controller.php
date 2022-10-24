@@ -16,6 +16,8 @@ use green, Json, Response, sys, strings;
 use SplFileInfo;
 
 class controller extends \Controller {
+	protected $viewPath = __DIR__ . '/views/';
+
 	protected function _index() {
 		if ($pid = (int)$this->getParam('property')) {
 
@@ -68,8 +70,6 @@ class controller extends \Controller {
 		$this->label = 'Photolog';
 		config::photolog_checkdatabase();
 		parent::before();
-
-		$this->viewPath[] = __DIR__ . '/views/';
 	}
 
 	protected function page($params) {
@@ -273,17 +273,16 @@ class controller extends \Controller {
 
 					$a = ['public_link_expires' => ''];
 					if (strtotime($this->getPost('public_link_expires')) > time()) {
-
 						$a = [
 							'public_link' => bin2hex(random_bytes(11)),
 							'public_link_expires' => $this->getPost('public_link_expires')
+
 						];
 					}
 
 					$dao->UpdateByID($a, $dto->id);
 					Json::ack($action);
 				} else {
-
 					Json::nak($action);
 				}
 			} else {
@@ -514,14 +513,16 @@ class controller extends \Controller {
 								'application/pdf',
 								'image/jpeg',
 								'image/pjpeg',
-								'image/png',
-								'video/quicktime',
-								'video/mp4'
-
+								'image/png'
 							];
 
+							if (config::$PHOTOLOG_ENABLE_VIDEO) {
+								$accept[] = 'video/quicktime';
+								$accept[] = 'video/mp4';
+							}
+
 							/** heic are not current supported on fedora */
-							if (config::photolog_enable_heic) {
+							if (config::$PHOTOLOG_ENABLE_HEIC) {
 								$accept[] = 'image/heic';
 								$accept[] = 'image/heif';
 							}
@@ -529,17 +530,22 @@ class controller extends \Controller {
 							// \sys::logger( sprintf('<%s> %s', $strType, __METHOD__));
 
 							if (in_array($strType, $accept)) {
+
 								if ($debug) sys::logger(sprintf('<%s (%s) acceptable> : %s', $file['name'], $strType, __METHOD__));
 								$source = $file['tmp_name'];
+
 								if ('application/pdf' == $strType || in_array($strType, $videoTypes)) {
+
 									$target = sprintf('%s/%s', $path, $file['name']);
 								} else {
+
 									$target = sprintf('%s/%s', $queue, $file['name']);
 								}
 
 								if (file_exists($target)) unlink($target);
 
 								if (move_uploaded_file($source, $target)) {
+
 									chmod($target, 0666);
 
 									if ($debug) sys::logger(sprintf('upload: %s (%s) accepted : %s', $file['name'], $strType, __METHOD__));
@@ -650,31 +656,38 @@ class controller extends \Controller {
 				// sys::logger( sprintf( 'img/%d - %s: %s', $id, $img, __METHOD__));
 
 				if (!(preg_match('@(\.\.|\/)@', $img)) && preg_match('@.(png|jp[e]?g|jfif|mov|mp4|pdf|heic)$@i', $img)) {
-					$dao = new dao\property_photolog;
-					$path = $dao->store($id);
+
+					$path = (new dao\property_photolog)->store($id);
 
 					$_file = sprintf('%s/%s', $path, $img);
 					$_queue = sprintf('%s/queue/%s', $path, $img);
 					if (file_exists($_file)) {
+
 						$mimetype = '';
 						if ('full' != $this->getParam('v')) $mimetype = mime_content_type($_file);
 
 						if ('full' != $this->getParam('v') && 'application/pdf' == $mimetype) {
+
 							// sys::logger( sprintf( '%s/resources/images/acrobat.png', __DIR__));
 							sys::serve(sprintf('%s/resources/images/acrobat.png', __DIR__));
 						} elseif ('full' != $this->getParam('v') && 'video/quicktime' == $mimetype) {
+
 							sys::serve(sprintf('%s/resources/images/mov-extension-filetype.png', __DIR__));
 						} elseif ('full' != $this->getParam('v') && 'video/mp4' == $mimetype) {
+
 							sys::serve(sprintf('%s/resources/images/mp4-extension-filetype.png', __DIR__));
 						} else {
+
 							sys::serve($_file);
 						}
 					} elseif (file_exists($_queue)) {
+
 						sys::serve(config::photolog_default_image800x600_inqueue);
 					}
 				}
 			}
 		} else {
+
 			sys::serve(config::photolog_default_image800x600);
 		}
 	}

@@ -545,6 +545,7 @@ $diskSpace = sys::diskspace();	?>
 		});
 
 		<?php if (!$diskSpace->exceeded) {	?>
+
 			// console.log( 'assign');
 			_.fileDragDropHandler.call(c, {
 				url: _.url('<?= $this->route ?>'),
@@ -558,31 +559,27 @@ $diskSpace = sys::diskspace();	?>
 					'image/jpeg',
 					'image/pjpeg',
 					'image/png',
-					'video/quicktime',
-					'video/mp4'
-					<?= config::photolog_enable_heic ? ',\'image/heic\'' : '' ?>
-
+					<?php
+					if (config::$PHOTOLOG_ENABLE_VIDEO) print ",'video/quicktime','video/mp4'";
+					if (config::$PHOTOLOG_ENABLE_HEIC) print ",'image/heic'";
+					?>
 				],
-				onError: d => {
-					console.log('error', d);
-
-				},
+				onError: d => console.log('error', d),
 				onReject: d => {
-					// console.log( 'reject', d);
-					let alert = $('<div class="alert alert-danger"></div>');
-
-					alert.html(d.description);
-					$('<h5 class="alert-heading"></h5>').html(d.file.name).prependTo(alert);
-					alert.appendTo(cContainer);
-					// console.log( d.file);
+					$(`<div class="alert alert-danger">
+							<h5 class="alert-heading">${d.file.name}</h5>
+							${d.description}
+						</div>`)
+						.appendTo(cContainer);
 
 				},
 				onUpload: d => {
+
 					if ('ack' == d.response) {
+
 						$.each(d.files, (i, file) => displayCard(file));
 						allDeleteVisibility();
 						allDownloadVisibility();
-
 					}
 
 				}
@@ -632,22 +629,28 @@ $diskSpace = sys::diskspace();	?>
 					let img = $(el);
 					let src = img.attr('src');
 
-					let _indicator = $(`<li data-target="#${id}" data-slide-to="${i}"></li>`).appendTo(indicators);
-					let envelope = $('<div class="carousel-item"></div>')
-						.append(`<img class="d-block w-100" src="${src}" alt="...">`)
+					let _indicator = $(`<li data-target="#${id}" data-slide-to="${i}"></li>`)
+						.appendTo(indicators);
+					let envelope = $(`<div class="carousel-item">
+							<img class="d-block w-100" src="${src}" alt="...">
+						</div>`)
 						.appendTo(inner);
 
 					let title = String(img.attr('title'));
 					if ('' != title) {
+
 						envelope.append(`<div class="carousel-caption d-none d-md-block"><h5>${title}</h5></div>`);
 					}
 
 					if (!!file) {
+
 						if (title == file) {
+
 							_indicator.addClass('active');
 							envelope.addClass('active');
 						}
 					} else if (first) {
+
 						_indicator.addClass('active');
 						envelope.addClass('active');
 					}

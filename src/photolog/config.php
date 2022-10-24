@@ -18,13 +18,15 @@ class config extends \config {
 
 	const photolog_db_version = 0.01;
 
-	const photolog_enable_heic = true;
 
 	const photolog_prestamp = '-prestamp';
 
 	const photolog_rotate_left = 1;
 	const photolog_rotate_right = 2;
 	const photolog_rotate_180 = 3;
+
+	static $PHOTOLOG_ENABLE_HEIC = true;
+	static $PHOTOLOG_ENABLE_VIDEO = false;
 
 	static $PHOTOLOG_STAMP = __DIR__ . '/resources/images/stamp.png';
 	static $TAHOMA_TTF = __DIR__ . '/resources/tahoma.ttf';
