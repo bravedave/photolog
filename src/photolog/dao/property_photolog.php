@@ -39,10 +39,10 @@ class property_photolog extends _dao {
 			'errors' => 0,
 			'total' => 0,
 			'dirSize' => 0,
-
 		];
 
 		if (is_dir($path)) {
+
 			$qpath = $path . '/queue';
 			$dirModTime = is_dir($qpath) ?
 				$dirModTime = max(filemtime($path), filemtime($qpath)) :
@@ -54,6 +54,7 @@ class property_photolog extends _dao {
 
 				$files = new FilesystemIterator($path, FilesystemIterator::SKIP_DOTS);
 				$filter = new CallbackFilterIterator($files, function ($cur, $key, $iter) {
+
 					if ('_info.json' == $cur->getFilename()) return false;
 					if (preg_match('/\-prestamp$/', $cur->getFilename())) return false;
 					return $cur->isFile();
@@ -64,19 +65,22 @@ class property_photolog extends _dao {
 				$dto->files->total += $i;
 
 				if (is_dir($qpath)) {
+
 					$errors = 0;
 					$files = new FilesystemIterator($qpath, FilesystemIterator::SKIP_DOTS);
 					$filter = new CallbackFilterIterator($files, function ($cur, $key, $iter) use (&$errors) {
+
 						if ('.upload-in-progress' == $cur->getFilename()) return false;
 						//~ \sys::logger( sprintf( 'error : %s == err', $cur->getExtension()));
 						if ($cur->getExtension() == 'err') {
+
 							$errors++;
 							return false;
 						} else {
+
 							if (preg_match('@(jp[e]?g|png)$@i', $cur->getExtension())) {
-								if (10 > $cur->getSize()) {
-									$errors++;
-								}
+
+								if (10 > $cur->getSize()) $errors++;
 							}
 						}
 
@@ -97,27 +101,23 @@ class property_photolog extends _dao {
 				$this->UpdateByID([
 					'dirModTime' => date('Y-m-d H:i:s', $dirModTime),
 					'dirStats' => json_encode($dto->files)
-
 				], $dto->id);
 				//~ \sys::logger( sprintf( 'could NOT use cache : %s %s %s', $path, date( 'Y-m-d H:i:s', $dirModTime), $dto->dirModTime));
 
 			} else {
-				$dto->files = json_decode($dto->dirStats);
-				if (!isset($dto->files->errors)) {
-					$dto->files->errors = 0;
-				}
-				//~ \sys::logger( sprintf( 'could use cache : %s %s : %s', $path, $dto->dirModTime, $cache->dirSize));
 
+				$dto->files = json_decode($dto->dirStats);
+				if (!isset($dto->files->errors)) $dto->files->errors = 0;
 			}
 		}
 
-		//~ \sys::logger( sprintf( '%s : %d/%d : %d', $path, $dto->files->processed, $dto->files->queued, $dto->files->total));
-
-		return ($dto);
+		return $dto;
 	}
 
 	protected function _dtoSet($res) {
+
 		return $res->dtoSet(function ($dto) {
+
 			return $this->_dtoExpand($dto);
 		});
 	}
@@ -148,7 +148,9 @@ class property_photolog extends _dao {
 	}
 
 	public function getByID($id) {
+
 		if ($dto = parent::getByID($id)) {
+
 			$dto = $this->_dtoExpand($dto);
 
 			$dao = new properties;
@@ -256,10 +258,7 @@ class property_photolog extends _dao {
 		);
 
 		//~ return $this->Result( $sql);
-		if ($res = $this->Result($sql)) {
-			return $this->_dtoSet($res);
-		}
-
+		if ($res = $this->Result($sql)) return $this->_dtoSet($res);
 		return [];
 	}
 
