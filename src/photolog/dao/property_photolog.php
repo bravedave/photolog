@@ -14,10 +14,10 @@ use bravedave, CallbackFilterIterator;
 use FilesystemIterator;
 use strings;
 
-use dvc\dao\_dao;
+use bravedave\dvc\dao;
 use photolog\config;
 
-class property_photolog extends _dao {
+class property_photolog extends dao {
 	protected $_db_name = 'property_photolog';
 
 	protected function dirSize($path) {
