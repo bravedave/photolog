@@ -10,6 +10,7 @@
 
 namespace photolog;
 
+use bravedave\dvc\logger;
 use DateTime;
 use DateTimeZone;
 use FilesystemIterator;
@@ -73,10 +74,6 @@ class utility {
 			 */
 			$dt = new DateTime($exif['DateTime'], new DateTimeZone(config::$TIMEZONE));
 			$timestamp = $dt->format('U');
-			// \sys::logger(sprintf('<%s> %s', $dt->format('c'), __METHOD__));
-			// \sys::logger(sprintf('<%s> %s', $dt->format(config::$DATETIME_FORMAT), __METHOD__));
-			// \sys::logger(sprintf('<%s> %s', $dt->format('U'), __METHOD__));
-			// return;
 		}
 
 		$img = ImageManagerStatic::make($src);	// open an image file
@@ -178,7 +175,7 @@ class utility {
 		//~ $bypass = true;
 
 		if ($bypass) {
-			sys::logger(sprintf('<%s> %s', 'on bypass', __METHOD__));
+			logger::info(sprintf('<%s> %s', 'on bypass', __METHOD__));
 			return;
 		}
 
@@ -216,7 +213,7 @@ class utility {
 								unlink($path . '/queue/.upload-in-progress');
 								clearstatcache();
 
-								// \sys::logger(sprintf('<defer - upload in progress> %s', __METHOD__));
+								// logger::info(sprintf('<defer - upload in progress> %s', __METHOD__));
 								sleep(3);
 							} else {
 								$i_will_wait = 0;
@@ -224,7 +221,7 @@ class utility {
 						}
 
 						if (file_exists($path . '/queue/.upload-in-progress')) {
-							\sys::logger(sprintf('<break - upload in progress> %s', __METHOD__));
+							logger::info(sprintf('<break - upload in progress> %s', __METHOD__));
 							return;
 						}
 					}
@@ -232,13 +229,14 @@ class utility {
 
 					$files = new FilesystemIterator($path . '/queue');
 					foreach ($files as $file) {
-						// \sys::logger( sprintf('<%s> %s', $file->getExtension(), __METHOD__));
+						// logger::info( sprintf('<%s> %s', $file->getExtension(), __METHOD__));
 
 						/**
 						 * Process all heic files
 						 */
 						if ('heic' == strtolower($file->getExtension())) {
-							\sys::logger(sprintf('<%s> %s', 'heic file', __METHOD__));
+
+							// logger::info(sprintf('<%s> %s', 'heic file', __METHOD__));
 							$imagick = new \Imagick;
 							$jpg = \preg_replace('@\.heic$@i', '.jpg', $file->getPathname());
 							$imagick->readImage($file->getPathname());
@@ -273,18 +271,18 @@ class utility {
 									if (++$icount >= $limit) break;
 									sleep($afterHours ? 1 : 2);
 								} else {
-									if ($debug) sys::logger(sprintf('<did not stamp %d : %s => %s> %s', $dto->id, $file->getFilename(), $stamped, __METHOD__));
+									if ($debug) logger::debug(sprintf('<did not stamp %d : %s => %s> %s', $dto->id, $file->getFilename(), $stamped, __METHOD__));
 								}
 							}
 						}
 					}
 				} else {
-					if ($debug) sys::logger(sprintf('path %s is not dir : %s', $path, __METHOD__));
+					if ($debug) logger::debug(sprintf('path %s is not dir : %s', $path, __METHOD__));
 				}
 			});
 		}
 
-		if ($debug || $icount) sys::logger(sprintf('<processed %s> %s', $icount, __METHOD__));
+		if ($debug || $icount) logger::debug(sprintf('<processed %s> %s', $icount, __METHOD__));
 	}
 
 	public static function stampone($src, $stamped, $dto) {
