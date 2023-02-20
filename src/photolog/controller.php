@@ -10,13 +10,12 @@
 
 namespace photolog;
 
+use bravedave\dvc\{json, logger, Response, userAgent};
 use currentUser;
-use dvc\userAgent;
-use green, Json, Response, sys, strings;
+use green, strings;
 use SplFileInfo;
 
 class controller extends \Controller {
-	protected $viewPath = __DIR__ . '/views/';
 
 	protected function _index() {
 		if ($pid = (int)$this->getParam('property')) {
@@ -30,8 +29,6 @@ class controller extends \Controller {
 				'referer' => $referer
 
 			];
-
-			//~ sys::dump( $this->data->dtoSet);
 
 			$this->render([
 				'title' => $this->title = $this->label,
@@ -51,8 +48,6 @@ class controller extends \Controller {
 
 			];
 
-			//~ sys::dump( $this->data->dtoSet);
-
 			$this->render([
 				'title' => $this->title = $this->label,
 				'primary' => ['searchbar', 'summary'],
@@ -67,9 +62,11 @@ class controller extends \Controller {
 	}
 
 	protected function before() {
+
 		$this->label = 'Photolog';
 		config::photolog_checkdatabase();
 		parent::before();
+		$this->viewPath[] = __DIR__ . '/views/';
 	}
 
 	protected function page($params) {
@@ -105,18 +102,18 @@ class controller extends \Controller {
 					if ($id = (int)$this->getPost('id')) {
 
 						$dao->UpdateByID($a, $id);
-						Json::ack($action)
+						json::ack($action)
 							->add('id', $id);
 					} else {
-						Json::nak($action);
+						json::nak($action);
 					}
 				} else {
 					$id = $dao->Insert($a);
-					Json::ack($action)
+					json::ack($action)
 						->add('id', $id);
 				}
 			} else {
-				Json::nak($action);
+				json::nak($action);
 			}
 		} elseif ('delete' == $action) {
 			if ($id = $this->getPost('id')) {
@@ -126,7 +123,6 @@ class controller extends \Controller {
 					$_file = trim($this->getPost('file'), './ ');
 					$file = $path . '/' . $_file;
 					$qfile = $path . '/queue/' . $_file;
-					//~ sys::logger( sprintf( 'delete : %s || %s', $file, $qfile));
 
 					if (file_exists($file)) {
 						unlink($file);
@@ -147,23 +143,22 @@ class controller extends \Controller {
 							$parts['filename']
 						);
 
-						//~ sys::logger( $errfile);
-
 						if (file_exists($errfile)) unlink($errfile);
 						unlink($qfile);
 						clearstatcache();
 
-						if ($debug) sys::logger(sprintf('<unlink( %s)> : %s', $qfile, __METHOD__));
+						if ($debug) logger::debug(sprintf('<unlink( %s)> : %s', $qfile, __METHOD__));
 					} else {
-						if ($debug) sys::logger(sprintf('<qfile not found ( %s)> : %s', $qfile, __METHOD__));
+
+						if ($debug) logger::debug(sprintf('<qfile not found ( %s)> : %s', $qfile, __METHOD__));
 					}
 
-					Json::ack($action);
+					json::ack($action);
 				} else {
-					Json::nak($action);
+					json::nak($action);
 				}
 			} else {
-				Json::nak($action);
+				json::nak($action);
 			}
 		} elseif ('delete-entry' == $action) {
 			if ($id = $this->getPost('id')) {
@@ -175,21 +170,21 @@ class controller extends \Controller {
 						$qpath = $path . '/queue/';
 						$infofile = $path . '/_info.json';
 
-						//~ Json::nak( sprintf( '%s : %s, %s, %d files', $action, $path, $qpath, $dto->files->total));
+						//~ json::nak( sprintf( '%s : %s, %s, %d files', $action, $path, $qpath, $dto->files->total));
 
 						if (file_exists($infofile)) unlink($infofile);
 						if (is_dir($qpath)) rmdir($qpath);
 						if (is_dir($path)) rmdir($path);
 						$dao->delete($id);
-						Json::ack($action);
+						json::ack($action);
 					} else {
-						Json::nak(sprintf('%s %d files', $action, $dto->files->total));
+						json::nak(sprintf('%s %d files', $action, $dto->files->total));
 					}
 				} else {
-					Json::nak($action);
+					json::nak($action);
 				}
 			} else {
-				Json::nak($action);
+				json::nak($action);
 			}
 		} elseif ('get-photolog' == $action) {
 			/*
@@ -205,11 +200,11 @@ class controller extends \Controller {
       */
 			if ($pid = (int)$this->getPost('property')) {
 				$dao = new dao\property_photolog;
-				Json::ack($action)
+				json::ack($action)
 					->add('data', $dao->getForProperty($pid));	// dtoSet
 
 			} else {
-				Json::nak($action);
+				json::nak($action);
 			}
 		} elseif ('property-smokealarms' == $action) {
 			/*
@@ -243,10 +238,10 @@ class controller extends \Controller {
 					}
 				}
 
-				Json::ack($action)
+				json::ack($action)
 					->add('alarms', $alarms);
 			} else {
-				Json::nak($action);
+				json::nak($action);
 			}
 		} elseif ('public-link-clear' == $action) {
 			if ($id = $this->getPost('id')) {
@@ -259,12 +254,12 @@ class controller extends \Controller {
 
 					];
 					$dao->UpdateByID($a, $dto->id);
-					Json::ack($action);
+					json::ack($action);
 				} else {
-					Json::nak($action);
+					json::nak($action);
 				}
 			} else {
-				Json::nak($action);
+				json::nak($action);
 			}
 		} elseif ('public-link-create' == $action) {
 			if ($id = $this->getPost('id')) {
@@ -281,29 +276,29 @@ class controller extends \Controller {
 					}
 
 					$dao->UpdateByID($a, $dto->id);
-					Json::ack($action);
+					json::ack($action);
 				} else {
-					Json::nak($action);
+					json::nak($action);
 				}
 			} else {
-				Json::nak($action);
+				json::nak($action);
 			}
 		} elseif ('public-link-get' == $action) {
 			if ($id = $this->getPost('id')) {
 				$dao = new dao\property_photolog;
 				if ($dto = $dao->getByID($id)) {
 					if (strtotime($dto->public_link_expires) > time()) {
-						Json::ack($action)
+						json::ack($action)
 							->add('url', sprintf('%spl/%s', config::$PORTAL, $dto->public_link))
 							->add('expires', $dto->public_link_expires);
 					} else {
-						Json::nak($action);
+						json::nak($action);
 					}
 				} else {
-					Json::nak($action);
+					json::nak($action);
 				}
 			} else {
-				Json::nak($action);
+				json::nak($action);
 			}
 		} elseif ('rotate-left' == $action || 'rotate-right' == $action || 'rotate-180' == $action) {
 			if ($id = $this->getPost('id')) {
@@ -337,22 +332,22 @@ class controller extends \Controller {
 									'prestamp' => file_exists($info->getRealPath() . config::photolog_prestamp)
 								];
 
-								Json::ack($action)
+								json::ack($action)
 									->add('data', $returnfile);
 							} else {
-								Json::nak($action);
+								json::nak($action);
 							}
 						} else {
-							Json::nak($action);
+							json::nak($action);
 						}
 					} else {
-						Json::nak(sprintf('missing pre-stamp : %s', $action));
+						json::nak(sprintf('missing pre-stamp : %s', $action));
 					}
 				} else {
-					Json::nak(sprintf('not found - %s', $action));
+					json::nak(sprintf('not found - %s', $action));
 				}
 			} else {
-				Json::nak($action);
+				json::nak($action);
 			}
 		} elseif ('save-notepad' == $action) {
 			if ($id = $this->getPost('id')) {
@@ -365,21 +360,21 @@ class controller extends \Controller {
 					];
 
 					$dao->UpdateByID($a, $dto->id);
-					Json::ack($action)
+					json::ack($action)
 						->add('data', $a);
 				} else {
-					Json::nak($action);
+					json::nak($action);
 				}
 			} else {
-				Json::nak($action);
+				json::nak($action);
 			}
 		} elseif ('search-properties' == $action) {
 			if ($term = $this->getPost('term')) {
-				Json::ack($action)
+				json::ack($action)
 					->add('term', $term)
 					->add('data', green\search::properties($term));
 			} else {
-				Json::nak($action);
+				json::nak($action);
 			}
 		} elseif ('set-alarm-location' == $action) {
 			if ($id = $this->getPost('id')) {
@@ -390,18 +385,18 @@ class controller extends \Controller {
 							$info = $dao->getImageInfo($dto, $file);
 							$info->location = $location;
 							$dao->setImageInfo($dto, $file, $info);
-							Json::ack($action);
+							json::ack($action);
 						} else {
-							Json::nak($action);
+							json::nak($action);
 						}
 					} else {
-						Json::nak($action);
+						json::nak($action);
 					}
 				} else {
-					Json::nak($action);
+					json::nak($action);
 				}
 			} else {
-				Json::nak($action);
+				json::nak($action);
 			}
 		} elseif ('set-alarm-location-clear' == $action) {
 			if ($id = $this->getPost('id')) {
@@ -414,15 +409,15 @@ class controller extends \Controller {
 							$dao->setImageInfo($dto, $file, $info);
 						}
 
-						Json::ack($action);
+						json::ack($action);
 					} else {
-						Json::nak($action);
+						json::nak($action);
 					}
 				} else {
-					Json::nak($action);
+					json::nak($action);
 				}
 			} else {
-				Json::nak($action);
+				json::nak($action);
 			}
 		} elseif ('upload' == $action) {
 
@@ -482,7 +477,7 @@ class controller extends \Controller {
 						chmod($queue, 0777);
 					}
 
-					if ($debug) sys::logger(sprintf('<%s> %s', $path, __METHOD__));
+					if ($debug) logger::debug(sprintf('<%s> %s', $path, __METHOD__));
 
 					$response = [
 						'response' => 'ack',
@@ -496,16 +491,17 @@ class controller extends \Controller {
 						@chmod($queue . '/.upload-in-progress', 0666);
 
 						set_time_limit(60);
-						if ($debug) sys::logger(sprintf('<%s> %s', $file['name'], __METHOD__));
+						if ($debug) logger::debug(sprintf('<%s> %s', $file['name'], __METHOD__));
 
 						if ($file['error'] == 2) {
-							sys::logger(sprintf('<%s is too large> %s', $file['name'], __METHOD__));
+
+							logger::info(sprintf('<%s is too large> %s', $file['name'], __METHOD__));
 							$response['response'] = 'nak';
 							$response['description'] = $file['name'] . ' is too large ..';
 						} elseif (is_uploaded_file($file['tmp_name'])) {
-							// $strType = $file['type'];
+
 							$strType = mime_content_type($file['tmp_name']);
-							if ($debug) sys::logger(sprintf('<%s (%s)> %s', $file['name'], $strType, __METHOD__));
+							if ($debug) logger::debug(sprintf('<%s (%s)> %s', $file['name'], $strType, __METHOD__));
 
 							$videoTypes = ['video/quicktime', 'video/mp4'];
 
@@ -527,11 +523,9 @@ class controller extends \Controller {
 								$accept[] = 'image/heif';
 							}
 
-							// \sys::logger( sprintf('<%s> %s', $strType, __METHOD__));
-
 							if (in_array($strType, $accept)) {
 
-								if ($debug) sys::logger(sprintf('<%s (%s) acceptable> : %s', $file['name'], $strType, __METHOD__));
+								if ($debug) logger::debug(sprintf('<%s (%s) acceptable> : %s', $file['name'], $strType, __METHOD__));
 								$source = $file['tmp_name'];
 
 								if ('application/pdf' == $strType || in_array($strType, $videoTypes)) {
@@ -548,11 +542,10 @@ class controller extends \Controller {
 
 									chmod($target, 0666);
 
-									if ($debug) sys::logger(sprintf('upload: %s (%s) accepted : %s', $file['name'], $strType, __METHOD__));
+									if ($debug) logger::debug(sprintf('upload: %s (%s) accepted : %s', $file['name'], $strType, __METHOD__));
 									$response['files'][] = [
 										'description' => $file['name'],
 										'url' => strings::url(sprintf($this->route . '/img/%d?img=%s&t=%s', $dto->id, $file['name'], filemtime($target)))
-
 									];
 
 									if ($location) {
@@ -571,15 +564,18 @@ class controller extends \Controller {
 										$dao->setImageInfo($dto, $file['name'], $info);
 									}
 								} else {
-									sys::logger("Possible file property_photolog/upload attack!  Here's some debugging info:\n" . var_export($_FILES, TRUE));
+
+									logger::info("Possible file property_photolog/upload attack!  Here's some debugging info:\n" . var_export($_FILES, TRUE));
 								}
 							} elseif ($strType == "") {
-								sys::logger(sprintf('<%s invalid file type> : %s', $file['name'], __METHOD__));
+
+								logger::info(sprintf('<%s invalid file type> : %s', $file['name'], __METHOD__));
 								$response['response'] = 'nak';
 								$response['description'] = $file['name'] . ' invalid file type ..';
 							} else {
-								\sys::logger(sprintf('<file type not permitted : %s> %s', $strType, __METHOD__));
-								sys::notifySupport(
+
+								logger::info(sprintf('<file type not permitted : %s> %s', $strType, __METHOD__));
+								\sys::notifySupport(
 									'PhotoLog Error',
 									implode(PHP_EOL, [
 										sprintf('Trying to upload : %s', $strType, __METHOD__),
@@ -594,8 +590,9 @@ class controller extends \Controller {
 								$response['description'] = $file['name'] . ' file type not permitted ..: ' . $strType;
 							}
 						} else {
-							sys::logger(sprintf('<%s> %s', 'what the dickens ?', __METHOD__));
-							sys::logger(sprintf('<%s> %s', $file['error'], __METHOD__));
+
+							logger::info(sprintf('<%s> %s', 'what the dickens ?', __METHOD__));
+							logger::info(sprintf('<%s> %s', $file['error'], __METHOD__));
 						}
 						// elseif ( is_uploaded_file( $file['tmp_name'] )) {
 
@@ -603,10 +600,10 @@ class controller extends \Controller {
 
 					new Json($response);
 				} else {
-					Json::nak($action);
+					json::nak($action);
 				}
 			} else {
-				Json::nak($action);
+				json::nak($action);
 			}
 		} else {
 			parent::postHandler();
@@ -649,11 +646,7 @@ class controller extends \Controller {
 
 		if ($id = (int)$id) {
 
-			// sys::logger( sprintf( 'img/%d : %s', $id, __METHOD__));
-
 			if ($img = $this->getParam('img')) {
-
-				// sys::logger( sprintf( 'img/%d - %s: %s', $id, $img, __METHOD__));
 
 				if (!(preg_match('@(\.\.|\/)@', $img)) && preg_match('@.(png|jp[e]?g|jfif|mov|mp4|pdf|heic)$@i', $img)) {
 
@@ -668,27 +661,26 @@ class controller extends \Controller {
 
 						if ('full' != $this->getParam('v') && 'application/pdf' == $mimetype) {
 
-							// sys::logger( sprintf( '%s/resources/images/acrobat.png', __DIR__));
-							sys::serve(sprintf('%s/resources/images/acrobat.png', __DIR__));
+							Response::serve(sprintf('%s/resources/images/acrobat.png', __DIR__));
 						} elseif ('full' != $this->getParam('v') && 'video/quicktime' == $mimetype) {
 
-							sys::serve(sprintf('%s/resources/images/mov-extension-filetype.png', __DIR__));
+							Response::serve(sprintf('%s/resources/images/mov-extension-filetype.png', __DIR__));
 						} elseif ('full' != $this->getParam('v') && 'video/mp4' == $mimetype) {
 
-							sys::serve(sprintf('%s/resources/images/mp4-extension-filetype.png', __DIR__));
+							Response::serve(sprintf('%s/resources/images/mp4-extension-filetype.png', __DIR__));
 						} else {
 
-							sys::serve($_file);
+							Response::serve($_file);
 						}
 					} elseif (file_exists($_queue)) {
 
-						sys::serve(config::photolog_default_image800x600_inqueue);
+						Response::serve(config::photolog_default_image800x600_inqueue);
 					}
 				}
 			}
 		} else {
 
-			sys::serve(config::photolog_default_image800x600);
+			Response::serve(config::photolog_default_image800x600);
 		}
 	}
 
@@ -793,12 +785,13 @@ class controller extends \Controller {
 					unlink($filename);
 				}
 
-				if ($debug) sys::logger(sprintf('<%s> : %s', $filename, __METHOD__));
+				if ($debug) logger::debug(sprintf('<%s> : %s', $filename, __METHOD__));
 
 				$zip = new \ZipArchive;
 
 				if ($zip->open($filename, \ZipArchive::CREATE) !== TRUE) {
-					\sys::logger(sprintf('<cannot open %s> : %s', $filename, __METHOD__));
+
+					logger::info(sprintf('<cannot open %s> : %s', $filename, __METHOD__));
 					printf('<cannot open archive> %s', __METHOD__);
 				} else {
 
@@ -810,40 +803,42 @@ class controller extends \Controller {
 						$files = [];
 						$fit = new \FilesystemIterator($path);
 						foreach ($fit as $file) {
+
 							if (preg_match('@(jp[e]?g|mov|mp4|pdf)$@i', $file->getExtension())) {
-								//~ sys::logger( $file->getFilename());
-								//~ sys::logger( $file->getExtension());
+
 								$files[] = (object)[
 									'description' => $file->getFilename(),
 									'path' => $file->getPathname()
 								];
 
-								if ($debug) sys::logger(sprintf('property_photolog/zip : adding <%s>', $file->getPathname()));
+								if ($debug) logger::debug(sprintf('property_photolog/zip : adding <%s>', $file->getPathname()));
 								$zip->addFile($file->getPathname(), $file->getFilename());
 								$ifiles++;
 							}
 						}
 					}
 
-					//~ sys::dump( $files);
-
-					if ($debug) sys::logger(sprintf('<numfiles : %s> %s', $zip->numFiles, __METHOD__));
-					if ($debug) sys::logger(sprintf('<status : %s> %s', $zip->status, __METHOD__));
+					if ($debug) logger::debug(sprintf('<numfiles : %s> %s', $zip->numFiles, __METHOD__));
+					if ($debug) logger::debug(sprintf('<status : %s> %s', $zip->status, __METHOD__));
 
 					$zip->close();
 
 					if ($ifiles) {
-						sys::serve($filename);
+
+						Response::serve($filename);
 					} else {
+
 						printf('<empty archive> %s', __METHOD__);
 					}
 
 					if (file_exists($filename)) unlink($filename);
 				}
 			} else {
+
 				printf('<property not found> %s', __METHOD__);
 			}
 		} else {
+
 			printf('<invalid> %s', __METHOD__);
 		}
 	}
