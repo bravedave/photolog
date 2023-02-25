@@ -10,11 +10,11 @@
 
 namespace photolog\dao;
 
-use bravedave, CallbackFilterIterator;
-use FilesystemIterator;
+use application, cms;
+use CallbackFilterIterator, FilesystemIterator;
 use strings;
 
-use bravedave\dvc\dao;
+use bravedave\dvc\{dao, dto, dtoSet, logger};
 use photolog\config;
 
 class property_photolog extends dao {
@@ -31,6 +31,9 @@ class property_photolog extends dao {
 	}
 
 	protected function _dtoExpand($dto) {
+		$debug = false;
+		$debug = true;
+
 		$path = $this->store($dto->id);
 
 		$dto->files = (object)[
@@ -93,7 +96,6 @@ class property_photolog extends dao {
 					$dto->files->total += $i;
 
 					//~ \sys::logger( sprintf( 'errors %s', $errors));
-
 				}
 
 				//~ \sys::logger( sprintf( '%s : %s : %s', $path, \db::dbTimeStamp(), json_encode( [ 'dirModTime' => date( 'Y-m-d H:i:s', $dirModTime), 'dirStats' => json_encode( $dto->files)])));
@@ -102,8 +104,14 @@ class property_photolog extends dao {
 					'dirModTime' => date('Y-m-d H:i:s', $dirModTime),
 					'dirStats' => json_encode($dto->files)
 				], $dto->id);
-				//~ \sys::logger( sprintf( 'could NOT use cache : %s %s %s', $path, date( 'Y-m-d H:i:s', $dirModTime), $dto->dirModTime));
 
+				if ($debug) logger::debug(sprintf(
+					'<could NOT use cache : %s %s %s> %s',
+					$path,
+					date('Y-m-d H:i:s', $dirModTime),
+					$dto->dirModTime,
+					__METHOD__
+				));
 			} else {
 
 				$dto->files = json_decode($dto->dirStats);
@@ -122,7 +130,7 @@ class property_photolog extends dao {
 		});
 	}
 
-	protected function _getInfoFile(bravedave\dvc\dto $dto): string {
+	protected function _getInfoFile(dto $dto): string {
 		return implode(DIRECTORY_SEPARATOR, [
 			$this->store($dto->id),
 			'_info.json'
@@ -130,7 +138,7 @@ class property_photolog extends dao {
 		]);
 	}
 
-	protected function _getInfo(bravedave\dvc\dto $dto): object {
+	protected function _getInfo(dto $dto): object {
 		if ($path = realpath($this->_getInfoFile($dto))) {
 			if (file_exists($path)) {
 				return (object)json_decode(file_get_contents($path));
@@ -140,7 +148,7 @@ class property_photolog extends dao {
 		return (object)[];
 	}
 
-	protected function _setInfo(bravedave\dvc\dto $dto, object $info) {
+	protected function _setInfo(dto $dto, object $info) {
 		$this->store($dto->id, $create = true);
 		if ($path = $this->_getInfoFile($dto)) {
 			\file_put_contents($path, json_encode($info, JSON_PRETTY_PRINT));
@@ -160,12 +168,13 @@ class property_photolog extends dao {
 		return $dto;
 	}
 
-	public function getFiles(bravedave\dvc\dto $dto, string $route): array {
+	public function getFiles(dto $dto, string $route): array {
 
 		$files = [];
 		$path = $this->store($dto->id);
 		$info = $this->_getInfo($dto);
 		if (is_dir($path)) {
+
 			$_files = new FilesystemIterator($path);
 			foreach ($_files as $file) {
 				if ('_info.json' == $file->getFilename()) continue;
@@ -233,7 +242,8 @@ class property_photolog extends dao {
 		return $files;
 	}
 
-	public function getForProperty($pid) {
+	public function getForProperty(int $pid): array {
+
 		$sql = sprintf(
 			'SELECT
 				photolog.id,
@@ -254,113 +264,92 @@ class property_photolog extends dao {
 				`date` DESC',
 			$this->db_name(),
 			$pid
-
 		);
 
-		//~ return $this->Result( $sql);
-		if ($res = $this->Result($sql)) return $this->_dtoSet($res);
-		return [];
+		return (new dtoSet)($sql, fn ($dto) => $this->_dtoExpand($dto));
 	}
 
 	public function getPropertySummary() {
 		$debug = false;
 		//~ $debug = true;
 		$timer = false;
-		//~ $timer = \Application::timer();
+		$timer = application::timer();
 
-		/**
-		 *  SQLite compatible statement
-		 */
-
-		$ai = 'sqlite' == config::$DB_TYPE ? '' : 'AUTO_INCREMENT';
 		$this->Q(sprintf(
-			'CREATE TEMPORARY TABLE _t(
-				`id` INT PRIMARY KEY %s,
-				property_id INT,
-				address_street TEXT,
-				address_suburb TEXT,
-				street_index TEXT,
-				entries INT)',
-			$ai
+			'CREATE TEMPORARY TABLE _t AS(
+			SELECT
+				l.*,
+				p.`address_street`,
+				p.`address_suburb`,
+				p.`street_index`
+			FROM
+				(
+					SELECT
+						`id`,
+						`property_id`,
+						count( *) entries
+					FROM
+						`%s`
+					GROUP BY `property_id`
+				) l
+					LEFT JOIN
+				properties p ON p.`id` = l.`property_id`)',
+			$this->db_name()
 		));
 
-		$sql = sprintf(
-			'INSERT INTO _t(
-				`property_id`,
-				`address_street`,
-				`address_suburb`,
-				`street_index`,
-				`entries`
-			)
-			SELECT
-				pl.property_id,
-				prop.address_street,
-				prop.address_suburb,
-				prop.street_index,
-				count( *) entries
-			FROM
-				`%s` pl
-				LEFT JOIN
-					properties prop ON prop.id = pl.property_id
-			GROUP BY pl.property_id',
-			$this->db_name()
+		if ($timer) logger::info(sprintf('<populated temporary table : %s> %s', $timer->elapsed(), __METHOD__));
 
-		);
+		(new dtoSet)(
+			'SELECT id, address_street, street_index, property_id FROM _t',
+			function ($dto) {
 
-
-		$this->Q($sql);
-
-		if ($res = $this->Result('SELECT id, address_street, street_index FROM _t')) {
-			$res->dtoSet(function ($dto) {
 				if (!$dto->street_index) {
+
+					$street_index = strings::street_index($dto->address_street);
+
 					$this->db->Update(
 						'_t',
-						['street_index' => strings::street_index($dto->address_street)],
+						['street_index' => $street_index],
 						sprintf('WHERE id = %d', $dto->id),
 						$flush = false
 					);
+
+					(new cms\properties\dao\properties)->UpdateByID(
+						['street_index' => $street_index],
+						$dto->property_id
+					);
 				}
-			});
+			}
+		);
 
-			$sql = 'SELECT * FROM _t ORDER BY address_suburb, street_index, address_street';
-		}
+		if ($timer) logger::info(sprintf('<start final parse : %s> %s', $timer->elapsed(), __METHOD__));
 
-		if ($res = $this->Result($sql)) {
-			return $res->dtoSet(function ($dto) use ($timer) {
-				$props = $this->getForProperty($dto->property_id);
-				$dto->files = (object)[
-					'processed' => 0,
-					'queued' => 0,
-					'errors' => 0,
-					'total' => 0,
-					'dirSize' => 0
+		$sql = 'SELECT * FROM _t ORDER BY address_suburb, street_index, address_street';
+		$dtoSet = (new dtoSet)($sql, function ($dto) {
 
-				];
+			$props = $this->getForProperty($dto->property_id);
+			$dto->files = (object)[
+				'processed' => 0,
+				'queued' => 0,
+				'errors' => 0,
+				'total' => 0,
+				'dirSize' => 0
+			];
 
-				foreach ($props as $prop) {
-					$dto->files->processed += $prop->files->processed;
-					$dto->files->queued += $prop->files->queued;
-					if (isset($prop->files->errors)) $dto->files->errors += $prop->files->errors;
-					$dto->files->total += $prop->files->total;
-					$dto->files->dirSize += $prop->files->dirSize;
-				}
+			foreach ($props as $prop) {
 
-				if ($timer) \sys::logger(
-					sprintf(
-						'<getDirDetail : %s : %ss> %s',
-						$dto->address_street,
-						$timer->elapsed(),
-						__METHOD__
+				$dto->files->processed += $prop->files->processed;
+				$dto->files->queued += $prop->files->queued;
+				if (isset($prop->files->errors)) $dto->files->errors += $prop->files->errors;
+				$dto->files->total += $prop->files->total;
+				$dto->files->dirSize += $prop->files->dirSize;
+			}
 
-					)
+			return $dto;
+		});
 
-				);
-
-				return ($dto);
-			});
-		}
-
-		return [];
+		if ($timer) logger::info(sprintf('<done : %s> %s', $timer->elapsed(), __METHOD__));
+		return $dtoSet;
 	}
 
 	public function getRecent() {
@@ -391,56 +380,40 @@ class property_photolog extends dao {
 		return [];
 	}
 
-	public function getImageInfo(bravedave\dvc\dto $dto, string $file): object {
+	public function getImageInfo(dto $dto, string $file): object {
+
 		if ($json = $this->_getInfo($dto)) {
-			if (isset($json->{$file})) {
-				return (object)$json->{$file};
-			}
+
+			if (isset($json->{$file})) return (object)$json->{$file};
 		}
 
 		return (object)[];
 	}
 
 	public function Insert($a) {
+
 		$a['created'] = $a['updated'] = self::dbTimeStamp();
 		return parent::Insert($a);
 	}
 
-	public function setImageInfo(bravedave\dvc\dto $dto, string $file, object $info) {
+	public function setImageInfo(dto $dto, string $file, object $info) {
+
 		if ($json = $this->_getInfo($dto)) {
-
-			/**
-			 * forum : 6300
-			 * allow multiple alamrs to share a location
-			 */
-
-			// if ( isset( $info->location) && $info->location) {
-			// 	// must be unique
-			// 	foreach ( $json as $k => $o) {
-			// 		if ( isset( $o->location)) {
-			// 			if ( $info->location == $o->location) {
-			// 				$json->{$k}->location = '';
-
-			// 			}
-
-			// 		}
-
-			// 	}
-
-			// }
 
 			$json->{$file} = $info;
 			$this->_setInfo($dto, $json);
 		} else {
+
 			$this->_setInfo($dto, (object)[
 				$file => $json
-
 			]);
 		}
 	}
 
 	public function store(int $id, bool $create = false) {
+
 		$path = sprintf('%s%d', config::photologStore(), (int)$id);
+		// logger::info( sprintf('<%s> %s', $path, __METHOD__));
 
 		if ($create && !is_dir($path)) {
 			mkdir($path, 0777);
@@ -451,6 +424,7 @@ class property_photolog extends dao {
 	}
 
 	public function UpdateByID($a, $id) {
+
 		$a['updated'] = self::dbTimeStamp();
 		return parent::UpdateByID($a, $id);
 	}

@@ -8,5 +8,8 @@
  *
 */
 
-class config extends cms\config {
-}
+namespace cms;
+
+use bravedave;
+
+class controller extends bravedave\dvc\Controller {}

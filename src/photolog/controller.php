@@ -10,14 +10,16 @@
 
 namespace photolog;
 
+use application;
 use bravedave\dvc\{json, logger, Response, userAgent};
-use currentUser;
+use cms, cms\currentUser;
 use green, strings;
 use SplFileInfo;
 
-class controller extends \Controller {
+class controller extends cms\controller {
 
 	protected function _index() {
+
 		if ($pid = (int)$this->getParam('property')) {
 
 			$dao = new dao\properties;
@@ -27,46 +29,42 @@ class controller extends \Controller {
 			$this->data = (object)[
 				'dtoSet' => $dao->getForProperty($pid),
 				'referer' => $referer
-
 			];
 
 			$this->render([
-				'title' => $this->title = $this->label,
+				'title' => $this->title = config::label,
 				'primary' => 'report',
 				'secondary' => 'index',
 				'data' => (object)[
 					'searchFocus' => false
-
 				],
-
 			]);
 		} else {
+
 			$dao = new dao\property_photolog;
 			$this->data = (object)[
 				'dtoSet' => $dao->getPropertySummary(),
-				'referer' => false
-
+				'title' => $this->title = config::label,
+				'pageUrl' => strings::url($this->route),
+				'searchFocus' => false,
+				'aside' => ['index'],
+				'referer' => false,
+				'bootstrap' => '5'
 			];
 
-			$this->render([
-				'title' => $this->title = $this->label,
-				'primary' => ['searchbar', 'summary'],
-				'secondary' => 'index',
-				'data' => (object)[
-					'searchFocus' => false
-
-				],
-
+			// logger::info( sprintf('<%s> %s', application::timer()->elapsed(), __METHOD__));
+			$this->renderBS5([
+				'main' => fn () => $this->load('summary')
 			]);
 		}
 	}
 
 	protected function before() {
 
-		$this->label = 'Photolog';
 		config::photolog_checkdatabase();
-		parent::before();
 		$this->viewPath[] = __DIR__ . '/views/';
+
+		parent::before();
 	}
 
 	protected function page($params) {
@@ -619,9 +617,7 @@ class controller extends \Controller {
 				'address_street' => '',
 				'subject' => '',
 				'date' => date('Y-m-d'),
-
 			]
-
 		];
 
 		if ((int)$id > 0) {
@@ -699,19 +695,22 @@ class controller extends \Controller {
 	}
 
 	public function notepad($id) {
+
 		if ($id = (int)$id) {
 			$dao = new dao\property_photolog;
 			if ($dto = $dao->getByID($id)) {
 				$this->data = (object)[
-					'title' => $this->title = sprintf('%s - notepad', $this->label),
+					'title' => $this->title = sprintf('%s - notepad', config::label),
 					'dto' => $dto,
 				];
 
 				$this->load('notepad');
 			} else {
+
 				print 'not found';
 			}
 		} else {
+
 			print 'invalid';
 		}
 	}
@@ -754,7 +753,7 @@ class controller extends \Controller {
 				}
 
 				$render = [
-					'title' => $this->title = sprintf('%s - view', $this->label),
+					'title' => $this->title = config::label_view,
 					'primary' => 'view',
 					'secondary' => 'index',
 					'data' => (object)[

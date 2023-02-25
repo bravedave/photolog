@@ -10,14 +10,16 @@
 
 namespace photolog;
 
-use Json;
+use cms;
 
-class config extends \config {
+class config extends cms\config {
+	const photolog_db_version = 0.02;
+
+	const label = 'PhotoLog';
+	const label_view = 'PhotoLog - View';
+
 	const photolog_default_image800x600 = __DIR__ . '/resources/images/default.png';
 	const photolog_default_image800x600_inqueue = __DIR__ . '/resources/images/default-in-queue.png';
-
-	const photolog_db_version = 0.01;
-
 
 	const photolog_prestamp = '-prestamp';
 
@@ -32,19 +34,22 @@ class config extends \config {
 	static $TAHOMA_TTF = __DIR__ . '/resources/tahoma.ttf';
 
 	static function photolog_checkdatabase() {
-		$dao = new dao\dbinfo(null, method_exists(__CLASS__, 'cmsStore') ? self::cmsStore() : self::dataPath());
+
+		$dao = new dao\dbinfo(null, method_exists(__CLASS__, 'cmsStore') ? static::cmsStore() : static::dataPath());
 		// // $dao->debug = true;
-		$dao->checkVersion('photolog', self::photolog_db_version);
+		$dao->checkVersion('photolog', static::photolog_db_version);
 	}
 
 	public static function photologStore() {
-		$_path = method_exists(__CLASS__, 'cmsStore') ? self::cmsStore() : self::dataPath();
+
+		$_path = method_exists(__CLASS__, 'cmsStore') ? static::cmsStore() : static::dataPath();
 		$path = implode(DIRECTORY_SEPARATOR, [
 			rtrim($_path, '/ '),
 			'photolog/'
 		]);
 
 		if (!is_dir($path)) {
+
 			mkdir($path, 0777);
 			chmod($path, 0777);
 		}

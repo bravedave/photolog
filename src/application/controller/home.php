@@ -12,7 +12,5 @@ class home extends photolog\controller {
 
   public function info() {
     phpinfo();
-
   }
-
 }

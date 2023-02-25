@@ -10,9 +10,11 @@
 
 $_uidCarousel = false;
 
-extract((array)$this->data);	?>
+extract((array)$this->data);
 
-<ul class="nav flex-column mt-2" id="<?= $_uidNav = strings::rand() ?>">
+$bootstrap = $bootstrap ?? 4;	?>
+
+<ul class="nav flex-column mt-2 mb-4" id="<?= $_uidNav = strings::rand() ?>">
 	<?php
 	if (isset($dto) && $dto) {
 		if (isset($referer) && $referer) {	?>
@@ -188,9 +190,11 @@ extract((array)$this->data);	?>
 
 	<?php	}	?>
 
-	<li class="nav-item pt-4"><a class="nav-link btn btn-outline-primary" href="#" id="<?= $_uidAdd = strings::rand() ?>">add entry</a></li>
-
 </ul>
+
+<?= 5 == $bootstrap ? '<div class="d-grid gap-2">' : '' ?>
+<button type="button" class="btn btn-outline-primary <?= $bootstrap < 5 ? 'btn-block' : '' ?>" id="<?= $_uidAdd = strings::rand() ?>">add entry</button>
+<?= 5 == $bootstrap ? '</div>' : '' ?>
 <script>
 	(_ => {
 
@@ -203,10 +207,10 @@ extract((array)$this->data);	?>
 			el.select();
 			el.setSelectionRange(0, 99999); /*For mobile devices*/
 
-			document.execCommand("copy"); /* Copy the text inside the text field */
+			// document.execCommand("copy"); /* Copy the text inside the text field */
+			navigator.clipboard.writeText(el.value);
 
 			_.growl('Copied');
-
 		});
 
 		<?php if (isset($dto) && $dto) {	?>
@@ -301,7 +305,7 @@ extract((array)$this->data);	?>
 					}
 				});
 
-			$(document).ready( () => {
+			$(document).ready(() => {
 				if (!_.email.activate) nav.find('.js-public-link-email').addClass('d-none');
 			});
 

@@ -8,187 +8,190 @@
  *
 */
 
-$uid = strings::rand(); ?>
+extract((array)$this->data);	// $this->data->dtoSet, $this->data->page, $this->data->pages, $this->data->total
+?>
+
+<div class="row g-2">
+	<div class="col mb-2">
+
+		<input type="search" class="form-control" accesskey="/" aria-label="search" autofocus id="<?= $_search = strings::rand()  ?>">
+	</div>
+
+	<div class="col-auto mb-2">
+		<button type="button" class="btn btn-light" id="<?= $_bottom = strings::rand() ?>"><i class="bi bi-chevron-bar-down"></i></button>
+	</div>
+</div>
 
 <h3 class="d-none d-print-block"><?= $this->title ?></h3>
-<table class="table table-sm" id="<?= $uid ?>" data-role="photolog-table">
+<table class="table table-sm" id="<?= $_table = strings::rand()  ?>" data-role="photolog-table">
 	<thead class="small">
+
 		<tr>
-			<td class="align-bottom text-center" line-number>#</td>
+
+			<td class="align-bottom text-center js-line-number">#</td>
 			<td class="d-none d-md-table-cell" data-role="sort-header" data-key="suburb">suburb</td>
 			<td data-role="sort-header" data-key="address">address</td>
 			<td class="text-center" data-role="sort-header" data-key="entries" data-sorttype="numeric" style="width: 17%;">entries</td>
 			<td class="d-none d-sm-table-cell text-center" data-role="sort-header" data-key="files" data-sorttype="numeric" style="width: 17%;">files</td>
 			<td class="d-none d-md-table-cell text-center" data-role="sort-header" data-key="size" data-sorttype="numeric" style="width: 17%;">size</td>
-
 		</tr>
-
 	</thead>
 
 	<tbody>
 		<?php
-			$entries = 0;
-			$totFiles = 0;
-			$totProcessed = 0;
-			$totQueued = 0;
-			$totSize = 0;
-			foreach( $this->data->dtoSet as $dto) {	?>
-			<tr data-id="<?=  $dto->property_id ?>"
-				data-address=<?= json_encode( $dto->street_index, JSON_UNESCAPED_SLASHES) ?>
-				data-suburb=<?= json_encode( $dto->address_suburb, JSON_UNESCAPED_SLASHES) ?>
-				data-entries="<?= $dto->entries ?>"
-				data-files="<?= $dto->files->total ?>"
-				data-size="<?= $dto->files->dirSize ?>"
-				class="<?= (bool)$dto->files->errors ? 'text-danger' : '' ?>"
-				>
-				<td class="text-center small" line-number>&nbsp;&nbsp;</td>
-				<td class="d-none d-md-table-cell"><?=  $dto->address_suburb ?></td>
-				<td data-role="address_street">
-					<?=  $dto->address_street ?>
-					<div class="d-md-none small text-muted font-italic"><?=  $dto->address_suburb ?></div>
+		$entries = 0;
+		$totFiles = 0;
+		$totProcessed = 0;
+		$totQueued = 0;
+		$totSize = 0;
+		foreach ($dtoSet as $dto) {
 
-				</td>
-				<td class="text-center"><?php
-					$entries += (int)$dto->entries;
-					print $dto->entries;
+			printf(
+				'<tr class="%s pointer" data-id="%d" data-address="%s" data-suburb="%s" data-entries="%s" data-files="%s" data-size="%s">',
+				(bool)$dto->files->errors ? 'text-danger' : '',
+				$dto->property_id,
+				htmlentities($dto->street_index),
+				htmlentities($dto->address_suburb),
+				$dto->entries,
+				$dto->files->total,
+				$dto->files->dirSize
+			);
 
-				?></td>
-				<td class="d-none d-sm-table-cell text-center"><?php
+			print '<td class="text-center small js-line-number"></td>';
+			printf('<td class="d-none d-md-table-cell">%s</td>', $dto->address_suburb);
+			printf(
+				'<td data-role="address_street">%s<div class="d-md-none small text-muted font-italic">%s</div></td>',
+				$dto->address_street,
+				$dto->address_suburb
+			);
 
-					$totFiles += $dto->files->total;
-					$totProcessed += $dto->files->processed;
-					$totQueued += $dto->files->queued;
-					print $dto->files->total;
-					if ( $dto->files->queued > 0) {
-						printf( '<sup title="processed/unprocessed">(%d/%d)</sup>', $dto->files->processed, $dto->files->queued );
+			$entries += (int)$dto->entries;
+			printf('<td class="text-center">%s</td>', $dto->entries);
 
-					}
+			$totFiles += $dto->files->total;
+			$totProcessed += $dto->files->processed;
+			$totQueued += $dto->files->queued;
 
-				?></td>
-				<td class="d-none d-md-table-cell text-center"><?php
+			printf(
+				'<td class="d-none d-sm-table-cell text-center">%s%s</td>',
+				$dto->files->total,
+				$dto->files->queued > 0 ? sprintf(
+					'<sup title="processed/unprocessed">(%d/%d)</sup>',
+					$dto->files->processed,
+					$dto->files->queued
+				) : ''
+			);
 
-					$totSize += $dto->files->dirSize;
-					if ( $dto->files->dirSize > 1024000) {
-						printf( '%dG', $dto->files->dirSize / 1024000 );
+			$totSize += $dto->files->dirSize;
+			if ($dto->files->dirSize > 1024000) {
 
-					}
-					elseif ( $dto->files->dirSize > 1024) {
-						printf( '%dM', $dto->files->dirSize / 1024 );
+				printf('<td class="d-none d-md-table-cell text-center">%dG</td>', $dto->files->dirSize / 1024000);
+			} elseif ($dto->files->dirSize > 1024) {
 
-					}
-					else {
-						printf( '%dk', $dto->files->dirSize );
+				printf('<td class="d-none d-md-table-cell text-center">%dM</td>', $dto->files->dirSize / 1024);
+			} else {
 
-					}
+				printf('<td class="d-none d-md-table-cell text-center">%dk</td>', $dto->files->dirSize);
+			}
 
-				?></td>
+			print "</tr>\n";
+		}	// foreach( $this->data->dto as $dto) {
 
-			</tr>
+		print "</tbody>\n";
 
-		<?php	}	// foreach( $this->data->dto as $dto) {	?>
+		if ($this->data->dtoSet) {
 
-	</tbody>
+			print "<tfoot>\n";
 
-	<?php if ( $this->data->dtoSet) {	?>
+			print '<tr><td class="d-none d-md-table-cell">&nbsp;</td>';
 
-		<tfoot>
-			<tr>
-				<td class="d-none d-md-table-cell">&nbsp;</td>
-				<td colspan="2">&nbsp;</td>
-				<td class="text-center"><?= number_format( $entries) ?></td>
-				<td class="d-none d-sm-table-cell text-center"><?php
-					print number_format( $totFiles);
-					if ( $totQueued > 0) {
-						printf( '<sup title="processed/unprocessed">(%d/%d)</sup>', $totProcessed, $totQueued );
+			if ($totFiles > 0) {
 
-					}
+				$av = $totSize / $totFiles;
+				if ($av > 1024000) {
+					printf('<td colspan="2" class="text-muted small fst-italic">Average File Size:%dG</td>', $av / 1024000);
+				} elseif ($av > 1024) {
+					printf('<td colspan="2" class="text-muted small fst-italic">Average File Size:%dM</td>', $av / 1024);
+				} else {
+					printf('<td colspan="2" class="text-muted small fst-italic">Average File Size:%dk</td>', $av);
+				}
+			} else {
 
-				?></td>
+				print '<td colspan="2" class="text-muted small">Average File Size: N/A</td>';
+			}
 
-				<td class="d-none d-md-table-cell text-center"><?php
-					if ( $totSize > 1024000) {
-						printf( '%0.1fG', $totSize / 1024000 );
+			printf('<td class="text-center">%s</td>', number_format($entries));
+			printf(
+				'<td class="d-none d-sm-table-cell text-center">%s%s</td>',
+				number_format($totFiles),
+				$totQueued > 0 ? sprintf(
+					'<sup title="processed/unprocessed">(%d/%d)</sup>',
+					$totProcessed,
+					$totQueued
+				) : ''
+			);
 
-					}
-					elseif ( $totSize > 1024) {
-						printf( '%dM', $totSize / 1024 );
+			if ($totSize > 1024000) {
+				printf('<td class="d-none d-md-table-cell text-center">%0.1fG</td>', $totSize / 1024000);
+			} elseif ($totSize > 1024) {
+				printf('<td class="d-none d-md-table-cell text-center">%dM</td>', $totSize / 1024);
+			} else {
+				printf('<td class="d-none d-md-table-cell text-center">%dk</td>', $totSize);
+			}
+			print "</tr>\n";
 
-					}
-					else {
-						printf( '%dk', $totSize );
-
-					}
-
-				?></td>
-			</tr>
-
-			<?php	if ( $totFiles > 0) {	?>
-				<tr>
-					<td class="border-bottom-0" colspan="3"><em class="text-muteds small">Average File Size: <?php
-						$av = $totSize / $totFiles;
-						if ( $av > 1024000) {
-							printf( '%dG', $av / 1024000 );
-
-						}
-						elseif ( $av > 1024) {
-							printf( '%dM', $av / 1024 );
-
-						}
-						else {
-							printf( '%dk', $av );
-
-						}
-
-					?></em></td>
-					<td class="d-none d-sm-table-cell border-bottom-0">&nbsp;</td>
-					<td colspan="2" class="d-none d-md-table-cell border-bottom-0">&nbsp;</td>
-
-				</tr>
-
-			<?php	}	// if ( $totFiles > 0) {	?>
-
-		</tfoot>
-
-	<?php	}	?>
+			print "</tfoot>\n";
+		}	?>
 
 </table>
 
 <script>
-( _ => $(document).ready( () => {
-	$('#<?= $uid ?>').on('update-line-numbers', function( i, tr) {
-		let _table = $(this);
-		let lines = $('> tbody > tr', this);
+	(_ => {
+		const bottom = $('#<?= $_bottom ?>');
+		const search = $('#<?= $_search ?>');
+		const table = $('#<?= $_table ?>');
 
-		$('> thead > tr > td[line-number]', this).html( lines.length);
-		lines.each( ( i, tr) => $('> td[line-number]', tr).html( i+1));
+		table.find('> tbody > tr').each((i, tr) => {
+			let _tr = $(tr);
 
-	})
-	.trigger('update-line-numbers');
+			_tr
+				.on('click', e => window.location.href = _.url('<?= $this->route ?>/?property=' + _tr.data('id')))
+				.on('contextmenu', function(e) {
+					if (e.shiftKey)
+						return;
 
-	$('tbody > tr', '#<?= $uid ?>').each( ( i,tr) => {
-		let _tr = $(tr);
+					e.stopPropagation();
+					e.preventDefault();
 
-		_tr
-		.addClass( 'pointer')
-		.on( 'click', e => window.location.href = _.url( '<?= $this->route ?>/?property=' + _tr.data('id'))).
-		on( 'contextmenu', function( e) {
-			if ( e.shiftKey)
-				return;
+					_brayworth_.hideContexts();
 
-			e.stopPropagation();e.preventDefault();
+					let _context = _brayworth_.context();
 
-			_brayworth_.hideContexts();
+					_context.append($('<a class="font-weight-bold" />').html('Photolog : ' + $('td[data-role="address_street"]', _tr).html()).attr('href', _.url('<?= $this->route ?>/?property=' + _tr.data('id'))));
+					_context.append($('<a />').html('Goto : ' + $('td[data-role="address_street"]', _tr).html()).attr('href', _.url('property/view/' + _tr.data('id'))));
 
-			let _context = _brayworth_.context();
+					_context.open(e);
 
-			_context.append( $('<a class="font-weight-bold" />').html( 'Photolog : ' + $('td[data-role="address_street"]', _tr).html()).attr( 'href', _.url( '<?= $this->route ?>/?property=' + _tr.data('id'))));
-			_context.append( $('<a />').html( 'Goto : ' + $('td[data-role="address_street"]', _tr).html()).attr( 'href', _.url( 'property/view/' + _tr.data('id'))));
+				});
+		});
 
-			_context.open( e);
+		_.table.search(search, table);
+
+		// implies there is a cell with class js-line-number
+		table
+			.on('update-line-numbers', _.table._line_numbers_)
+			.trigger('update-line-numbers');
+
+		bottom.on('click', function(e) {
+			e.stopPropagation();
+
+			table.find('>tfoot')[0].scrollIntoView({
+				behavior: 'smooth',
+				block: 'end',
+				inline: 'center'
+			});
 
 		});
 
-	});
-
-}))( _brayworth_);
+	})(_brayworth_);
 </script>
