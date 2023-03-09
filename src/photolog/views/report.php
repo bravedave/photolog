@@ -8,31 +8,50 @@
  *
 */
 
-$uid = strings::rand();	?>
+/**
+ * replace:
+ * [x] data-dismiss => data-bs-dismiss
+ * [x] data-toggle => data-bs-toggle
+ * [x] data-parent => data-bs-parent
+ * [x] text-right => text-end
+ * [x] mr-* => me-*
+ * [x] ml-* => ms-*
+ * [x] input-group-prepend - remove
+ * [x] input-group-append - remove
+ */
+
+extract((array)$this->data);
+?>
 
 <h3 class="d-none d-print-block"><?= $this->title ?></h3>
-<table class="table table-sm" id="<?= $uid ?>" data-role="photolog-table">
-	<thead class="small">
-		<tr>
-			<td class="text-center" line-number>#</td>
-			<td data-role="sort-header" data-key="date">date</td>
-			<td class="d-none d-md-table-cell">address</td>
-			<td data-role="sort-header" data-key="subject">subject</td>
-			<td class="text-center" data-role="sort-header" data-key="files" data-sorttype="numeric">files</td>
-			<td class="text-center" data-role="sort-header" data-key="size" data-sorttype="numeric">size</td>
-			<td class="d-none d-md-table-cell">updated</td>
+<table class="table table-sm" id="<?= $_table = strings::rand() ?>" data-role="photolog-table">
+  <thead class="small">
 
-		</tr>
+    <tr>
+      <td class="text-center js-line-number">#</td>
+      <td data-role="sort-header" data-key="date">date</td>
+      <td class="d-none d-md-table-cell">address</td>
+      <td data-role="sort-header" data-key="subject">subject</td>
+      <td class="text-center" data-role="sort-header" data-key="files"
+        data-sorttype="numeric">files</td>
+      <td class="text-center" data-role="sort-header" data-key="size"
+        data-sorttype="numeric">size</td>
+      <td class="d-none d-md-table-cell">updated</td>
+    </tr>
+  </thead>
 
-	</thead>
-
-	<tbody>
-		<?php
+  <tbody>
+    <?php
 		$totFiles = 0;
 		$totProcessed = 0;
 		$totQueued = 0;
 		$totSize = 0;
 		foreach ($this->data->dtoSet as $dto) {
+
+			$totProcessed += $dto->files->processed;
+			$totQueued += $dto->files->queued;
+			$totFiles += $dto->files->total;
+			$totSize += $dto->files->dirSize;
 
 			printf(
 				'<tr
@@ -54,203 +73,157 @@ $uid = strings::rand();	?>
 				(bool)$dto->files->errors ? 'text-danger' : ''
 			);	?>
 
-			<td class="small text-center" line-number></td>
-			<td><?= strings::asShortDate($dto->date) ?></td>
-			<td class="d-none d-md-table-cell" data-address><?= strings::GoodStreetString($dto->address_street) ?></td>
-			<td>
-				<?= $dto->subject ?>
-				<div class="d-md-none text-muted small font-italic"><?= strings::GoodStreetString($dto->address_street) ?></div>
-			</td>
-			<td class="text-center">
-				<?php
-				$totProcessed += $dto->files->processed;
-				$totQueued += $dto->files->queued;
-				$totFiles += $dto->files->total;
+      <td class="small text-center js-line-number"></td>
+      <td><?= strings::asShortDate($dto->date) ?></td>
+      <td class="d-none d-md-table-cell" data-address><?= strings::GoodStreetString($dto->address_street) ?></td>
+      <td>
+        <?= $dto->subject ?>
+        <div class="d-md-none text-muted small font-italic"><?= strings::GoodStreetString($dto->address_street) ?></div>
+      </td>
+
+      <td class="text-center">
+        <?php
 				print $dto->files->total;
 				if ($dto->files->queued > 0) {
 					printf('<sup title="processed/unprocessed">(%d/%d)</sup>', $dto->files->processed, $dto->files->queued);
 				}
 				?></td>
 
-			<td class="text-center">
-				<?php
-				$totSize += $dto->files->dirSize;
-				if ($dto->files->dirSize > 1024000) {
-					printf('%dG', $dto->files->dirSize / 1024000);
-				} elseif ($dto->files->dirSize > 1024) {
-					printf('%dM', $dto->files->dirSize / 1024);
-				} else {
-					printf('%dk', $dto->files->dirSize);
-				}
-				?></td>
+    <?php
+			if ($dto->files->dirSize > 1024000) {
 
-			<td class="d-none d-md-table-cell"><?= strings::asShortDate($dto->updated) ?></td>
+				printf('<td class="text-center">%dG</td>', $dto->files->dirSize / 1024000);
+			} elseif ($dto->files->dirSize > 1024) {
 
-		<?php
+				printf('<td class="text-center">%dM</td>', $dto->files->dirSize / 1024);
+			} else {
+
+				printf('<td class="text-center">%dk</td>', $dto->files->dirSize);
+			}
+
+			printf('<td class="d-none d-md-table-cell">%s</td>', strings::asShortDate($dto->updated));
+
 			print '</tr>';
 		}	?>
 
-	</tbody>
+  </tbody>
 
-	<?php
-	if ($this->data->dtoSet) {	?>
+  <?php if ($dtoSet) {	?>
 
-		<tfoot>
-			<tr>
-				<td class="d-none d-md-table-cell">&nbsp;</td>
-				<td colspan="3">&nbsp;</td>
-				<td class="text-center">
-					<?php
+    <tfoot>
+      <tr>
+        <td class="d-none d-md-table-cell">&nbsp;</td>
+        <td colspan="3">&nbsp;</td>
+        <td class="text-center">
+          <?php
 					print number_format($totFiles);
 					if ($totQueued > 0) {
 						printf('<sup title="processed/unprocessed">(%d/%d)</sup>', $totProcessed, $totQueued);
 					}
 					?></td>
 
-				<td class="text-center">
-					<?php
-					if ($totSize > 1024000) {
-						printf('%dG', $totSize / 1024000);
-					} elseif ($totSize > 1024) {
-						printf('%dM', $totSize / 1024);
-					} else {
-						printf('%dk', $totSize);
-					}
-					?></td>
 
-				<td class="d-none d-md-table-cell">&nbsp;</td>
-			</tr>
+        <?php
+				if ($totSize > 1024000) {
+					printf('<td class="text-center">%dG</td>', $totSize / 1024000);
+				} elseif ($totSize > 1024) {
+					printf('<td class="text-center">%dM</td>', $totSize / 1024);
+				} else {
+					printf('<td class="text-center">%dk</td>', $totSize);
+				}
+				?>
 
-		</tfoot>
+        <td class="d-none d-md-table-cell">&nbsp;</td>
+      </tr>
+    </tfoot>
 
-	<?php
-	}
-	?>
+  <?php } ?>
+
 </table>
 <script>
-	(_ => {
-		// _.debug = true;
-		let tbl = _('#<?= $uid ?>');
-		tbl.addEventListener('update-line-numbers', function(e) {
-			let t = 0;
-			this.querySelectorAll('tbody > tr:not(.d-none) >td[line-number]').forEach(td => {
-				t++;
-				td.setAttribute('data-line', t);
-				td.textContent = t;
-			});
+  (_ => {
+    const table = $('#<?= $_table ?>');
 
-			let td = this.querySelector('thead > tr:not(.d-none) >td[line-number]');
-			if (!!td) {
-				td.setAttribute('data-count', t);
-				td.textContent = t;
-			}
-			if (_.debug) console.log('updated line numbers');
-		});
-		tbl.dispatchEvent(new Event('update-line-numbers'));
+    const contextmenu = function(e) {
 
-		_('#<?= $uid ?> > tbody > tr').forEach(tr => {
-			$(tr)
-				.addClass('pointer')
-				.on('click', function(e) {
-					e.stopPropagation();
-					e.preventDefault();
+      if (e.shiftKey) return;
+      let _ctx = _.context(e); // hides any open contexts and stops bubbling
 
-					$(this).trigger('view');
+      let _tr = $(this);
+      let _data = _tr.data();
 
-				})
-				.on('contextmenu', function(e) {
-					if (e.shiftKey)
-						return;
+      _ctx.append.a({
+        html: '<strong>view files</strong>',
+        click: e => $(this).trigger('view')
+      });
 
-					e.stopPropagation();
-					e.preventDefault();
+      _ctx.append.a({
+        html: 'edit',
+        click: e => {
 
-					_.hideContexts();
+          _.get.modal(_.url('<?= $this->route ?>/entry/' + _data.id))
+            .then(d => d.on('success', (e, href) => window.location.reload()));
+        }
+      });
 
-					let _tr = $(this);
-					let _data = _tr.data();
-					let _context = _.context();
+      if (Number(_data.property_id) > 0) {
 
-					_context.append(
-						$('<a href="#"><strong>view files</strong></a>')
-						.on('click', e => {
-							e.stopPropagation();
-							e.preventDefault();
+        _ctx.append.a('Goto ' + _tr.find('td[data-address]').html())
+          .attr('href', _.url(`property/view/${_data.property_id}`));
+      }
 
-							_context.close();
-							$(this).trigger('view');
+      if (_data.count < 1) {
 
-						}));
+        _ctx.append('<hr>');
+        _ctx.append.a({
 
-					_context.append(
-						$('<a href="#">edit</a>')
-						.on('click', e => {
-							e.stopPropagation();
-							e.preventDefault();
+          html: '<i class="bi bi-trash"></i>delete',
+          click: e => {
 
-							_context.close();
+            _.post({
+              url: _.url('<?= $this->route ?>'),
+              data: {
+                id: _data.id,
+                action: 'delete-entry',
+              }
+            }).then(d => 'ack' == d.response ?
+              window.location.reload() :
+              _.growl(d));
+          }
+        });
+      }
 
-							_.get.modal(_.url('<?= $this->route ?>/entry/' + _data.id))
-								.then(d => d.on('success', (e, href) => window.location.reload()));
+      _ctx.open(e);
+    };
 
-						}));
+    table.find('> tbody > tr').each((i, tr) => {
 
-					let pid = _data.property_id;
-					if (pid > 0) {
-						_context.append(
-							$('<a>Goto ' + $('td[data-address]', _tr).html() + '</a>')
-							.attr('href', _.url('property/view/' + pid))
-						);
+      $(tr)
+        .addClass('pointer')
+        .on('click', function(e) {
+          e.stopPropagation();
+          e.preventDefault();
 
-					}
+          $(this).trigger('view');
+        })
+        .on('contextmenu', contextmenu)
+        .on('view', function(e) {
 
-					if (_tr.data('count') < 1) {
-						_context.append('<hr>');
-						_context.append(
-							$('<a href="#"><i class="bi bi-trash"></i>delete</a>')
-							.on('click', e => {
-								e.stopPropagation();
-								e.preventDefault();
+          let _tr = $(this);
+          let _data = _tr.data();
 
-								_context.close();
+          <?php if (isset($dto->id) && (int)$dto->id) {	?>
 
-								_.post({
-									url: _.url('<?= $this->route ?>'),
-									data: {
-										id: _data.id,
-										action: 'delete-entry',
+            window.location.href = _.url(`<?= $this->route ?>/view/${_data.id}?f=<?= $dto->id ?>`);
+          <?php } else {	?>
 
-									}
+            window.location.href = _.url(`<?= $this->route ?>/view/${_data.id}`);
+          <?php }	?>
+        });
+    })
 
-								}).then(d => {
-									if ('ack' == d.response) {
-										window.location.reload();
-									} else {
-										_.growl(d);
-									}
-								});
-							}));
-
-					}
-
-					if (_context.length > 0) _context.open(e);
-
-				})
-				.on('view', function(e) {
-					let _tr = $(this);
-					let _data = _tr.data();
-
-					<?php if (isset($this->data->dto->id) && (int)$this->data->dto->id) {	?>
-						window.location.href = _.url('<?= $this->route ?>/view/' + _data.id + '?f=<?= $this->data->dto->id ?>');
-
-					<?php } else {	?>
-						window.location.href = _.url('<?= $this->route ?>/view/' + _data.id);
-
-					<?php }	?>
-
-				});
-
-		});
-
-	})(_brayworth_);
+    table
+      .on('update-line-numbers', _.table._line_numbers_)
+      .trigger('update-line-numbers');
+  })(_brayworth_);
 </script>

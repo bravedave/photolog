@@ -22,34 +22,41 @@ class controller extends cms\controller {
 
 		if ($pid = (int)$this->getParam('property')) {
 
-			$dao = new dao\properties;
-			$referer = $dao->getByID($pid);
-
-			$dao = new dao\property_photolog;
 			$this->data = (object)[
-				'dtoSet' => $dao->getForProperty($pid),
-				'referer' => $referer
+				'aside' => ['index'],
+				'dtoSet' => (new dao\property_photolog)->getForProperty($pid),
+				'referer' => (new dao\properties)->getByID($pid),
+				'latescripts' => [sprintf(
+					'<script type="text/javascript" src="%s"></script>',
+					strings::url($this->route . '/js')
+				)],
+				'pageUrl' => strings::url($this->route . '/?property=' . $pid),
+				'searchFocus' => false,
+				'title' => $this->title = config::label,
 			];
 
-			$this->render([
-				'title' => $this->title = config::label,
-				'primary' => 'report',
-				'secondary' => 'index',
-				'data' => (object)[
-					'searchFocus' => false
-				],
+			if ( $this->data->referer) {
+				$this->data->title = sprintf( '%s : %s', $this->data->referer->address_street, $this->data->title);
+			}
+
+			$this->renderBS5([
+				'main' => fn () => $this->load('report')
 			]);
 		} else {
 
 			$dao = new dao\property_photolog;
 			$this->data = (object)[
+				'aside' => ['index'],
 				'dtoSet' => $dao->getPropertySummary(),
-				'title' => $this->title = config::label,
+				'referer' => false,
+				'latescripts' => [sprintf(
+					'<script type="text/javascript" src="%s"></script>',
+					strings::url($this->route . '/js')
+				)],
 				'pageUrl' => strings::url($this->route),
 				'searchFocus' => false,
-				'aside' => ['index'],
-				'referer' => false,
-				'bootstrap' => '5'
+				'title' => $this->title = config::label,
+				'bootstrap' => '5',
 			];
 
 			// logger::info( sprintf('<%s> %s', application::timer()->elapsed(), __METHOD__));
@@ -65,18 +72,6 @@ class controller extends cms\controller {
 		$this->viewPath[] = __DIR__ . '/views/';
 
 		parent::before();
-	}
-
-	protected function page($params) {
-
-		if (!isset($params['latescripts'])) $params['latescripts'] = [];
-		$params['latescripts'][] = sprintf(
-			'<script type="text/javascript" src="%s"></script>',
-			strings::url($this->route . '/js')
-
-		);
-
-		return parent::page($params);
 	}
 
 	protected function posthandler() {
@@ -621,12 +616,14 @@ class controller extends cms\controller {
 		];
 
 		if ((int)$id > 0) {
+
 			$dao = new dao\property_photolog;
 			if ($dto = $dao->getByID($id)) {
 				$this->title = 'edit entry';
 				$this->data->dto = $dto;
 			}
 		} elseif ($property = (int)$this->getParam('property')) {
+
 			$dao = new dao\properties;
 			if ($dto = $dao->getByID($property)) {
 				$this->data->dto->property_id = $dto->id;
@@ -681,11 +678,8 @@ class controller extends cms\controller {
 	}
 
 	public function js($lib = '') {
-		$s = [];
-		$r = [];
-
-		$s[] = '@{{route}}@';
-		$r[] = strings::url($this->route);
+		$s = ['@{{route}}@'];
+		$r = [strings::url($this->route)];
 
 		$js = \file_get_contents(__DIR__ . '/js/custom.js');
 		$js = preg_replace($s, $r, $js);
@@ -697,6 +691,7 @@ class controller extends cms\controller {
 	public function notepad($id) {
 
 		if ($id = (int)$id) {
+
 			$dao = new dao\property_photolog;
 			if ($dto = $dao->getByID($id)) {
 				$this->data = (object)[
@@ -716,6 +711,7 @@ class controller extends cms\controller {
 	}
 
 	public function publicLink($id) {
+
 		if ($id = (int)$id) {
 			$dao = new dao\property_photolog;
 			if ($dto = $dao->getByID($id)) {
@@ -729,9 +725,11 @@ class controller extends cms\controller {
 				// $this->load( 'invalid');
 
 			} else {
+
 				$this->load('invalid');
 			}
 		} else {
+
 			$this->load('invalid');
 		}
 	}
