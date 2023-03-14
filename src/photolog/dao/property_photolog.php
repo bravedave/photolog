@@ -32,7 +32,7 @@ class property_photolog extends dao {
 
 	protected function _dtoExpand($dto) {
 		$debug = false;
-		$debug = true;
+		// $debug = true;
 
 		$path = $this->store($dto->id);
 
