@@ -23,7 +23,7 @@ class controller extends cms\controller {
 		if ($pid = (int)$this->getParam('property')) {
 
 			$this->data = (object)[
-				'aside' => ['index'],
+				'aside' => array_merge(['index'], config::index_set),
 				'dtoSet' => (new dao\property_photolog)->getForProperty($pid),
 				'referer' => (new dao\properties)->getByID($pid),
 				'latescripts' => [sprintf(
@@ -35,8 +35,8 @@ class controller extends cms\controller {
 				'title' => $this->title = config::label,
 			];
 
-			if ( $this->data->referer) {
-				$this->data->title = sprintf( '%s : %s', $this->data->referer->address_street, $this->data->title);
+			if ($this->data->referer) {
+				$this->data->title = sprintf('%s : %s', $this->data->referer->address_street, $this->data->title);
 			}
 
 			$this->renderBS5([
@@ -46,7 +46,7 @@ class controller extends cms\controller {
 
 			$dao = new dao\property_photolog;
 			$this->data = (object)[
-				'aside' => ['index'],
+				'aside' => array_merge(['index'], config::index_set),
 				'dtoSet' => $dao->getPropertySummary(),
 				'referer' => false,
 				'latescripts' => [sprintf(
@@ -735,37 +735,36 @@ class controller extends cms\controller {
 	}
 
 	public function view($id = 0) {
+
 		if ($id = (int)$id) {
+
 			$dao = new dao\property_photolog;
 			if ($dto = $dao->getByID($id)) {
+
 				$this->data = (object)[
+					'aside' => array_merge(['index'], config::index_set),
 					'dto' => $dto,
 					'files' => $dao->getFiles($dto, $this->route),
+					'pageUrl' => strings::url($this->route . '/view/' . $dto->id),
 					'referer' => false,
-
+					'searchFocus' => true,
+					'title' => $this->title = config::label_view,
 				];
 
 				if ($referer = $this->getParam('f')) {
-					$daoP = new dao\properties;
-					$this->data->referer = $daoP->getByID($referer);
+
+					$this->data->referer = (new dao\properties)->getByID($referer);
 				}
 
-				$render = [
-					'title' => $this->title = config::label_view,
-					'primary' => 'view',
-					'secondary' => 'index',
-					'data' => (object)[
-						'pageUrl' => strings::url($this->route . '/view/' . $dto->id),
-
-					],
-
-				];
-
-				$this->render($render);
+				$this->renderBS5([
+					'main' => fn () => $this->load('view')
+				]);
 			} else {
+
 				print 'not found';
 			}
 		} else {
+
 			print 'invalid';
 		}
 	}

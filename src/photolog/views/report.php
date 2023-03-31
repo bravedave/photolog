@@ -42,73 +42,71 @@ extract((array)$this->data);
 
   <tbody>
     <?php
-		$totFiles = 0;
-		$totProcessed = 0;
-		$totQueued = 0;
-		$totSize = 0;
-		foreach ($this->data->dtoSet as $dto) {
+    $totFiles = 0;
+    $totProcessed = 0;
+    $totQueued = 0;
+    $totSize = 0;
+    array_walk($dtoSet, function ($dto) use (&$totFiles, &$totProcessed, &$totQueued, &$totSize) {
 
-			$totProcessed += $dto->files->processed;
-			$totQueued += $dto->files->queued;
-			$totFiles += $dto->files->total;
-			$totSize += $dto->files->dirSize;
+      $totProcessed += $dto->files->processed;
+      $totQueued += $dto->files->queued;
+      $totFiles += $dto->files->total;
+      $totSize += $dto->files->dirSize;
 
-			printf(
-				'<tr
-					data-id="%s"
-					data-property_id="%s"
-					data-count="%s"
-					data-date="%s"
-					data-subject=%s
-					data-files="%s"
-					data-size="%s"
-					class="%s">',
-				$dto->id,
-				(int)$dto->property_id,
-				(int)$dto->files->total,
-				$dto->date,
-				json_encode($dto->subject, JSON_UNESCAPED_SLASHES),
-				$dto->files->total,
-				$dto->files->dirSize,
-				(bool)$dto->files->errors ? 'text-danger' : ''
-			);	?>
+      printf(
+        '<tr
+          data-id="%s"
+          data-property_id="%s"
+          data-count="%s"
+          data-date="%s"
+          data-subject=%s
+          data-files="%s"
+          data-size="%s"
+          class="%s">',
+        $dto->id,
+        (int)$dto->property_id,
+        (int)$dto->files->total,
+        $dto->date,
+        htmlentities($dto->subject),
+        $dto->files->total,
+        $dto->files->dirSize,
+        (bool)$dto->files->errors ? 'text-danger' : ''
+      );
 
-      <td class="small text-center js-line-number"></td>
-      <td><?= strings::asShortDate($dto->date) ?></td>
-      <td class="d-none d-md-table-cell" data-address><?= strings::GoodStreetString($dto->address_street) ?></td>
-      <td>
-        <?= $dto->subject ?>
-        <div class="d-md-none text-muted small font-italic"><?= strings::GoodStreetString($dto->address_street) ?></div>
-      </td>
+      print '<td class="small text-center js-line-number"></td>';
+      printf('<td>%s</td>', strings::asShortDate($dto->date));
+      printf('<td class="d-none d-md-table-cell" data-address>%s</td>', strings::GoodStreetString($dto->address_street));
+      printf(
+        '<td>%s<div class="d-md-none text-muted small font-italic">%s</div></td>',
+        $dto->subject,
+        strings::GoodStreetString($dto->address_street)
+      );
 
-      <td class="text-center">
-        <?php
-				print $dto->files->total;
-				if ($dto->files->queued > 0) {
-					printf('<sup title="processed/unprocessed">(%d/%d)</sup>', $dto->files->processed, $dto->files->queued);
-				}
-				?></td>
+      printf(
+        '<td class="text-center">%s%s</td>',
+        $dto->files->total,
+        $dto->files->queued > 0 ?
+          sprintf('<sup title="processed/unprocessed">(%d/%d)</sup>', $dto->files->processed, $dto->files->queued) : ''
+      );
 
-    <?php
-			if ($dto->files->dirSize > 1024000) {
+      if ($dto->files->dirSize > 1024000) {
 
-				printf('<td class="text-center">%dG</td>', $dto->files->dirSize / 1024000);
-			} elseif ($dto->files->dirSize > 1024) {
+        printf('<td class="text-center">%dG</td>', $dto->files->dirSize / 1024000);
+      } elseif ($dto->files->dirSize > 1024) {
 
-				printf('<td class="text-center">%dM</td>', $dto->files->dirSize / 1024);
-			} else {
+        printf('<td class="text-center">%dM</td>', $dto->files->dirSize / 1024);
+      } else {
 
-				printf('<td class="text-center">%dk</td>', $dto->files->dirSize);
-			}
+        printf('<td class="text-center">%dk</td>', $dto->files->dirSize);
+      }
 
-			printf('<td class="d-none d-md-table-cell">%s</td>', strings::asShortDate($dto->updated));
+      printf('<td class="d-none d-md-table-cell">%s</td>', strings::asShortDate($dto->updated));
 
-			print '</tr>';
-		}	?>
-
+      print '</tr>';
+    });  ?>
   </tbody>
 
-  <?php if ($dtoSet) {	?>
+  <?php if ($dtoSet) {  ?>
 
     <tfoot>
       <tr>
@@ -116,22 +114,22 @@ extract((array)$this->data);
         <td colspan="3">&nbsp;</td>
         <td class="text-center">
           <?php
-					print number_format($totFiles);
-					if ($totQueued > 0) {
-						printf('<sup title="processed/unprocessed">(%d/%d)</sup>', $totProcessed, $totQueued);
-					}
-					?></td>
+          print number_format($totFiles);
+          if ($totQueued > 0) {
+            printf('<sup title="processed/unprocessed">(%d/%d)</sup>', $totProcessed, $totQueued);
+          }
+          ?></td>
 
 
         <?php
-				if ($totSize > 1024000) {
-					printf('<td class="text-center">%dG</td>', $totSize / 1024000);
-				} elseif ($totSize > 1024) {
-					printf('<td class="text-center">%dM</td>', $totSize / 1024);
-				} else {
-					printf('<td class="text-center">%dk</td>', $totSize);
-				}
-				?>
+        if ($totSize > 1024000) {
+          printf('<td class="text-center">%dG</td>', $totSize / 1024000);
+        } elseif ($totSize > 1024) {
+          printf('<td class="text-center">%dM</td>', $totSize / 1024);
+        } else {
+          printf('<td class="text-center">%dk</td>', $totSize);
+        }
+        ?>
 
         <td class="d-none d-md-table-cell">&nbsp;</td>
       </tr>
@@ -212,13 +210,14 @@ extract((array)$this->data);
           let _tr = $(this);
           let _data = _tr.data();
 
-          <?php if (isset($dto->id) && (int)$dto->id) {	?>
+          <?php if (isset($dto->id) && (int)$dto->id) {  ?>
 
-            window.location.href = _.url(`<?= $this->route ?>/view/${_data.id}?f=<?= $dto->id ?>`);
-          <?php } else {	?>
+            window.location.href = _.url(
+              `<?= $this->route ?>/view/${_data.id}?x=1&f=<?= $dto->id ?>`);
+          <?php } else {  ?>
 
             window.location.href = _.url(`<?= $this->route ?>/view/${_data.id}`);
-          <?php }	?>
+          <?php }  ?>
         });
     })
 

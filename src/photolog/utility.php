@@ -10,6 +10,7 @@
 
 namespace photolog;
 
+use bravedave\dvc\dtoSet;
 use bravedave\dvc\logger;
 use DateTime;
 use DateTimeZone;
@@ -19,6 +20,7 @@ use strings;
 use sys;
 
 class utility {
+
 	protected static function _getcachestampPath(): string {
 		/* the stampe has to be right size ... */
 		$cacheStamp = sprintf('%scache-photolog-stamp.png', config::tempdir());
@@ -189,25 +191,26 @@ class utility {
 
 		$second = (date('G') * 3600) + (date('i') * 60);
 		$afterHours = ($second) >= 63000;	// 5.30
-
-		//~ $limit = $afterHours ? 20 : 10;
-		$limit = $afterHours ? 16 : 8;
-		//~ $limit = $afterHours ? 20 : 5;
 		$icount = 0;	// count won't raise above $limit
 
-		$dao = new dao\property_photolog;
-		if ($res = $dao->Result('SELECT id, date FROM property_photolog')) {
-			$res->dtoSet(function ($dto) use ($dao, &$icount, $limit, $afterHours, $debug) {
+		(new dtoSet)(
+			'SELECT id, date FROM property_photolog',
+			function ($dto) use (&$icount, $afterHours, $debug) {
+
+				// $limit = $afterHours ? 20 : 10;
+				$limit = $afterHours ? 16 : 8;
 
 				if ($icount >= $limit) return;
 
-				$path = $dao->store($dto->id);
+				$path = (new dao\property_photolog)->store($dto->id);
 
 				if (is_dir($path)) {
 
 					$i_will_wait = 3;
 					if (file_exists($path . '/queue/.upload-in-progress')) {
+
 						while ($i_will_wait > 0) {
+
 							if (file_exists($path . '/queue/.upload-in-progress')) {
 								$i_will_wait--;
 								unlink($path . '/queue/.upload-in-progress');
@@ -216,11 +219,13 @@ class utility {
 								// logger::info(sprintf('<defer - upload in progress> %s', __METHOD__));
 								sleep(3);
 							} else {
+
 								$i_will_wait = 0;
 							}
 						}
 
 						if (file_exists($path . '/queue/.upload-in-progress')) {
+
 							logger::info(sprintf('<break - upload in progress> %s', __METHOD__));
 							return;
 						}
@@ -248,8 +253,11 @@ class utility {
 
 					$files = new FilesystemIterator($path . '/queue');
 					foreach ($files as $file) {
+
 						if (preg_match('@(jp[e]?g|jfif|png)$@i', $file->getExtension())) {
+
 							if (10 < $file->getSize()) {
+
 								$stamped = sprintf('%s/%s', $path, $file->getFilename());
 								if (preg_match('@\.jfif$@', $stamped)) {
 									$stamped = preg_replace('@\.jfif$@', '.jpg', $stamped);
@@ -258,12 +266,15 @@ class utility {
 								$src = $file->getPathname();
 
 								if (file_exists($stamped)) {
+
 									unlink($stamped);
 									clearstatcache();
 								}
 
 								if (self::_stamp_intervention($src, $stamped, $dto->date)) {
+
 									if (file_exists($stamped)) {
+
 										unlink($src);
 										clearstatcache();
 									}
@@ -271,18 +282,20 @@ class utility {
 									if (++$icount >= $limit) break;
 									sleep($afterHours ? 1 : 2);
 								} else {
+
 									if ($debug) logger::debug(sprintf('<did not stamp %d : %s => %s> %s', $dto->id, $file->getFilename(), $stamped, __METHOD__));
 								}
 							}
 						}
 					}
 				} else {
+
 					if ($debug) logger::debug(sprintf('path %s is not dir : %s', $path, __METHOD__));
 				}
-			});
-		}
+			}
+		);
 
-		if ($debug || $icount) logger::debug(sprintf('<processed %s> %s', $icount, __METHOD__));
+		if ($icount) logger::info(sprintf('<processed %s> %s', $icount, __METHOD__));
 	}
 
 	public static function stampone($src, $stamped, $dto) {

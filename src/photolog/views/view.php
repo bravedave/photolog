@@ -32,7 +32,7 @@ $diskSpace = sys::diskspace();	?>
 	<div class="col-auto"><button type="button" class="btn btn-sm pt-0" id="<?= $_btnEditHeader = strings::rand() ?>"><i class="bi bi-pencil"></i></button></div>
 </div>
 
-<div id="<?= $uid; ?>row" class="form-row"></div>
+<div id="<?= $uid; ?>row" class="row g-2"></div>
 
 <template id="<?= $uid ?>fileupload">
 	<div class="input-group mb-3">
@@ -487,7 +487,7 @@ $diskSpace = sys::diskspace();	?>
 
 		let bCol = $('<div class="col text-center"></div>')
 
-		$('<div class="form-row"></div>')
+		$('<div class="row g-2"></div>')
 			.append(bCol)
 			.appendTo(cContainer);
 

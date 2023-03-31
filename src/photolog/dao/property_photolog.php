@@ -273,7 +273,7 @@ class property_photolog extends dao {
 		$debug = false;
 		//~ $debug = true;
 		$timer = false;
-		$timer = application::timer();
+		// $timer = application::timer();
 
 		$this->Q(sprintf(
 			'CREATE TEMPORARY TABLE _t AS(

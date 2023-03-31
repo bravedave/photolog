@@ -10,8 +10,7 @@
 
 namespace photolog;
 
-use strings;
-use theme;
+use strings, theme;
 
 extract((array)$this->data);
 
