@@ -461,8 +461,10 @@ class controller extends cms\controller {
 			}
 
 			if ($id) {
+
 				$dao = new dao\property_photolog;
 				if ($dto = $dao->getByID($id)) {
+
 					$path = $dao->store($dto->id, $create = true);
 					$queue = sprintf('%s/queue', $path);
 					if (!is_dir($queue)) {
@@ -476,10 +478,10 @@ class controller extends cms\controller {
 						'response' => 'ack',
 						'description' => '',
 						'files' => []
-
 					];
 
 					foreach ($_FILES as $file) {
+
 						touch($queue . '/.upload-in-progress');
 						@chmod($queue . '/.upload-in-progress', 0666);
 
@@ -575,9 +577,23 @@ class controller extends cms\controller {
 										sprintf('File   ...: %s(%s)', $file['name'], $strType),
 										sprintf('User   ...: %s', currentUser::name()),
 										sprintf('UserAgent : %s', userAgent::toString()),
-
 									])
 								);
+
+								config::$DEBUG_REJECT_TYPES = true;
+
+								if (config::$DEBUG_REJECT_TYPES) {
+
+									$source = $file['tmp_name'];
+									$target = config::photologTrash() . $file['name'];
+
+									if (file_exists($target)) unlink($target);
+									if (move_uploaded_file($source, $target)) {
+
+										chmod($target, 0666);
+										logger::debug(sprintf('<save debug file : %s> %s', $target, __METHOD__));
+									}
+								}
 
 								$response['response'] = 'nak';
 								$response['description'] = $file['name'] . ' file type not permitted ..: ' . $strType;

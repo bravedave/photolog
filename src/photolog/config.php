@@ -33,6 +33,8 @@ class config extends cms\config {
 	static $PHOTOLOG_STAMP = __DIR__ . '/resources/images/stamp.png';
 	static $TAHOMA_TTF = __DIR__ . '/resources/tahoma.ttf';
 
+	static $DEBUG_REJECT_TYPES = false;
+
 	static function photolog_checkdatabase() {
 
 		$dao = new dao\dbinfo(null, method_exists(__CLASS__, 'cmsStore') ? static::cmsStore() : static::dataPath());
@@ -54,6 +56,23 @@ class config extends cms\config {
 			chmod($path, 0777);
 		}
 
-		return ($path);
+		return $path;
+	}
+
+	public static function photologTrash() {
+
+		$_path = method_exists(__CLASS__, 'cmsStore') ? static::cmsStore() : static::dataPath();
+		$path = implode(DIRECTORY_SEPARATOR, [
+			rtrim($_path, '/ '),
+			'photolog_trash/'
+		]);
+
+		if (!is_dir($path)) {
+
+			mkdir($path, 0777);
+			chmod($path, 0777);
+		}
+
+		return $path;
 	}
 }
