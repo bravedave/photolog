@@ -35,12 +35,17 @@ class config extends cms\config {
 
 	static $DEBUG_REJECT_TYPES = false;
 
-	static function photolog_checkdatabase() {
+	static public function photolog_checkdatabase() {
 
 		$dao = new dao\dbinfo(null, method_exists(__CLASS__, 'cmsStore') ? static::cmsStore() : static::dataPath());
 		// // $dao->debug = true;
 		$dao->checkVersion('photolog', static::photolog_db_version);
 	}
+
+  static public function DiskFileStorage() : DiskFileStorage {
+
+    return (new DiskFileStorage(self::photologStore()));
+  }
 
 	public static function photologStore() {
 

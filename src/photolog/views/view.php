@@ -15,7 +15,7 @@ use currentUser, strings, sys;
 $uid = strings::rand();
 extract((array)$this->data);
 
-$diskSpace = sys::diskspace();	?>
+$diskSpace = sys::diskspace();  ?>
 <style>
   #<?= $uid; ?>row .has-advanced-upload {
     padding: 40% .5rem .5rem .5rem;
@@ -66,6 +66,26 @@ $diskSpace = sys::diskspace();	?>
   (_ => $(document).ready(() => {
     let smokeAlarms = [];
     let allCards = [];
+
+    // _.mobileErrorHandler = (a, b, c, d, e) => {
+    //   _.growlError(`message: ${a}`);
+
+    //   console.log(`message: ${a}`);
+    //   console.log(`source: ${b}`);
+    //   console.log(`lineno: ${c}`);
+    //   console.log(`colno: ${d}`);
+    //   console.log(`error: ${e}`);
+
+    //   return true;
+    // };
+
+    // _.mobileErrorHandler = (a, b, c, d, e) => {
+    //   _.growlError(`message: ${a}`);
+    //   // return true;
+    // };
+
+    if (_.browser.isMobileDevice && !!_.mobileErrorHandler) window.onerror = _.mobileErrorHandler;
+    // nonexistentfunction();
 
     let confirmDeleteAction = () => {
       return new Promise((resolve, reject) => {
@@ -125,7 +145,7 @@ $diskSpace = sys::diskspace();	?>
           });
 
         })
-        .on('click', function(e) {
+        .on(_.browser.isMobileDevice ? 'dblclick' : 'click', function(e) {
           e.stopPropagation();
           e.preventDefault();
 
@@ -154,14 +174,9 @@ $diskSpace = sys::diskspace();	?>
               .addClass('p-2')
               .append(video);
 
-            // 			.append(`<style>
-            // @media (min-width: 768px) {
-            //   #${id} { min-height: calc(100vh - 230px) !important; }
-            // }
-            // </style>`)
-
             console.log(_data.file);
           } else {
+
             $(document).trigger('photolog-carousel', _data.file.description);
           }
         })
@@ -244,87 +259,50 @@ $diskSpace = sys::diskspace();	?>
           });
 
         })
-        .on('contextmenu', function(e) {
-          if (e.shiftKey)
-            return;
+        .on(_.browser.isMobileDevice ? 'click' : 'contextmenu', function(e) {
 
-          e.stopPropagation();
-          e.preventDefault();
-
-          _.hideContexts();
+          if (e.shiftKey) return;
+          let _context = _.context(e);
 
           let _me = $(this);
           let _data = _me.data();
-          let _context = _.context();
 
-          _context.append(
-            $(
-              '<a href="#" title="open in new tab"><i class="bi bi-collection-play"></i>Start Carousel</a>'
-            )
-            .on('click', function(e) {
-              e.stopPropagation();
-              e.preventDefault();
-
-
-              $(document).trigger('photolog-carousel', _data.file
-                .description);
-              _context.close();
-
+          _context.append.a({
+              html: '<i class="bi bi-collection-play"></i>Start Carousel',
+              click: e => $(document).trigger(
+                'photolog-carousel',
+                _data.file.description
+              )
             })
+            .attr('title', 'open in new tab');
 
-          );
-
-          _context.append(
-            $(
-              '<a target="_blank" title="open in new tab"><i class="bi bi-box-arrow-up-right"></i>Open in new Window</a>'
-            )
-            .attr('href', _data.file.url + '&v=full')
-            .on('click', e => _context.close())
-
-          );
+          _context.append.a({
+              html: '<i class="bi bi-box-arrow-up-right"></i>Open in new Window',
+              href: _data.file.url + '&v=full',
+            })
+            .attr({
+              'title': 'open in new tab',
+              'target': '_blank'
+            });
 
           // console.table(_data.file);
 
           if (_data.file.prestamp) {
-            _context.append(
-              $(
-                '<a href="#" title="open in new tab"><i class="bi bi-arrow-counterclockwise"></i>Rotate Left</a>'
-              )
-              .on('click', e => {
-                e.stopPropagation();
-                e.preventDefault();
 
-                _context.close();
-                _me.trigger('rotate-left');
+            _context.append.a({
+              html: '<i class="bi bi-arrow-counterclockwise"></i>Rotate Left',
+              click: e => _me.trigger('rotate-left')
+            });
 
-              }));
+            _context.append.a({
+              html: '<i class="bi bi-arrow-clockwise"></i>Rotate Right',
+              click: e => _me.trigger('rotate-right')
+            });
 
-            _context.append(
-              $(
-                '<a href="#" title="open in new tab"><i class="bi bi-arrow-clockwise"></i>Rotate Right</a>'
-              )
-              .on('click', e => {
-                e.stopPropagation();
-                e.preventDefault();
-
-                _context.close();
-                _me.trigger('rotate-right');
-
-              }));
-
-            _context.append(
-              $(
-                '<a href="#" title="open in new tab"><i class="bi bi-emoji-smile-upside-down"></i>Rotate 180</a>'
-              )
-              .on('click', e => {
-                e.stopPropagation();
-                e.preventDefault();
-
-                _context.close();
-                _me.trigger('rotate-180');
-
-              }));
-
+            _context.append.a({
+              html: '<i class="bi bi-emoji-smile-upside-down"></i>Rotate 180',
+              click: e => _me.trigger('rotate-180')
+            });
           }
 
           if (smokeAlarms.length > 0) {
@@ -332,53 +310,35 @@ $diskSpace = sys::diskspace();	?>
 
             _context.append('<hr>');
             $.each(smokeAlarms, (i, alarm) => {
-              let ctrl = $('<a href="#"></a>');
 
-              ctrl
-                .data('file', _data.file)
-                .data('location', alarm.location)
-                .html(alarm.location)
-                .on('click', function(e) {
-                  e.stopPropagation();
-                  e.preventDefault();
+              _context.append.a({
+                html: `${_data.file.location == alarm.location ? '<i class="bi bi-check"></i>' : ''}${alarm.location}`,
+                click: e => {
 
-                  let _me = $(this);
-                  let _data = _me.data();
+                  if (_data.file.location == alarm.location) {
 
-                  if (_data.file.location == _data.location) {
                     card.trigger('clear-location');
-
                   } else {
-                    card.trigger('set-location', _data.location);
 
+                    card.trigger('set-location', alarm.location);
                   }
-
-                  _context.close();
-
-                });
-
-              if (_data.file.location == alarm.location) ctrl.prepend(
-                '<i class="bi bi-check"></i>');
-
-              _context.append(ctrl);
-
+                }
+              });
             });
-
-
           }
 
           _context.append('<hr>');
-          _context.append($('<a class="#"><i class="bi bi-trash"></i>delete</a>')
-            .on('click', e => {
-              e.stopPropagation();
-              e.preventDefault();
+          _context.append.a({
+            html: '<i class="bi bi-input-cursor-text"></i>rename',
+            click: e => _me.trigger('rename-file')
+          });
 
-              _me.trigger('delete');
-
-            }))
+          _context.append.a({
+            html: '<i class="bi bi-trash"></i>delete',
+            click: e => _me.trigger('delete')
+          });
 
           _context.open(e);
-
         })
         .on('refresh', function(e) {
           let _me = $(this);
@@ -408,6 +368,31 @@ $diskSpace = sys::diskspace();	?>
             }
           }
         })
+        .on('rename-file', function(e) {
+          let _me = $(this);
+          let file = _me.data('file');
+
+          _.textPrompt({
+              title: 'new file name'
+            })
+            .then(newfile => {
+
+              _.fetch.post(_.url('<?= $this->route ?>'), {
+                  action: 'rename-file',
+                  id: <?= $dto->id ?>,
+                  file: file.description,
+                  newfile: newfile
+                })
+                .then(d => {
+
+                  if ('ack' == d.response) {
+                    window.location.reload();
+                  } else {
+                    _.growl(d);
+                  }
+                });
+            });
+        })
         .on('rotate-180', function(e) {
           let _me = $(this);
           let file = _me.data('file');
@@ -418,9 +403,7 @@ $diskSpace = sys::diskspace();	?>
               action: 'rotate-180',
               id: <?= $dto->id ?>,
               file: file.description,
-
             },
-
           }).then(d => {
             // console.log(d);
             if ('ack' == d.response) {
@@ -498,22 +481,30 @@ $diskSpace = sys::diskspace();	?>
     //~ console.log( '<?= $uid ?>fileupload');
     /*--- ---[]--- ---*/
 
-    let cContainer = $(
-        '<div class="col-md-8 col-lg-3 col-xl-4 mb-2 d-print-none"></div>')
+    let cContainer =
+      $('<div class="col-md-8 col-lg-3 col-xl-4 mb-2 d-print-none"></div>')
       .appendTo('#<?= $uid ?>row');
-    <?php if ($diskSpace->exceeded) {	?>
+
+    <?php if ($diskSpace->exceeded) {  ?>
+
       cContainer.append(
-        '<div class="alert alert-warning"><h5 class="alert-heading">disk space low</h5>uploaded disabled</div>'
-      );
-    <?php	} else {	?>
+        `<div class="alert alert-warning">
+          <h5 class="alert-heading">disk space low</h5>uploaded disabled
+        </div>`);
+    <?php  } else {  ?>
+
       let c = _.fileDragDropContainer({
         fileControl: true
       }).appendTo(cContainer);
-    <?php	}	?>
+    <?php  }  ?>
 
-    let allDownload = $(
-      '<a title="download zip" class="btn btn-light btn-sm d-none"><i class="bi bi-download" title="download as zip file"></i> zip</a>'
-    ).attr('href', _.url('<?= $this->route ?>/zip/<?= $dto->id ?>'));
+    let allDownload =
+      $(
+        `<a title="download zip" class="btn btn-light btn-sm d-none">
+          <i class="bi bi-download" title="download as zip file"></i> zip
+          </a>`
+      )
+      .attr('href', _.url('<?= $this->route ?>/zip/<?= $dto->id ?>'));
 
     let allDelete = $(
       '<button title="delete all" class="btn btn-light btn-sm d-none"><i class="bi bi-trash"></i> delete all</button>'
@@ -540,7 +531,6 @@ $diskSpace = sys::diskspace();	?>
       confirmDeleteAction()
         .then(() => $('.photolog-card').each((i, el) => $(el).trigger(
           'delete-confirmed')));
-
     });
 
     const allDownloadVisibility = () => {
@@ -551,10 +541,10 @@ $diskSpace = sys::diskspace();	?>
     };
 
     const allDeleteVisibility = () => {
-      <?php if (currentUser::isadmin()) {	?>
+      <?php if (currentUser::isadmin()) {  ?>
         $('.photolog-card').length > 0 ? allDelete.removeClass('d-none') : allDelete
           .addClass('d-none');
-      <?php }	?>
+      <?php }  ?>
     };
 
     let notepad = {
@@ -582,10 +572,9 @@ $diskSpace = sys::diskspace();	?>
 
       _.get.modal(_.url('<?= $this->route ?>/notepad/<?= $dto->id ?>'))
         .then(m => m.on('success', (e, d) => notepad.val(d.data.notes)));
-
     });
 
-    <?php if (!$diskSpace->exceeded) {	?>
+    <?php if (!$diskSpace->exceeded) {  ?>
 
       // console.log( 'assign');
       _.fileDragDropHandler.call(c, {
@@ -601,9 +590,9 @@ $diskSpace = sys::diskspace();	?>
           'image/pjpeg',
           'image/png',
           <?php
-					if (config::$PHOTOLOG_ENABLE_VIDEO) print ",'video/quicktime','video/mp4'";
-					if (config::$PHOTOLOG_ENABLE_HEIC) print ",'image/heic'";
-					?>
+          if (config::$PHOTOLOG_ENABLE_VIDEO) print ",'video/quicktime','video/mp4'";
+          if (config::$PHOTOLOG_ENABLE_HEIC) print ",'image/heic'";
+          ?>
         ],
         onError: d => console.log('error', d),
         onReject: d => {
@@ -626,7 +615,7 @@ $diskSpace = sys::diskspace();	?>
         }
 
       });
-    <?php	}	?>
+    <?php  }  ?>
 
       (cards => {
         $.each(cards, (i, file) => displayCard(file))
@@ -640,15 +629,11 @@ $diskSpace = sys::diskspace();	?>
       data: {
         action: 'property-smokealarms',
         id: <?= (int)$dto->id ?>
-
       },
-
     }).then(d => {
       if ('ack' == d.response) {
         smokeAlarms = d.alarms;
-
       }
-
     });
 
     $(document).on('photolog-carousel', (e, file) => {
@@ -728,7 +713,6 @@ $diskSpace = sys::diskspace();	?>
 
       _.get.modal(_.url('<?= $this->route ?>/entry/<?= $dto->id ?>'))
         .then(d => d.on('success', (e, href) => window.location.reload()));
-
     });
 
   }))(_brayworth_);

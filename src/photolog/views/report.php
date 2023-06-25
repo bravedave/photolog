@@ -198,13 +198,15 @@ extract((array)$this->data);
 
       $(tr)
         .addClass('pointer')
-        .on('click', function(e) {
+        .on(_.browser.isMobileDevice ? 'dblclick' : 'click', function(e) {
           e.stopPropagation();
           e.preventDefault();
 
+          _.hideContexts();
+
           $(this).trigger('view');
         })
-        .on('contextmenu', contextmenu)
+        .on(_.browser.isMobileDevice ? 'click' : 'contextmenu', contextmenu)
         .on('view', function(e) {
 
           let _tr = $(this);

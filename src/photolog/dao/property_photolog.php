@@ -10,12 +10,12 @@
 
 namespace photolog\dao;
 
-use application, cms;
+use cms;
 use CallbackFilterIterator, FilesystemIterator;
 use strings;
 
 use bravedave\dvc\{dao, dto, dtoSet, logger};
-use photolog\config;
+use photolog\{config, DiskFileStorage};
 
 class property_photolog extends dao {
 	protected $_db_name = 'property_photolog';
@@ -34,8 +34,6 @@ class property_photolog extends dao {
 		$debug = false;
 		// $debug = true;
 
-		$path = $this->store($dto->id);
-
 		$dto->files = (object)[
 			'processed' => 0,
 			'queued' => 0,
@@ -44,18 +42,18 @@ class property_photolog extends dao {
 			'dirSize' => 0,
 		];
 
-		if (is_dir($path)) {
+		$storage = $this->DiskFileStorage($dto->id, $create = false);
+		if ($storage->isValid()) {
 
-			$qpath = $path . '/queue';
-			$dirModTime = is_dir($qpath) ?
-				$dirModTime = max(filemtime($path), filemtime($qpath)) :
-				filemtime($path);
+			if ($debug) logger::info(sprintf('<valid storage %s> %s', $storage->getPath(), __METHOD__));
+			$Qstorage = $storage->subFolder('queue', $create = false);
 
+			$dirModTime = max($Qstorage->modified(), $storage->modified());
 			if ($dirModTime > strtotime($dto->dirModTime)) {
-				$dto->files->dirSize = $this->dirSize($path);
-				//~ \sys::logger( sprintf( 'dirSize : %s %s : %s', $path, date( 'Y-m-d H:i:s', $dirModTime), $dto->files->dirSize));
 
-				$files = new FilesystemIterator($path, FilesystemIterator::SKIP_DOTS);
+				$dto->files->dirSize = $this->dirSize($storage->getPath());
+
+				$files = new FilesystemIterator($storage->getPath(), FilesystemIterator::SKIP_DOTS);
 				$filter = new CallbackFilterIterator($files, function ($cur, $key, $iter) {
 
 					if ('_info.json' == $cur->getFilename()) return false;
@@ -66,15 +64,13 @@ class property_photolog extends dao {
 				$i = iterator_count($filter);
 				$dto->files->processed += $i;
 				$dto->files->total += $i;
-
-				if (is_dir($qpath)) {
+				if ($Qstorage->isValid()) {
 
 					$errors = 0;
-					$files = new FilesystemIterator($qpath, FilesystemIterator::SKIP_DOTS);
+					$files = new FilesystemIterator($Qstorage->getPath(), FilesystemIterator::SKIP_DOTS);
 					$filter = new CallbackFilterIterator($files, function ($cur, $key, $iter) use (&$errors) {
 
 						if ('.upload-in-progress' == $cur->getFilename()) return false;
-						//~ \sys::logger( sprintf( 'error : %s == err', $cur->getExtension()));
 						if ($cur->getExtension() == 'err') {
 
 							$errors++;
@@ -94,11 +90,7 @@ class property_photolog extends dao {
 					$dto->files->queued += $i;
 					$dto->files->errors += $errors;
 					$dto->files->total += $i;
-
-					//~ \sys::logger( sprintf( 'errors %s', $errors));
 				}
-
-				//~ \sys::logger( sprintf( '%s : %s : %s', $path, \db::dbTimeStamp(), json_encode( [ 'dirModTime' => date( 'Y-m-d H:i:s', $dirModTime), 'dirStats' => json_encode( $dto->files)])));
 
 				$this->UpdateByID([
 					'dirModTime' => date('Y-m-d H:i:s', $dirModTime),
@@ -107,7 +99,7 @@ class property_photolog extends dao {
 
 				if ($debug) logger::debug(sprintf(
 					'<could NOT use cache : %s %s %s> %s',
-					$path,
+					$storage->getPath(),
 					date('Y-m-d H:i:s', $dirModTime),
 					$dto->dirModTime,
 					__METHOD__
@@ -116,6 +108,7 @@ class property_photolog extends dao {
 
 				$dto->files = json_decode($dto->dirStats);
 				if (!isset($dto->files->errors)) $dto->files->errors = 0;
+				if ($debug) logger::debug(sprintf('<using cache> %s', __METHOD__));
 			}
 		}
 
@@ -124,23 +117,23 @@ class property_photolog extends dao {
 
 	protected function _dtoSet($res) {
 
-		return $res->dtoSet(function ($dto) {
-
-			return $this->_dtoExpand($dto);
-		});
+		return $res->dtoSet(fn ($dto) => $this->_dtoExpand($dto));
 	}
 
 	protected function _getInfoFile(dto $dto): string {
+
 		return implode(DIRECTORY_SEPARATOR, [
 			$this->store($dto->id),
 			'_info.json'
-
 		]);
 	}
 
 	protected function _getInfo(dto $dto): object {
+
 		if ($path = realpath($this->_getInfoFile($dto))) {
+
 			if (file_exists($path)) {
+
 				return (object)json_decode(file_get_contents($path));
 			}
 		}
@@ -149,9 +142,12 @@ class property_photolog extends dao {
 	}
 
 	protected function _setInfo(dto $dto, object $info) {
+
 		$this->store($dto->id, $create = true);
 		if ($path = $this->_getInfoFile($dto)) {
-			\file_put_contents($path, json_encode($info, JSON_PRETTY_PRINT));
+
+			if (file_exists($path)) @unlink($path);	// avoid updating linked data
+			file_put_contents($path, json_encode($info, JSON_PRETTY_PRINT));
 		}
 	}
 
@@ -396,6 +392,41 @@ class property_photolog extends dao {
 		return parent::Insert($a);
 	}
 
+	/**
+	 * preserves any image information during a file rename procedure
+	 *
+	 * @param dto $dto
+	 * @param string $file
+	 * @param string $fnewfile
+	 * @return void
+	 */
+	public function renameImageInfo(dto $dto, string $file, string $newfile) {
+
+		if ($json = $this->_getInfo($dto)) {
+
+			if ($info = $json->{$file} ?? false) {
+
+				unset($json->{$file});
+				$json->{$newfile} = $info;
+				$this->_setInfo($dto, $json);
+			} else {
+
+				// there was no specific file information to save
+			}
+		} else {
+
+			// there was no specific information for this entry
+		}
+	}
+
+	/**
+	 * Sets rich information for the file - e.g. Smokealarm Location
+	 *
+	 * @param dto $dto
+	 * @param string $file
+	 * @param object $info
+	 * @return void
+	 */
 	public function setImageInfo(dto $dto, string $file, object $info) {
 
 		if ($json = $this->_getInfo($dto)) {
@@ -408,6 +439,11 @@ class property_photolog extends dao {
 				$file => $json
 			]);
 		}
+	}
+
+	public function DiskFileStorage(int $id, bool $create = false): DiskFileStorage {
+
+		return new DiskFileStorage($this->store($id, $create));
 	}
 
 	public function store(int $id, bool $create = false) {

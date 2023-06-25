@@ -109,65 +109,65 @@ class controller extends cms\controller {
 				json::nak($action);
 			}
 		} elseif ('delete' == $action) {
+
 			if ($id = $this->getPost('id')) {
+
 				$dao = new dao\property_photolog;
 				if ($dto = $dao->getByID($id)) {
-					$path = $dao->store($dto->id);
-					$_file = trim($this->getPost('file'), './ ');
-					$file = $path . '/' . $_file;
-					$qfile = $path . '/queue/' . $_file;
 
-					if (file_exists($file)) {
-						unlink($file);
-						clearstatcache();
-					}
+					$storage = $dao->DiskFileStorage($dto->id, $create = false);
+					if ($storage->isValid()) {
 
-					if (file_exists($file . config::photolog_prestamp)) {
-						unlink($file . config::photolog_prestamp);
-						clearstatcache();
-					}
+						$_file = trim($this->getPost('file'), './ ');
+						if ($_file) {
 
-					if (file_exists($qfile)) {
-						$parts = pathinfo($qfile);
+							$storage->deleteFile($_file);
+							$storage->deleteFile($_file . config::photolog_prestamp);
 
-						$errfile = sprintf(
-							'%s/%s.err',
-							$parts['dirname'],
-							$parts['filename']
-						);
+							$Qstorage = $storage->subFolder('queue', $create = false);
+							if ($Qstorage->isValid()) {
 
-						if (file_exists($errfile)) unlink($errfile);
-						unlink($qfile);
-						clearstatcache();
+								if ($Qstorage->file_exists($_file)) {
 
-						if ($debug) logger::debug(sprintf('<unlink( %s)> : %s', $qfile, __METHOD__));
-					} else {
-
-						if ($debug) logger::debug(sprintf('<qfile not found ( %s)> : %s', $qfile, __METHOD__));
+									$errfile = sprintf(
+										'%s.err',
+										basename($Qstorage->getPath($_file))
+									);
+									$Qstorage->deleteFile($_file);
+									$Qstorage->deleteFile($errfile);
+								}
+							}
+						}
 					}
 
 					json::ack($action);
 				} else {
+
 					json::nak($action);
 				}
 			} else {
+
 				json::nak($action);
 			}
 		} elseif ('delete-entry' == $action) {
+
 			if ($id = $this->getPost('id')) {
+
 				$dao = new dao\property_photolog;
 				if ($dto = $dao->getByID($id)) {
 
 					if (0 == $dto->files->total) {
-						$path = $dao->store($dto->id);
-						$qpath = $path . '/queue/';
-						$infofile = $path . '/_info.json';
 
-						//~ json::nak( sprintf( '%s : %s, %s, %d files', $action, $path, $qpath, $dto->files->total));
+						$storage = $dao->DiskFileStorage($dto->id, $create = false);
+						if ($storage->isValid()) {
 
-						if (file_exists($infofile)) unlink($infofile);
-						if (is_dir($qpath)) rmdir($qpath);
-						if (is_dir($path)) rmdir($path);
+							$Qstorage = $storage->subFolder('queue');
+							if ($Qstorage->isValid()) $Qstorage->delete();
+
+							if ($storage->file_exists('_info.json')) $storage->deleteFile('_info.json');
+							$storage->delete();
+						}
+
 						$dao->delete($id);
 						json::ack($action);
 					} else {
@@ -192,11 +192,12 @@ class controller extends cms\controller {
 			})(_brayworth_);
       */
 			if ($pid = (int)$this->getPost('property')) {
+
 				$dao = new dao\property_photolog;
 				json::ack($action)
 					->add('data', $dao->getForProperty($pid));	// dtoSet
-
 			} else {
+
 				json::nak($action);
 			}
 		} elseif ('property-smokealarms' == $action) {
@@ -277,6 +278,7 @@ class controller extends cms\controller {
 				json::nak($action);
 			}
 		} elseif ('public-link-get' == $action) {
+
 			if ($id = $this->getPost('id')) {
 				$dao = new dao\property_photolog;
 				if ($dto = $dao->getByID($id)) {
@@ -293,53 +295,130 @@ class controller extends cms\controller {
 			} else {
 				json::nak($action);
 			}
-		} elseif ('rotate-left' == $action || 'rotate-right' == $action || 'rotate-180' == $action) {
-			if ($id = $this->getPost('id')) {
-				$dao = new dao\property_photolog;
-				if ($dto = $dao->getByID($id)) {
+		} elseif ('rename-file' == $action) {
 
-					$path = $dao->store($dto->id);
+			if ($id = (int)$this->getPost('id')) {
 
-					$_file = trim($this->getPost('file'), './ ');
-					$file = $path . '/' . $_file;
+				$oldfile = trim($this->getPost('file'), './ ');
+				if ($oldfile) {
 
-					if (file_exists($file . config::photolog_prestamp)) {
-						if (utility::rotate(
-							$file,
-							'rotate-180' == $action ?
-								config::photolog_rotate_180 : ('rotate-left' == $action ?
-									config::photolog_rotate_left : config::photolog_rotate_right)
-						)) {
+					$dao = new dao\property_photolog;
+					if ($dto = $dao->getByID($id)) {
 
-							if (file_exists($file)) {
-								$info = new SplFileInfo($file);
-								$imgInfo = $dao->getImageInfo($dto, $info->getFilename());
+						$storage = $dao->DiskFileStorage($dto->id, $create = false);
+						if ($storage->isValid()) {
 
-								$returnfile = (object)[
-									'description' => $info->getFilename(),
-									'extension' => $info->getExtension(),
-									'url' => strings::url(sprintf('%s/img/%d?img=%s&t=%s', $this->route, $dto->id, urlencode($info->getFilename()), $info->getMTime())),
-									'error' => false,
-									'size' => $info->getSize(),
-									'location' => $imgInfo->location ?? '',
-									'prestamp' => file_exists($info->getRealPath() . config::photolog_prestamp)
-								];
+							if ($storage->file_exists($oldfile)) {
 
-								json::ack($action)
-									->add('data', $returnfile);
+								$newfile = strings::safe_file_name(trim($this->getPost('newfile'), './ '));
+								if (!$newfile) {
+
+									json::nak(sprintf('%s : invalid new name', $action));
+									return;
+								}
+
+								// the new file must preserve the extension
+								$ext = '.' . pathinfo($storage->getPath($oldfile), PATHINFO_EXTENSION);
+								if (substr($newfile, -strlen($ext)) != $ext) {
+
+									$newfile .= $ext;
+								}
+
+								if ($storage->file_exists($newfile)) {
+
+									json::nak(sprintf('%s : %s already exists', $action, $newfile));
+									return;
+								}
+
+								$storage->rename($oldfile, $newfile);
+								$dao->renameImageInfo($dto, $oldfile, $newfile);
+								json::ack($action);
 							} else {
+
 								json::nak($action);
 							}
 						} else {
+
 							json::nak($action);
 						}
 					} else {
-						json::nak(sprintf('missing pre-stamp : %s', $action));
+
+						json::nak($action);
 					}
 				} else {
+
+					json::nak($action);
+				}
+			} else {
+
+				json::nak($action);
+			}
+		} elseif ('rotate-left' == $action || 'rotate-right' == $action || 'rotate-180' == $action) {
+
+			if ($id = (int)$this->getPost('id')) {
+
+				$dao = new dao\property_photolog;
+				if ($dto = $dao->getByID($id)) {
+
+					$_file = trim($this->getPost('file'), './ ');
+					$storage = $dao->DiskFileStorage($dto->id, $create = false);
+					if ($storage->isValid()) {
+
+						if ($storage->file_exists($_file)) {
+
+							$file = $storage->getPath($_file);
+							if (file_exists($file . config::photolog_prestamp)) {
+
+								if (utility::rotate(
+									$file,
+									'rotate-180' == $action ?
+										config::photolog_rotate_180 : ('rotate-left' == $action ?
+											config::photolog_rotate_left : config::photolog_rotate_right)
+								)) {
+
+									if (file_exists($file)) {
+
+										$info = new SplFileInfo($file);
+										$imgInfo = $dao->getImageInfo($dto, $info->getFilename());
+
+										$returnfile = (object)[
+											'description' => $info->getFilename(),
+											'extension' => $info->getExtension(),
+											'url' => strings::url(sprintf('%s/img/%d?img=%s&t=%s', $this->route, $dto->id, urlencode($info->getFilename()), $info->getMTime())),
+											'error' => false,
+											'size' => $info->getSize(),
+											'location' => $imgInfo->location ?? '',
+											'prestamp' => file_exists($info->getRealPath() . config::photolog_prestamp)
+										];
+
+										json::ack($action)
+											->add('data', $returnfile);
+									} else {
+
+										json::nak($action);
+									}
+								} else {
+
+									json::nak($action);
+								}
+							} else {
+
+								json::nak(sprintf('missing pre-stamp : %s', $action));
+							}
+						} else {
+
+							json::nak(sprintf('not found - %s', $action));
+						}
+					} else {
+
+						json::nak(sprintf('not found - %s', $action));
+					}
+				} else {
+
 					json::nak(sprintf('not found - %s', $action));
 				}
 			} else {
+
 				json::nak($action);
 			}
 		} elseif ('save-notepad' == $action) {
@@ -370,25 +449,34 @@ class controller extends cms\controller {
 				json::nak($action);
 			}
 		} elseif ('set-alarm-location' == $action) {
+
 			if ($id = $this->getPost('id')) {
+
 				if ($file = $this->getPost('file')) {
+
 					if ($location = $this->getPost('location')) {
+
 						$dao = new dao\property_photolog;
 						if ($dto = $dao->getByID($id)) {
+
 							$info = $dao->getImageInfo($dto, $file);
 							$info->location = $location;
 							$dao->setImageInfo($dto, $file, $info);
 							json::ack($action);
 						} else {
+
 							json::nak($action);
 						}
 					} else {
+
 						json::nak($action);
 					}
 				} else {
+
 					json::nak($action);
 				}
 			} else {
+
 				json::nak($action);
 			}
 		} elseif ('set-alarm-location-clear' == $action) {
@@ -460,19 +548,33 @@ class controller extends cms\controller {
 				}
 			}
 
+			$videoTypes = ['video/quicktime', 'video/mp4'];
+
+			$accept = [
+				'application/pdf',
+				'image/jpeg',
+				'image/pjpeg',
+				'image/png'
+			];
+
+			if (config::$PHOTOLOG_ENABLE_VIDEO) {
+				$accept[] = 'video/quicktime';
+				$accept[] = 'video/mp4';
+			}
+
+			/** heic are not current supported on fedora */
+			if (config::$PHOTOLOG_ENABLE_HEIC) {
+				$accept[] = 'image/heic';
+				$accept[] = 'image/heif';
+			}
+
 			if ($id) {
 
 				$dao = new dao\property_photolog;
 				if ($dto = $dao->getByID($id)) {
 
-					$path = $dao->store($dto->id, $create = true);
-					$queue = sprintf('%s/queue', $path);
-					if (!is_dir($queue)) {
-						mkdir($queue, 0777);
-						chmod($queue, 0777);
-					}
-
-					if ($debug) logger::debug(sprintf('<%s> %s', $path, __METHOD__));
+					$storage = $dao->DiskFileStorage($dto->id, $create = true);
+					$Qstorage = $storage->subFolder('queue');
 
 					$response = [
 						'response' => 'ack',
@@ -482,8 +584,7 @@ class controller extends cms\controller {
 
 					foreach ($_FILES as $file) {
 
-						touch($queue . '/.upload-in-progress');
-						@chmod($queue . '/.upload-in-progress', 0666);
+						$Qstorage->touch('.upload-in-progress');
 
 						set_time_limit(60);
 						if ($debug) logger::debug(sprintf('<%s> %s', $file['name'], __METHOD__));
@@ -498,44 +599,23 @@ class controller extends cms\controller {
 							$strType = mime_content_type($file['tmp_name']);
 							if ($debug) logger::debug(sprintf('<%s (%s)> %s', $file['name'], $strType, __METHOD__));
 
-							$videoTypes = ['video/quicktime', 'video/mp4'];
-
-							$accept = [
-								'application/pdf',
-								'image/jpeg',
-								'image/pjpeg',
-								'image/png'
-							];
-
-							if (config::$PHOTOLOG_ENABLE_VIDEO) {
-								$accept[] = 'video/quicktime';
-								$accept[] = 'video/mp4';
-							}
-
-							/** heic are not current supported on fedora */
-							if (config::$PHOTOLOG_ENABLE_HEIC) {
-								$accept[] = 'image/heic';
-								$accept[] = 'image/heif';
-							}
-
 							if (in_array($strType, $accept)) {
 
 								if ($debug) logger::debug(sprintf('<%s (%s) acceptable> : %s', $file['name'], $strType, __METHOD__));
-								$source = $file['tmp_name'];
 
+								$target = '';
 								if ('application/pdf' == $strType || in_array($strType, $videoTypes)) {
 
-									$target = sprintf('%s/%s', $path, $file['name']);
+									$target = $storage->storeFile($file);
 								} else {
 
-									$target = sprintf('%s/%s', $queue, $file['name']);
+									$target = $Qstorage->storeFile($file);
 								}
 
-								if (file_exists($target)) unlink($target);
-
-								if (move_uploaded_file($source, $target)) {
+								if ($target) {
 
 									chmod($target, 0666);
+									// logger::info(sprintf('<%s> %s', $target, __METHOD__));
 
 									if ($debug) logger::debug(sprintf('upload: %s (%s) accepted : %s', $file['name'], $strType, __METHOD__));
 									$response['files'][] = [
@@ -544,13 +624,14 @@ class controller extends cms\controller {
 									];
 
 									if ($location) {
+
 										if (!('application/pdf' == $strType || in_array($strType, $videoTypes))) {
+
 											// do this now to improve response for autoupdate
 											utility::stampone(
 												$target,
-												sprintf('%s/%s', $path, $file['name']),
+												sprintf('%s/%s', $storage->getPath(), $file['name']),
 												$dto
-
 											);
 										}
 
@@ -580,15 +661,11 @@ class controller extends cms\controller {
 									])
 								);
 
-								config::$DEBUG_REJECT_TYPES = true;
-
+								// config::$DEBUG_REJECT_TYPES = true;
 								if (config::$DEBUG_REJECT_TYPES) {
 
-									$source = $file['tmp_name'];
-									$target = config::photologTrash() . $file['name'];
-
-									if (file_exists($target)) unlink($target);
-									if (move_uploaded_file($source, $target)) {
+									$trash = $storage->subFolder('.trash');
+									if ($target = $trash->storeFile($file)) {
 
 										chmod($target, 0666);
 										logger::debug(sprintf('<save debug file : %s> %s', $target, __METHOD__));
@@ -607,14 +684,17 @@ class controller extends cms\controller {
 
 					}
 
-					new Json($response);
+					new json($response);
 				} else {
+
 					json::nak($action);
 				}
 			} else {
+
 				json::nak($action);
 			}
 		} else {
+
 			parent::postHandler();
 		}
 	}
@@ -651,7 +731,6 @@ class controller extends cms\controller {
 	}
 
 	public function img($id = 0) {
-		//~ $default = sprintf( '%sdefault.jpg', \config::photologStore());
 
 		if ($id = (int)$id) {
 
@@ -659,15 +738,10 @@ class controller extends cms\controller {
 
 				if (!(preg_match('@(\.\.|\/)@', $img)) && preg_match('@.(png|jp[e]?g|jfif|mov|mp4|pdf|heic)$@i', $img)) {
 
-					$path = (new dao\property_photolog)->store($id);
+					$storage = (new dao\property_photolog)->DiskFileStorage($id, $create = false);
+					if ($storage->file_exists($img)) {
 
-					$_file = sprintf('%s/%s', $path, $img);
-					$_queue = sprintf('%s/queue/%s', $path, $img);
-					if (file_exists($_file)) {
-
-						$mimetype = '';
-						if ('full' != $this->getParam('v')) $mimetype = mime_content_type($_file);
-
+						$mimetype = $storage->mime_type($img);
 						if ('full' != $this->getParam('v') && 'application/pdf' == $mimetype) {
 
 							Response::serve(sprintf('%s/resources/images/acrobat.png', __DIR__));
@@ -679,11 +753,14 @@ class controller extends cms\controller {
 							Response::serve(sprintf('%s/resources/images/mp4-extension-filetype.png', __DIR__));
 						} else {
 
-							Response::serve($_file);
+							$storage->serve($img);
 						}
-					} elseif (file_exists($_queue)) {
+					} elseif ($storage->subFolder('queue')->file_exists($img)) {
 
 						Response::serve(config::photolog_default_image800x600_inqueue);
+					} else {
+
+						logger::info(sprintf('<NOT found %s> %s', $img, __METHOD__));
 					}
 				}
 			}
@@ -691,7 +768,7 @@ class controller extends cms\controller {
 
 			Response::serve(config::photolog_default_image800x600);
 		}
-	}
+	}	// 769
 
 	public function js($lib = '') {
 		$s = ['@{{route}}@'];
@@ -786,16 +863,16 @@ class controller extends cms\controller {
 	}
 
 	public function zip($id) {
-		//~ $debug = false;
-		$debug = true;
+		$debug = false;
+		// $debug = true;
 
 		if ($id = (int)$id) {
+
 			$dao = new dao\property_photolog;
 			if ($dto = $dao->getByID($id)) {
+
 				$filename = sprintf('%sphotolog-%d.zip', config::tempdir(), $dto->id);
-				if (file_exists($filename)) {
-					unlink($filename);
-				}
+				if (file_exists($filename)) unlink($filename);
 
 				if ($debug) logger::debug(sprintf('<%s> : %s', $filename, __METHOD__));
 
@@ -808,12 +885,9 @@ class controller extends cms\controller {
 				} else {
 
 					$ifiles = 0;
-					$path = $dao->store($dto->id);
-					//~ printf( 'good - <%s> > %s', $path, $filename);
+					$storage = $dao->DiskFileStorage($dto->id, $create = false);
+					if ($fit = $storage->FilesystemIterator()) {
 
-					if (is_dir($path)) {
-						$files = [];
-						$fit = new \FilesystemIterator($path);
 						foreach ($fit as $file) {
 
 							if (preg_match('@(jp[e]?g|mov|mp4|pdf)$@i', $file->getExtension())) {
