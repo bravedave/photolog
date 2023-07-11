@@ -67,26 +67,6 @@ $diskSpace = sys::diskspace();  ?>
     let smokeAlarms = [];
     let allCards = [];
 
-    // _.mobileErrorHandler = (a, b, c, d, e) => {
-    //   _.growlError(`message: ${a}`);
-
-    //   console.log(`message: ${a}`);
-    //   console.log(`source: ${b}`);
-    //   console.log(`lineno: ${c}`);
-    //   console.log(`colno: ${d}`);
-    //   console.log(`error: ${e}`);
-
-    //   return true;
-    // };
-
-    // _.mobileErrorHandler = (a, b, c, d, e) => {
-    //   _.growlError(`message: ${a}`);
-    //   // return true;
-    // };
-
-    if (_.browser.isMobileDevice && !!_.mobileErrorHandler) window.onerror = _.mobileErrorHandler;
-    // nonexistentfunction();
-
     let confirmDeleteAction = () => {
       return new Promise((resolve, reject) => {
         let resolved = false;
