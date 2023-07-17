@@ -12,33 +12,39 @@ extract((array)$this->data);	// $this->data->dtoSet, $this->data->page, $this->d
 ?>
 
 <div class="row g-2">
-	<div class="col mb-2">
+  <div class="col mb-2">
 
-		<input type="search" class="form-control" accesskey="/" aria-label="search" autofocus id="<?= $_search = strings::rand()  ?>">
-	</div>
+    <input type="search" class="form-control" accesskey="/" aria-label="search" autofocus
+      id="<?= $_search = strings::rand()  ?>">
+  </div>
 
-	<div class="col-auto mb-2">
-		<button type="button" class="btn btn-light" id="<?= $_bottom = strings::rand() ?>"><i class="bi bi-chevron-bar-down"></i></button>
-	</div>
+  <div class="col-auto mb-2">
+    <button type="button" class="btn btn-light" id="<?= $_bottom = strings::rand() ?>"><i
+        class="bi bi-chevron-bar-down"></i></button>
+  </div>
 </div>
 
 <h3 class="d-none d-print-block"><?= $this->title ?></h3>
 <table class="table table-sm" id="<?= $_table = strings::rand()  ?>" data-role="photolog-table">
-	<thead class="small">
+  <thead class="small">
 
-		<tr>
+    <tr>
 
-			<td class="align-bottom text-center js-line-number">#</td>
-			<td class="d-none d-md-table-cell" data-role="sort-header" data-key="suburb">suburb</td>
-			<td data-role="sort-header" data-key="address">address</td>
-			<td class="text-center" data-role="sort-header" data-key="entries" data-sorttype="numeric" style="width: 17%;">entries</td>
-			<td class="d-none d-sm-table-cell text-center" data-role="sort-header" data-key="files" data-sorttype="numeric" style="width: 17%;">files</td>
-			<td class="d-none d-md-table-cell text-center" data-role="sort-header" data-key="size" data-sorttype="numeric" style="width: 17%;">size</td>
-		</tr>
-	</thead>
+      <td class="align-bottom text-center js-line-number">#</td>
+      <td class="d-none d-md-table-cell" data-role="sort-header" data-key="suburb">suburb
+      </td>
+      <td data-role="sort-header" data-key="address">address</td>
+      <td class="text-center" data-role="sort-header" data-key="entries"
+        data-sorttype="numeric" style="width: 17%;">entries</td>
+      <td class="d-none d-sm-table-cell text-center" data-role="sort-header"
+        data-key="files" data-sorttype="numeric" style="width: 17%;">files</td>
+      <td class="d-none d-md-table-cell text-center" data-role="sort-header"
+        data-key="size" data-sorttype="numeric" style="width: 17%;">size</td>
+    </tr>
+  </thead>
 
-	<tbody>
-		<?php
+  <tbody>
+    <?php
 		$entries = 0;
 		$totFiles = 0;
 		$totProcessed = 0;
@@ -47,7 +53,7 @@ extract((array)$this->data);	// $this->data->dtoSet, $this->data->page, $this->d
 		foreach ($dtoSet as $dto) {
 
 			printf(
-				'<tr class="%s pointer" data-id="%d" data-address="%s" data-suburb="%s" data-entries="%s" data-files="%s" data-size="%s">',
+				'<tr class="%s" data-id="%d" data-address="%s" data-suburb="%s" data-entries="%s" data-files="%s" data-size="%s">',
 				(bool)$dto->files->errors ? 'text-danger' : '',
 				$dto->property_id,
 				htmlentities($dto->street_index),
@@ -146,52 +152,73 @@ extract((array)$this->data);	// $this->data->dtoSet, $this->data->page, $this->d
 </table>
 
 <script>
-	(_ => {
-		const bottom = $('#<?= $_bottom ?>');
-		const search = $('#<?= $_search ?>');
-		const table = $('#<?= $_table ?>');
+  (_ => {
+    const bottom = $('#<?= $_bottom ?>');
+    const search = $('#<?= $_search ?>');
+    const table = $('#<?= $_table ?>');
 
-		table.find('> tbody > tr').each((i, tr) => {
-			let _tr = $(tr);
+    const contextmenu = function(e) {
 
-			_tr
-				.on('click', e => window.location.href = _.url('<?= $this->route ?>/?property=' + _tr.data('id')))
-				.on('contextmenu', function(e) {
-					if (e.shiftKey)
-						return;
+      if (e.shiftKey) return;
+      let _context = _.context(e);
+      let _tr = $(this);
+      let _data = _tr.data();
+      let street = _tr.find('td[data-role="address_street"]').html();
 
-					e.stopPropagation();
-					e.preventDefault();
+      _context.append.a({
+        html: `<strong>Photolog : ${street}</strong>`,
+        href: _.url('<?= $this->route ?>/?property=' + _data.id)
+      });
 
-					_brayworth_.hideContexts();
+      _context.append.a({
+        html: `Goto : ${street}`,
+        href: _.url('property/view/' + _data.id),
+        target: '_blank'
+      });
 
-					let _context = _brayworth_.context();
+      _context.open(e);
+    };
 
-					_context.append($('<a class="font-weight-bold" />').html('Photolog : ' + $('td[data-role="address_street"]', _tr).html()).attr('href', _.url('<?= $this->route ?>/?property=' + _tr.data('id'))));
-					_context.append($('<a />').html('Goto : ' + $('td[data-role="address_street"]', _tr).html()).attr('href', _.url('property/view/' + _tr.data('id'))));
+    table.find('> tbody > tr').each((i, tr) => {
+      let _tr = $(tr);
 
-					_context.open(e);
+      _tr
+        .addClass('pointer user-select-none')
+        .on('click', function(e) {
 
-				});
-		});
+          if (!!this.dataset.pressLong) {
 
-		_.table.search(search, table);
+            delete this.dataset.pressLong;
+            contextmenu.call(this, e);
+          } else {
 
-		// implies there is a cell with class js-line-number
-		table
-			.on('update-line-numbers', _.table._line_numbers_)
-			.trigger('update-line-numbers');
+            let _tr = $(this);
+            let _data = _tr.data();
+            window.location.href = _.url('<?= $this->route ?>/?property=' + _data.id);
+          }
+        })
+        .on('contextmenu', contextmenu);
 
-		bottom.on('click', function(e) {
-			e.stopPropagation();
+      _.longTouchDetector(_tr, contextmenu);
+    });
 
-			table.find('>tfoot')[0].scrollIntoView({
-				behavior: 'smooth',
-				block: 'end',
-				inline: 'center'
-			});
+    _.table.search(search, table);
 
-		});
+    // implies there is a cell with class js-line-number
+    table
+      .on('update-line-numbers', _.table._line_numbers_)
+      .trigger('update-line-numbers');
 
-	})(_brayworth_);
+    bottom.on('click', function(e) {
+      e.stopPropagation();
+
+      table.find('>tfoot')[0].scrollIntoView({
+        behavior: 'smooth',
+        block: 'end',
+        inline: 'center'
+      });
+
+    });
+
+  })(_brayworth_);
 </script>

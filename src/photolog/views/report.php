@@ -196,9 +196,12 @@ extract((array)$this->data);
 
     table.find('> tbody > tr').each((i, tr) => {
 
-      $(tr)
+      let _tr = $(tr);
+
+      _tr
         .addClass('pointer')
-        .on(_.browser.isMobileDevice ? 'dblclick' : 'click', function(e) {
+        .on('click', function(e) {
+
           e.stopPropagation();
           e.preventDefault();
 
@@ -206,7 +209,7 @@ extract((array)$this->data);
 
           $(this).trigger('view');
         })
-        .on(_.browser.isMobileDevice ? 'click' : 'contextmenu', contextmenu)
+        .on('contextmenu', contextmenu)
         .on('view', function(e) {
 
           let _tr = $(this);
@@ -221,6 +224,8 @@ extract((array)$this->data);
             window.location.href = _.url(`<?= $this->route ?>/view/${_data.id}`);
           <?php }  ?>
         });
+
+      _.longTouchDetector(_tr, contextmenu);
     })
 
     table

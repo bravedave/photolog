@@ -67,7 +67,7 @@ $diskSpace = sys::diskspace();  ?>
     let smokeAlarms = [];
     let allCards = [];
 
-    let confirmDeleteAction = () => {
+    const confirmDeleteAction = () => {
       return new Promise((resolve, reject) => {
         let resolved = false;
         let m = _.ask({
@@ -92,7 +92,89 @@ $diskSpace = sys::diskspace();  ?>
 
     let deleting = 0;
 
-    let displayCard = file => {
+    const contextmenu = function(e) {
+
+      if (e.shiftKey) return;
+      let _context = _.context(e);
+
+      let _me = $(this);
+      let _data = _me.data();
+
+      _context.append.a({
+          html: '<i class="bi bi-collection-play"></i>Start Carousel',
+          click: e => $(document).trigger(
+            'photolog-carousel',
+            _data.file.description
+          )
+        })
+        .attr('title', 'open in new tab');
+
+      _context.append.a({
+          html: '<i class="bi bi-box-arrow-up-right"></i>Open in new Window',
+          href: _data.file.url + '&v=full',
+        })
+        .attr({
+          'title': 'open in new tab',
+          'target': '_blank'
+        });
+
+      // console.table(_data.file);
+
+      if (_data.file.prestamp) {
+
+        _context.append.a({
+          html: '<i class="bi bi-arrow-counterclockwise"></i>Rotate Left',
+          click: e => _me.trigger('rotate-left')
+        });
+
+        _context.append.a({
+          html: '<i class="bi bi-arrow-clockwise"></i>Rotate Right',
+          click: e => _me.trigger('rotate-right')
+        });
+
+        _context.append.a({
+          html: '<i class="bi bi-emoji-smile-upside-down"></i>Rotate 180',
+          click: e => _me.trigger('rotate-180')
+        });
+      }
+
+      if (smokeAlarms.length > 0) {
+        // console.log( smokeAlarms);
+
+        _context.append('<hr>');
+        $.each(smokeAlarms, (i, alarm) => {
+
+          _context.append.a({
+            html: `${_data.file.location == alarm.location ? '<i class="bi bi-check"></i>' : ''}${alarm.location}`,
+            click: e => {
+
+              if (_data.file.location == alarm.location) {
+
+                card.trigger('clear-location');
+              } else {
+
+                card.trigger('set-location', alarm.location);
+              }
+            }
+          });
+        });
+      }
+
+      _context.append('<hr>');
+      _context.append.a({
+        html: '<i class="bi bi-input-cursor-text"></i>rename',
+        click: e => _me.trigger('rename-file')
+      });
+
+      _context.append.a({
+        html: '<i class="bi bi-trash"></i>delete',
+        click: e => _me.trigger('delete')
+      });
+
+      _context.open(e);
+    };
+
+    const displayCard = file => {
       let card = $('<div class="card photolog-card"></div>')
         .data('file', file);
 
@@ -125,7 +207,8 @@ $diskSpace = sys::diskspace();  ?>
           });
 
         })
-        .on(_.browser.isMobileDevice ? 'dblclick' : 'click', function(e) {
+        .on('click', function(e) {
+
           e.stopPropagation();
           e.preventDefault();
 
@@ -146,9 +229,9 @@ $diskSpace = sys::diskspace();  ?>
             let id = _.randomString();
 
             let video = $(`<video controls autoplay id="${id}" width="100%">
-							<source src="${_data.file.url + '&v=full'}" type="video/${ 'mov' == _data.file.extension ? 'quicktime' : 'mp4' }">
-							Sorry, your browser doesn't support embedded videos.
-						</video>`);
+                  <source src="${_data.file.url + '&v=full'}" type="video/${ 'mov' == _data.file.extension ? 'quicktime' : 'mp4' }">
+                  Sorry, your browser doesn't support embedded videos.
+                </video>`);
 
             $('.modal-body', m)
               .addClass('p-2')
@@ -239,87 +322,7 @@ $diskSpace = sys::diskspace();  ?>
           });
 
         })
-        .on(_.browser.isMobileDevice ? 'click' : 'contextmenu', function(e) {
-
-          if (e.shiftKey) return;
-          let _context = _.context(e);
-
-          let _me = $(this);
-          let _data = _me.data();
-
-          _context.append.a({
-              html: '<i class="bi bi-collection-play"></i>Start Carousel',
-              click: e => $(document).trigger(
-                'photolog-carousel',
-                _data.file.description
-              )
-            })
-            .attr('title', 'open in new tab');
-
-          _context.append.a({
-              html: '<i class="bi bi-box-arrow-up-right"></i>Open in new Window',
-              href: _data.file.url + '&v=full',
-            })
-            .attr({
-              'title': 'open in new tab',
-              'target': '_blank'
-            });
-
-          // console.table(_data.file);
-
-          if (_data.file.prestamp) {
-
-            _context.append.a({
-              html: '<i class="bi bi-arrow-counterclockwise"></i>Rotate Left',
-              click: e => _me.trigger('rotate-left')
-            });
-
-            _context.append.a({
-              html: '<i class="bi bi-arrow-clockwise"></i>Rotate Right',
-              click: e => _me.trigger('rotate-right')
-            });
-
-            _context.append.a({
-              html: '<i class="bi bi-emoji-smile-upside-down"></i>Rotate 180',
-              click: e => _me.trigger('rotate-180')
-            });
-          }
-
-          if (smokeAlarms.length > 0) {
-            // console.log( smokeAlarms);
-
-            _context.append('<hr>');
-            $.each(smokeAlarms, (i, alarm) => {
-
-              _context.append.a({
-                html: `${_data.file.location == alarm.location ? '<i class="bi bi-check"></i>' : ''}${alarm.location}`,
-                click: e => {
-
-                  if (_data.file.location == alarm.location) {
-
-                    card.trigger('clear-location');
-                  } else {
-
-                    card.trigger('set-location', alarm.location);
-                  }
-                }
-              });
-            });
-          }
-
-          _context.append('<hr>');
-          _context.append.a({
-            html: '<i class="bi bi-input-cursor-text"></i>rename',
-            click: e => _me.trigger('rename-file')
-          });
-
-          _context.append.a({
-            html: '<i class="bi bi-trash"></i>delete',
-            click: e => _me.trigger('delete')
-          });
-
-          _context.open(e);
-        })
+        .on('contextmenu', contextmenu)
         .on('refresh', function(e) {
           let _me = $(this);
           let file = _me.data('file');
@@ -449,6 +452,8 @@ $diskSpace = sys::diskspace();  ?>
           });
 
         });
+
+      _.longTouchDetector(card, contextmenu);
 
       $('<div class="col-md-4 col-lg-3 col-xl-2 mb-2"></div>')
         .append(card)
