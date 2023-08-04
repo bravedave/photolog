@@ -510,17 +510,27 @@ class controller extends cms\controller {
 				$id = 0;
 
 				if (class_exists('smokealarm\dao\smokealarm')) {
+
 					if ('smokealarm' == $tag) {
+
 						if ($smokealarm_id = (int)$this->getPost('smokealarm_id')) {
+
 							$dao = new \smokealarm\dao\smokealarm;
 							if ($dto = $dao->getByID($smokealarm_id)) {
+
 								if ($dto->properties_id) {
+
 									$dao = new dao\property_photolog;
 									if ($logs = $dao->getForProperty($dto->properties_id)) {
+
 										foreach ($logs as $log) {
+
 											if (preg_match('@^smoke alarm audit@i', $log->subject)) {
+
 												if (($t = strtotime($log->date)) > 0) {
+
 													if (date('Y-m') == date('Y-m', $t)) {
+
 														// use this one ..
 														$id = $log->id;
 														break;
@@ -532,12 +542,12 @@ class controller extends cms\controller {
 								}
 
 								if (!$id) {
+
 									$dao = new dao\property_photolog;
 									$id = $dao->Insert([
 										'property_id' => $dto->properties_id,
 										'subject' => sprintf('Smoke Alarm Audit %s', date('M Y')),
 										'date' => date('Y-m-d')
-
 									]);
 								}
 
@@ -651,15 +661,15 @@ class controller extends cms\controller {
 							} else {
 
 								logger::info(sprintf('<file type not permitted : %s> %s', $strType, __METHOD__));
-								\sys::notifySupport(
-									'PhotoLog Error',
-									implode(PHP_EOL, [
-										sprintf('Trying to upload : %s', $strType, __METHOD__),
-										sprintf('File   ...: %s(%s)', $file['name'], $strType),
-										sprintf('User   ...: %s', currentUser::name()),
-										sprintf('UserAgent : %s', userAgent::toString()),
-									])
-								);
+								// \sys::notifySupport(
+								// 	'PhotoLog Error',
+								// 	implode(PHP_EOL, [
+								// 		sprintf('Trying to upload : %s', $strType, __METHOD__),
+								// 		sprintf('File   ...: %s(%s)', $file['name'], $strType),
+								// 		sprintf('User   ...: %s', currentUser::name()),
+								// 		sprintf('UserAgent : %s', userAgent::toString()),
+								// 	])
+								// );
 
 								// config::$DEBUG_REJECT_TYPES = true;
 								if (config::$DEBUG_REJECT_TYPES) {
@@ -677,11 +687,8 @@ class controller extends cms\controller {
 							}
 						} else {
 
-							logger::info(sprintf('<%s> %s', 'what the dickens ?', __METHOD__));
-							logger::info(sprintf('<%s> %s', $file['error'], __METHOD__));
+							logger::info(sprintf('<what the dickens : %s> %s', $file['error'], __METHOD__));
 						}
-						// elseif ( is_uploaded_file( $file['tmp_name'] )) {
-
 					}
 
 					new json($response);
