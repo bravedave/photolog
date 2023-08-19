@@ -26,10 +26,6 @@ class controller extends cms\controller {
 				'aside' => array_merge(['index'], config::index_set),
 				'dtoSet' => (new dao\property_photolog)->getForProperty($pid),
 				'referer' => (new dao\properties)->getByID($pid),
-				'latescripts' => [sprintf(
-					'<script type="text/javascript" src="%s"></script>',
-					strings::url($this->route . '/js')
-				)],
 				'pageUrl' => strings::url($this->route . '/?property=' . $pid),
 				'searchFocus' => false,
 				'title' => $this->title = config::label,
@@ -40,7 +36,11 @@ class controller extends cms\controller {
 			}
 
 			$this->renderBS5([
-				'main' => fn () => $this->load('report')
+				'main' => fn () => $this->load('report'),
+				'scripts' => [sprintf(
+					'<script type="text/javascript" src="%s"></script>',
+					strings::url($this->route . '/js')
+				)],
 			]);
 		} else {
 
@@ -49,10 +49,6 @@ class controller extends cms\controller {
 				'aside' => array_merge(['index'], config::index_set),
 				'dtoSet' => $dao->getPropertySummary(),
 				'referer' => false,
-				'latescripts' => [sprintf(
-					'<script type="text/javascript" src="%s"></script>',
-					strings::url($this->route . '/js')
-				)],
 				'pageUrl' => strings::url($this->route),
 				'searchFocus' => false,
 				'title' => $this->title = config::label,
@@ -61,7 +57,11 @@ class controller extends cms\controller {
 
 			// logger::info( sprintf('<%s> %s', application::timer()->elapsed(), __METHOD__));
 			$this->renderBS5([
-				'main' => fn () => $this->load('summary')
+				'main' => fn () => $this->load('summary'),
+				'scripts' => [sprintf(
+					'<script type="text/javascript" src="%s"></script>',
+					strings::url($this->route . '/js')
+				)]
 			]);
 		}
 	}

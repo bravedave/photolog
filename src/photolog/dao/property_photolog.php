@@ -272,7 +272,7 @@ class property_photolog extends dao {
 		// $timer = application::timer();
 
 		$this->Q(sprintf(
-			'CREATE TEMPORARY TABLE _t AS(
+			'CREATE TEMPORARY TABLE _t AS
 			SELECT
 				l.*,
 				p.`address_street`,
@@ -289,7 +289,7 @@ class property_photolog extends dao {
 					GROUP BY `property_id`
 				) l
 					LEFT JOIN
-				properties p ON p.`id` = l.`property_id`)',
+				properties p ON p.`id` = l.`property_id`',
 			$this->db_name()
 		));
 
