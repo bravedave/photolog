@@ -35,12 +35,11 @@ class controller extends cms\controller {
 				$this->data->title = sprintf('%s : %s', $this->data->referer->address_street, $this->data->title);
 			}
 
+			$scripts = [sprintf('<script src="%s"></script>', strings::url($this->route . '/js'))];
+			// array_walk($scripts, fn ($_) => logger::info(sprintf('has script tag %s', preg_match('/^<script/', $_) ? 'yes' : 'no')));
 			$this->renderBS5([
 				'main' => fn () => $this->load('report'),
-				'scripts' => [sprintf(
-					'<script type="text/javascript" src="%s"></script>',
-					strings::url($this->route . '/js')
-				)],
+				'scripts' => $scripts,
 			]);
 		} else {
 
