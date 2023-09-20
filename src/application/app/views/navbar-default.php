@@ -20,7 +20,7 @@ use dvc\icon;
  * [x] ml-* => ms-*
  * [x] input-group-prepend - remove
  * [x] input-group-append - remove
- * [x] btn input-group-text => btn bg-body-secondary
+ * [x] btn input-group-text => btn btn-light
  */
 ?>
 

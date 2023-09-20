@@ -19,7 +19,7 @@ extract((array)$this->data);	// $this->data->dtoSet, $this->data->page, $this->d
   </div>
 
   <div class="col-auto mb-2">
-    <button type="button" class="btn bg-body-secondary" id="<?= $_bottom = strings::rand() ?>"><i
+    <button type="button" class="btn btn-light" id="<?= $_bottom = strings::rand() ?>"><i
         class="bi bi-chevron-bar-down"></i></button>
   </div>
 </div>

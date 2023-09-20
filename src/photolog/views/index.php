@@ -184,16 +184,16 @@ $bootstrap = $bootstrap ?? 4;	?>
         <div class="col">
           <div class="btn-group btn-group-sm d-flex" aria-label="Public link toolbar">
 
-            <button class="btn bg-body-secondary flex-fill js-copy-to-clipboard" type="button"
+            <button class="btn btn-light flex-fill js-copy-to-clipboard" type="button"
               title="copy to clipboard"><i class="bi bi-clipboard"></i></button>
-            <button class="btn bg-body-secondary flex-fill js-public-link-clear" type="button"
+            <button class="btn btn-light flex-fill js-public-link-clear" type="button"
               title="clear link"><i class="bi bi-trash"></i></button>
-            <button class="btn bg-body-secondary flex-fill js-public-link-email" type="button"
+            <button class="btn btn-light flex-fill js-public-link-email" type="button"
               title="email link"><i class="bi bi-cursor"></i></button>
-            <button class="btn bg-body-secondary flex-fill js-public-link-regenerate"
+            <button class="btn btn-light flex-fill js-public-link-regenerate"
               type="button" title="regenerate link"><i
                 class="bi bi-arrow-repeat"></i></button>
-            <button class="btn bg-body-secondary flex-fill js-public-link-view" type="button"
+            <button class="btn btn-light flex-fill js-public-link-view" type="button"
               title="view on portal"><i class="bi bi-box-arrow-up-right"></i></button>
 
           </div>

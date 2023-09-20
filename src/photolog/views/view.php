@@ -485,17 +485,17 @@ $diskSpace = sys::diskspace();  ?>
 
     let allDownload =
       $(
-        `<a title="download zip" class="btn bg-body-secondary btn-sm d-none">
+        `<a title="download zip" class="btn btn-light btn-sm d-none">
           <i class="bi bi-download" title="download as zip file"></i> zip
           </a>`
       )
       .attr('href', _.url('<?= $this->route ?>/zip/<?= $dto->id ?>'));
 
     let allDelete = $(
-      '<button title="delete all" class="btn bg-body-secondary btn-sm d-none"><i class="bi bi-trash"></i> delete all</button>'
+      '<button title="delete all" class="btn btn-light btn-sm d-none"><i class="bi bi-trash"></i> delete all</button>'
     );
     let btnNotepad = $(
-      '<button title="notepad" class="btn bg-body-secondary btn-sm"><i class="bi bi-pencil"></i> note</button>'
+      '<button title="notepad" class="btn btn-light btn-sm"><i class="bi bi-pencil"></i> note</button>'
     );
 
     let bCol = $('<div class="col text-center"></div>')
