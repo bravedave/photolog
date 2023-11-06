@@ -17,9 +17,26 @@ class currentUser extends bravedave\dvc\currentUser {
 		return (false);
 	}
 
-	static public function isadmin() {
+	static public function isAdmin() {
 		return (true);
 		return (false);
+	}
+
+	static public function isAdmin() {
+		return (true);
+		return (false);
+	}
+
+	static public function isRentalAdmin(): bool {
+
+		if (static::isAdmin())	return true;
+		return (bool)('yes' == static::restriction('sales-admin'));
+	}
+
+	static public function isSalesAdmin(): bool {
+
+		if (static::isAdmin())	return true;
+		return (bool)('yes' == static::restriction('sales-admin'));
 	}
 
 	static public function restriction($key, $value = null) {

@@ -10,7 +10,7 @@
 
 namespace photolog;
 
-use currentUser, strings, sys;
+use cms\currentUser, strings, sys;
 
 $uid = strings::rand();
 extract((array)$this->data);
@@ -70,7 +70,7 @@ $diskSpace = sys::diskspace();  ?>
     const confirmDeleteAction = () => {
 
       return new Promise((resolve, reject) => {
-        
+
         let resolved = false;
         let m = _.ask({
           headClass: 'text-white bg-danger',
@@ -524,7 +524,7 @@ $diskSpace = sys::diskspace();  ?>
     };
 
     const allDeleteVisibility = () => {
-      <?php if (currentUser::isadmin()) {  ?>
+      <?php if (currentUser::isSalesAdmin() || currentUser::isRentalAdmin()) {  ?>
         $('.photolog-card').length > 0 ? allDelete.removeClass('d-none') : allDelete
           .addClass('d-none');
       <?php }  ?>
