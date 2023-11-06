@@ -112,38 +112,32 @@ class controller extends cms\controller {
 			if ($id = $this->getPost('id')) {
 
 				$dao = new dao\property_photolog;
-				if ($dto = $dao->getByID($id)) {
+				$storage = $dao->DiskFileStorage($id, $create = false);
+				if ($storage->isValid()) {
 
-					$storage = $dao->DiskFileStorage($dto->id, $create = false);
-					if ($storage->isValid()) {
+					$_file = trim($this->getPost('file'), './ ');
+					if ($_file) {
 
-						$_file = trim($this->getPost('file'), './ ');
-						if ($_file) {
+						$storage->deleteFile($_file);
+						$storage->deleteFile($_file . config::photolog_prestamp);
 
-							$storage->deleteFile($_file);
-							$storage->deleteFile($_file . config::photolog_prestamp);
+						$Qstorage = $storage->subFolder('queue', $create = false);
+						if ($Qstorage->isValid()) {
 
-							$Qstorage = $storage->subFolder('queue', $create = false);
-							if ($Qstorage->isValid()) {
+							if ($Qstorage->file_exists($_file)) {
 
-								if ($Qstorage->file_exists($_file)) {
-
-									$errfile = sprintf(
-										'%s.err',
-										basename($Qstorage->getPath($_file))
-									);
-									$Qstorage->deleteFile($_file);
-									$Qstorage->deleteFile($errfile);
-								}
+								$errfile = sprintf(
+									'%s.err',
+									basename($Qstorage->getPath($_file))
+								);
+								$Qstorage->deleteFile($_file);
+								$Qstorage->deleteFile($errfile);
 							}
 						}
 					}
-
-					json::ack($action);
-				} else {
-
-					json::nak($action);
 				}
+
+				json::ack($action);
 			} else {
 
 				json::nak($action);
@@ -497,6 +491,31 @@ class controller extends cms\controller {
 					json::nak($action);
 				}
 			} else {
+				json::nak($action);
+			}
+		} elseif ('touch' == $action) {
+			if ($id = $this->getPost('id')) {
+
+				$dao = new dao\property_photolog;
+				if ($dto = $dao->getByID($id)) {
+
+					$storage = $dao->DiskFileStorage($dto->id, $create = false);
+					if ($storage->isValid()) {
+
+						$touch = $storage->getPath() . '/temp.dat';
+						touch($touch);
+						unlink($touch);
+						json::ack($action);
+					} else {
+
+						json::nak($action);
+					}
+				} else {
+
+					json::nak($action);
+				}
+			} else {
+
 				json::nak($action);
 			}
 		} elseif ('upload' == $action) {

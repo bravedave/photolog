@@ -68,7 +68,9 @@ $diskSpace = sys::diskspace();  ?>
     let allCards = [];
 
     const confirmDeleteAction = () => {
+
       return new Promise((resolve, reject) => {
+        
         let resolved = false;
         let m = _.ask({
           headClass: 'text-white bg-danger',
@@ -86,7 +88,6 @@ $diskSpace = sys::diskspace();  ?>
         m.on('hidden.bs.modal', e => {
           if (!resolved) reject('confirmDeleteAction - reject');
         });
-
       }).catch(msg => console.warn(msg));
     };
 
@@ -244,9 +245,9 @@ $diskSpace = sys::diskspace();  ?>
           }
         })
         .on('delete', function(e) {
+
           let _me = $(this);
           confirmDeleteAction().then(() => _me.trigger('delete-confirmed'));
-
         })
         .on('delete-confirmed', function(e) {
           let _me = $(this);
@@ -254,13 +255,11 @@ $diskSpace = sys::diskspace();  ?>
           let file = _data.file;
 
           deleting++;
-          _.post({
-              url: _.url('<?= $this->route ?>'),
-              data: {
-                action: 'delete',
-                id: <?= $dto->id ?>,
-                file: file.description,
-              }
+          _.fetch
+            .post(_.url('<?= $this->route ?>'), {
+              action: 'delete',
+              id: <?= $dto->id ?>,
+              file: file.description,
             })
             .then(d => {
               _.growl(d);
@@ -269,12 +268,11 @@ $diskSpace = sys::diskspace();  ?>
               if ('ack' == d.response) _me.parent().remove();
 
               if (0 == deleting) {
+
                 allDeleteVisibility();
                 allDownloadVisibility();
-
               }
             });
-
         })
         .on('set-location', function(e, location) {
 
@@ -519,10 +517,10 @@ $diskSpace = sys::diskspace();  ?>
     });
 
     const allDownloadVisibility = () => {
+
       $('img[logimage]').length > 0 ?
         allDownload.removeClass('d-none') :
         allDownload.addClass('d-none');
-
     };
 
     const allDeleteVisibility = () => {

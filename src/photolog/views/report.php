@@ -148,7 +148,6 @@ extract((array)$this->data);
       let _ctx = _.context(e); // hides any open contexts and stops bubbling
 
       let _tr = $(this);
-      let _data = _tr.data();
 
       _ctx.append.a({
         html: '<strong>view files</strong>',
@@ -159,18 +158,18 @@ extract((array)$this->data);
         html: 'edit',
         click: e => {
 
-          _.get.modal(_.url('<?= $this->route ?>/entry/' + _data.id))
+          _.get.modal(_.url('<?= $this->route ?>/entry/' + this.dataset.id))
             .then(d => d.on('success', (e, href) => window.location.reload()));
         }
       });
 
-      if (Number(_data.property_id) > 0) {
+      if (Number(this.dataset.property_id) > 0) {
 
         _ctx.append.a('Goto ' + _tr.find('td[data-address]').html())
-          .attr('href', _.url(`property/view/${_data.property_id}`));
+          .attr('href', _.url(`property/view/${this.dataset.property_id}`));
       }
 
-      if (_data.count < 1) {
+      if (Number(this.dataset.count) < 1) {
 
         _ctx.append('<hr>');
         _ctx.append.a({
@@ -178,18 +177,41 @@ extract((array)$this->data);
           html: '<i class="bi bi-trash"></i>delete',
           click: e => {
 
-            _.post({
-              url: _.url('<?= $this->route ?>'),
-              data: {
-                id: _data.id,
+            _.fetch
+              .post(_.url('<?= $this->route ?>'), {
+                id: this.dataset.id,
                 action: 'delete-entry',
-              }
-            }).then(d => 'ack' == d.response ?
-              window.location.reload() :
-              _.growl(d));
+              }).then(d => {
+                if ('ack' == d.response) {
+                  window.location.reload()
+                } else {
+                  _.growl(d)
+                }
+              });
           }
         });
       }
+
+      _ctx.append('<hr>');
+
+      _ctx.append.a({
+        html: 'refresh file count',
+        click: e => {
+
+          _.fetch
+            .post(_.url('<?= $this->route ?>'), {
+              action: 'touch',
+              id: this.dataset.id,
+            })
+            .then(d => {
+              if ('ack' == d.response) {
+                window.location.reload();
+              } else {
+                _.growl(d);
+              }
+            });
+        }
+      });
 
       _ctx.open(e);
     };
@@ -213,15 +235,14 @@ extract((array)$this->data);
         .on('view', function(e) {
 
           let _tr = $(this);
-          let _data = _tr.data();
 
           <?php if (isset($dto->id) && (int)$dto->id) {  ?>
 
             window.location.href = _.url(
-              `<?= $this->route ?>/view/${_data.id}?x=1&f=<?= $dto->id ?>`);
+              `<?= $this->route ?>/view/${this.dataset.id}?x=1&f=<?= $dto->id ?>`);
           <?php } else {  ?>
 
-            window.location.href = _.url(`<?= $this->route ?>/view/${_data.id}`);
+            window.location.href = _.url(`<?= $this->route ?>/view/${this.dataset.id}`);
           <?php }  ?>
         });
 

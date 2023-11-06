@@ -15,6 +15,7 @@ use CallbackFilterIterator, FilesystemIterator;
 use strings;
 
 use bravedave\dvc\{dao, dto, dtoSet, logger};
+use cms\currentUser;
 use photolog\{config, DiskFileStorage};
 
 class property_photolog extends dao {
@@ -33,6 +34,7 @@ class property_photolog extends dao {
 	protected function _dtoExpand($dto) {
 		$debug = false;
 		// $debug = true;
+		// $debug = currentUser::isDavid();
 
 		$dto->files = (object)[
 			'processed' => 0,
@@ -108,7 +110,7 @@ class property_photolog extends dao {
 
 				$dto->files = json_decode($dto->dirStats);
 				if (!isset($dto->files->errors)) $dto->files->errors = 0;
-				if ($debug) logger::debug(sprintf('<using cache> %s', __METHOD__));
+				if ($debug) logger::debug(sprintf('<using cache> <%s | %s> %s', date('Y-m-d', $dirModTime), $dto->dirModTime, __METHOD__));
 			}
 		}
 

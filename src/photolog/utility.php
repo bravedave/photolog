@@ -197,8 +197,9 @@ class utility {
 			'SELECT id, date FROM property_photolog',
 			function ($dto) use (&$icount, $afterHours, $debug) {
 
+				$limit = $afterHours ? 20 : 12;
 				// $limit = $afterHours ? 20 : 10;
-				$limit = $afterHours ? 16 : 8;
+				// $limit = $afterHours ? 16 : 8;
 
 				if ($icount >= $limit) return;
 
