@@ -24,6 +24,7 @@ class controller extends cms\controller {
 
 			$this->data = (object)[
 				'aside' => array_merge(['index'], config::index_set),
+				'help' => cms\docs\config::help_photolog,
 				'dtoSet' => (new dao\property_photolog)->getForProperty($pid),
 				'referer' => (new dao\properties)->getByID($pid),
 				'pageUrl' => strings::url($this->route . '/?property=' . $pid),
@@ -47,6 +48,7 @@ class controller extends cms\controller {
 			$this->data = (object)[
 				'aside' => array_merge(['index'], config::index_set),
 				'dtoSet' => $dao->getPropertySummary(),
+				'help' => cms\docs\config::help_photolog,
 				'referer' => false,
 				'pageUrl' => strings::url($this->route),
 				'searchFocus' => false,
@@ -863,6 +865,7 @@ class controller extends cms\controller {
 					'aside' => array_merge(['index'], config::index_set),
 					'dto' => $dto,
 					'files' => $dao->getFiles($dto, $this->route),
+					'help' => cms\docs\config::help_photolog,
 					'pageUrl' => strings::url($this->route . '/view/' . $dto->id),
 					'referer' => false,
 					'searchFocus' => true,
