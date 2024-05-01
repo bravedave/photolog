@@ -243,12 +243,18 @@ class utility {
 						if ('heic' == strtolower($file->getExtension())) {
 
 							// logger::info(sprintf('<%s> %s', 'heic file', __METHOD__));
-							$imagick = new \Imagick;
-							$jpg = \preg_replace('@\.heic$@i', '.jpg', $file->getPathname());
-							$imagick->readImage($file->getPathname());
-							$imagick->writeImage($jpg);
+							try {
+								$imagick = new \Imagick;
+								$jpg = \preg_replace('@\.heic$@i', '.jpg', $file->getPathname());
+								$imagick->readImage($file->getPathname());
+								$imagick->writeImage($jpg);
 
-							unlink($file->getPathname());
+								unlink($file->getPathname());
+							} catch (\Throwable $th) {
+
+								logger::info(sprintf('<%s> %s', $file->getPathname(), logger::caller()));
+								throw $th;
+							}
 						}
 					}
 
