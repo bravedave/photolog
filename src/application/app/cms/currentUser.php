@@ -14,17 +14,12 @@ use bravedave;
 
 class currentUser extends bravedave\dvc\currentUser {
 	static public function option($key, $value = null) {
-		return (false);
+		return false;
 	}
 
 	static public function isAdmin() {
-		return (true);
-		return (false);
-	}
-
-	static public function isAdmin() {
-		return (true);
-		return (false);
+		return true;
+		return false;
 	}
 
 	static public function isRentalAdmin(): bool {
@@ -45,6 +40,6 @@ class currentUser extends bravedave\dvc\currentUser {
 
 		// }
 
-		return (false);
+		return false;
 	}
 }

@@ -26,7 +26,8 @@
     "bravedave/dvc": "*",
     "bravedave/green": "*",
     "bravedave/smokealarm": "*",
-    "intervention/image": "^2.7"
+    "intervention/image": "<3",
+    "symfony/polyfill-php80": "1.x-dev"
   },
   "require-dev": {
     "ext-apcu": "*",

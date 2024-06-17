@@ -55,12 +55,7 @@ class config extends cms\config {
 			'photolog/'
 		]);
 
-		if (!is_dir($path)) {
-
-			mkdir($path, 0777);
-			chmod($path, 0777);
-		}
-
+		if (!is_dir($path)) mkdir($path);
 		return $path;
 	}
 
@@ -72,12 +67,7 @@ class config extends cms\config {
 			'photolog_trash/'
 		]);
 
-		if (!is_dir($path)) {
-
-			mkdir($path, 0777);
-			chmod($path, 0777);
-		}
-
+		if (!is_dir($path)) mkdir($path);
 		return $path;
 	}
 }

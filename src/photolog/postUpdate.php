@@ -11,12 +11,11 @@
 namespace photolog;
 
 use application;
-use bravedave\dvc\logger;
-use dvc;
+use bravedave\dvc\{logger, service};
 use green;
 use smokealarm;
 
-class postUpdate extends dvc\service {
+class postUpdate extends service {
   protected function _upgrade() {
     config::route_register('photolog', 'photolog\\controller');
     config::route_register('people', 'green\\people\\controller');
@@ -55,6 +54,7 @@ class postUpdate extends dvc\service {
 
   protected function _cron() {
     utility::stamp();
+    utility::garbageCollection();
     logger::info(sprintf('<%s> %s', 'complete', __METHOD__));
   }
 

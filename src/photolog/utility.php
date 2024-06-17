@@ -10,14 +10,12 @@
 
 namespace photolog;
 
-use bravedave\dvc\dtoSet;
-use bravedave\dvc\logger;
+use Intervention\Image\ImageManagerStatic;
+use bravedave\dvc\{dtoSet, logger, strings};
 use DateTime;
 use DateTimeZone;
+use DirectoryIterator;
 use FilesystemIterator;
-use Intervention\Image\ImageManagerStatic;
-use strings;
-use sys;
 
 class utility {
 
@@ -79,13 +77,31 @@ class utility {
 		}
 
 		$img = ImageManagerStatic::make($src);	// open an image file
+		$h = $img->height();
+		$w = $img->width();
 
-		// now you are able to resize the instance
-		$img
-			->orientate()
-			->resize(800, null, function ($constraint) {
-				$constraint->aspectRatio();
-			});
+		$stampSize = 800;
+		// $stampSize = 1024;
+
+		/**
+		 * now you are able to resize the instance
+		 * if it's a landscape picture, resize with height constraint
+		 */
+		if ($w > $h) {
+
+			$img
+				->orientate()
+				->resize(null, $stampSize, function ($constraint) {
+					$constraint->aspectRatio();
+				});
+		} else {
+
+			$img
+				->orientate()
+				->resize($stampSize, null, function ($constraint) {
+					$constraint->aspectRatio();
+				});
+		}
 
 		$prestamp = $target . config::photolog_prestamp;
 		if (file_exists($prestamp)) {
@@ -116,6 +132,43 @@ class utility {
 		$img->save($target);
 		chmod($target, 0666);
 		return true;
+	}
+
+	static public function garbageCollection() {
+		$debug = false;
+		// $debug = true;
+
+		// return;
+
+		$it = new DirectoryIterator(config::photologStore());
+		foreach ($it as $obj) {
+
+			// exclude . and .. directories
+			if ($obj->isDot()) continue;
+			if ($obj->isDir()) {
+
+				if ($debug) logger::debug(sprintf('<%s> %s', $obj->getFilename(), __METHOD__));
+				$sit = new FilesystemIterator($obj->getPathname());
+				foreach ($sit as $sobj) {
+
+					if (str_ends_with($sobj->getFilename(), '-prestamp')) {
+
+						// delete these if they are older than 14 days
+						if ($sobj->getMTime() < strtotime('-30 days')) {
+
+							if ($debug) logger::debug(sprintf(
+								'<cleanup %s - %s is older than %s...> %s',
+								$sobj->getFilename(),
+								date('Y-m-d H:i:s', $sobj->getMTime()),
+								date('Y-m-d H:i:s', strtotime('-30 days')),
+								__METHOD__
+							));
+							// unlink($sobj->getPathname());
+						}
+					}
+				}
+			}
+		}
 	}
 
 	public static function rotate(string $src, int $direction): bool {
@@ -174,7 +227,7 @@ class utility {
 
 	public static function stamp() {
 		$bypass = false;
-		//~ $bypass = true;
+		// $bypass = true;
 
 		if ($bypass) {
 			logger::info(sprintf('<%s> %s', 'on bypass', __METHOD__));
