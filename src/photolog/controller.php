@@ -39,7 +39,7 @@ class controller extends cms\controller {
 			$scripts = [sprintf('<script src="%s"></script>', strings::url($this->route . '/js'))];
 			// array_walk($scripts, fn ($_) => logger::info(sprintf('has script tag %s', preg_match('/^<script/', $_) ? 'yes' : 'no')));
 			$this->renderBS5([
-				'main' => fn () => $this->load('report'),
+				'main' => fn() => $this->load('report'),
 				'scripts' => $scripts,
 			]);
 		} else {
@@ -58,7 +58,7 @@ class controller extends cms\controller {
 
 			// logger::info( sprintf('<%s> %s', application::timer()->elapsed(), __METHOD__));
 			$this->renderBS5([
-				'main' => fn () => $this->load('summary'),
+				'main' => fn() => $this->load('summary'),
 				'scripts' => [sprintf(
 					'<script type="text/javascript" src="%s"></script>',
 					strings::url($this->route . '/js')
@@ -109,6 +109,15 @@ class controller extends cms\controller {
 			} else {
 				json::nak($action);
 			}
+		} elseif ('cron' == $action) {
+			/*
+			_brayworth_.fetch.post(_brayworth_.url('photolog'), {
+				'action' : 'cron',
+			}).then(console.log);
+			*/
+
+			utility::stamp();
+			json::ack('cron run complete');
 		} elseif ('delete' == $action) {
 
 			if ($id = $this->getPost('id')) {
@@ -140,10 +149,7 @@ class controller extends cms\controller {
 				}
 
 				json::ack($action);
-			} else {
-
-				json::nak($action);
-			}
+			} else json::nak($action);
 		} elseif ('delete-entry' == $action) {
 
 			if ($id = $this->getPost('id')) {
@@ -878,7 +884,7 @@ class controller extends cms\controller {
 				}
 
 				$this->renderBS5([
-					'main' => fn () => $this->load('view')
+					'main' => fn() => $this->load('view')
 				]);
 			} else {
 

@@ -8,16 +8,18 @@
  *
 */
 
+use cms\currentUser;
+
 $_uidCarousel = false;
 
 extract((array)$this->data);
 
-$bootstrap = $bootstrap ?? 4;	?>
+$bootstrap = $bootstrap ?? 4;  ?>
 
 <ul class="nav flex-column mt-2 mb-4" id="<?= $_uidNav = strings::rand() ?>">
   <?php
-	if (isset($dto) && $dto) {
-		if (isset($referer) && $referer) {	?>
+  if (isset($dto) && $dto) {
+    if (isset($referer) && $referer) {  ?>
 
       <li class="nav-item">
 
@@ -28,7 +30,8 @@ $bootstrap = $bootstrap ?? 4;	?>
       </li>
 
       <li class="nav-item"><a class="nav-link" href="#" id="<?= $_uidCarousel = strings::rand()  ?>">carousel</a></li>
-      <li class="nav-item" id="<?= $_uid = strings::rand(); ?>"><a class="nav-link" href="<?= strings::url('property/view/' . $this->data->referer->id); ?>"><?= $this->data->referer->address_street ?></a>
+      <li class="nav-item" id="<?= $_uid = strings::rand(); ?>">
+        <a class="nav-link" href="<?= strings::url('property/view/' . $referer->id); ?>"><?= $referer->address_street ?></a>
       </li>
 
       <script>
@@ -37,7 +40,7 @@ $bootstrap = $bootstrap ?? 4;	?>
             url: _.url('<?= $this->route ?>'),
             data: {
               action: 'get-photolog',
-              property: <?= $this->data->referer->id ?>
+              property: <?= $referer->id ?>
 
             }
 
@@ -56,7 +59,7 @@ $bootstrap = $bootstrap ?? 4;	?>
                   li.attr('title', m.format('l'));
 
                   a.attr('href', _.url('<?= $this->route ?>/view/' + entry.id +
-                    '?f=<?= $this->data->referer->id ?>'));
+                    '?f=<?= $referer->id ?>'));
 
                 });
 
@@ -74,7 +77,7 @@ $bootstrap = $bootstrap ?? 4;	?>
       </script>
 
     <?php
-		} else {	?>
+    } else {  ?>
       <li class="nav-item">
 
         <a href="<?= strings::url($this->route . '/view/' . $dto->id); ?>">
@@ -92,8 +95,10 @@ $bootstrap = $bootstrap ?? 4;	?>
 
       <li class="nav-item"><a class="nav-link" href="#" id="<?= $_uidCarousel = strings::rand() ?>">carousel</a></li>
 
-      <li class="nav-item"><a class="nav-link" href="#" id="<?= $_uid = strings::rand() ?>">add entry on
-          <?= $dto->address_street ?></a></li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" id="<?= $_uid = strings::rand() ?>">
+          add entry on <?= $dto->address_street ?></a>
+      </li>
       <script>
         (_ => $(document).ready(() => {
           $('#<?= $_uid ?>').on('click', e => {
@@ -108,18 +113,18 @@ $bootstrap = $bootstrap ?? 4;	?>
       </script>
 
     <?php
-		}	// if ( isset( $this->data->referer) && $this->data->referer)
-		?>
+    }  // if ( isset( $referer) && $referer)
+    ?>
 
     <li class="nav-item"><a class="nav-link" href="<?= strings::url($this->route); ?>">list all</a></li>
 
     <?php
-	} else {
-		if (isset($this->data->referer) && $this->data->referer) {	?>
+  } else {
+    if (isset($referer) && $referer) {  ?>
 
       <li class="nav-item">
-        <a href="<?= strings::url(sprintf('%s/?property=%d', $this->route, $this->data->referer->id)); ?>">
-          <h6><?= $this->data->referer->address_street ?></h6>
+        <a href="<?= strings::url(sprintf('%s/?property=%d', $this->route, $referer->id)); ?>">
+          <h6><?= $referer->address_street ?></h6>
 
         </a>
 
@@ -132,16 +137,16 @@ $bootstrap = $bootstrap ?? 4;	?>
       </li>
 
       <li class="nav-item">
-        <a class="nav-link" href="#" id="<?= $_uid = strings::rand() ?>"><i class="bi bi-plus"></i> add entry on
-          <?= $this->data->referer->address_street ?></a>
-
+        <a class="nav-link" href="#" id="<?= $_uid = strings::rand() ?>">
+          <i class="bi bi-plus"></i> add entry on <?= $referer->address_street ?>
+        </a>
       </li>
       <script>
         (_ => $(document).ready(() => {
           $('#<?= $_uid ?>').on('click', e => {
             e.preventDefault();
 
-            _.get.modal(_.url('<?= $this->route ?>/entry?property=<?= (int)$this->data->referer->id ?>'))
+            _.get.modal(_.url('<?= $this->route ?>/entry?property=<?= (int)$referer->id ?>'))
               .then(d => d.on('success', (e, href) => window.location.href =
                 href));
 
@@ -151,7 +156,7 @@ $bootstrap = $bootstrap ?? 4;	?>
       </script>
 
     <?php
-		} else {	?>
+    } else {  ?>
       <li class="nav-item">
         <a href="<?= strings::url($this->route); ?>">
           <h6><?= $this->title ?></h6>
@@ -161,12 +166,12 @@ $bootstrap = $bootstrap ?? 4;	?>
       </li>
 
   <?php
-		}	// if ( isset( $this->data->referer) && $this->data->referer)
+    }  // if ( isset( $referer) && $referer)
 
-	}	// if ( isset( $dto) && $dto->id)
-	?>
+  }  // if ( isset( $dto) && $dto->id)
+  ?>
 
-  <?php if (isset($dto) && $dto) {	?>
+  <?php if (isset($dto) && $dto) {  ?>
 
     <li class="nav-item"><a class="nav-link js-generate-public-link" href="#">generate
         public link</a></li>
@@ -201,156 +206,187 @@ $bootstrap = $bootstrap ?? 4;	?>
       </div>
     </li>
 
-  <?php	}	?>
+  <?php  }  ?>
 
-</ul>
+  <?= 5 == $bootstrap ? '<div class="d-grid gap-2">' : '' ?>
+  <button type="button" class="btn btn-outline-primary <?= $bootstrap < 5 ? 'btn-block' : '' ?>"
+    id="<?= $_uidAdd = strings::rand() ?>">
+    add entry
+  </button>
 
-<?= 5 == $bootstrap ? '<div class="d-grid gap-2">' : '' ?>
-<button type="button" class="btn btn-outline-primary <?= $bootstrap < 5 ? 'btn-block' : '' ?>" id="<?= $_uidAdd = strings::rand() ?>">add
-  entry</button>
-<?= 5 == $bootstrap ? '</div>' : '' ?>
-<script>
-  (_ => {
+  <?php if (currentUser::isDavid()) {  ?>
+    <button class="btn btn-light js-run-cron">run cron</button>
+  <?php  }  ?>
+  <?= 5 == $bootstrap ? '</div>' : '' ?>
+  <script>
+    (_ => {
 
-    const nav = $('#<?= $_uidNav ?>');
+      const nav = $('#<?= $_uidNav ?>');
 
-    nav.find('.js-copy-to-clipboard').on('click', e => {
-      let el = nav.find('.js-public-link')[0];
+      nav.find('.js-copy-to-clipboard').on('click', e => {
+        let el = nav.find('.js-public-link')[0];
 
-      /* Select the text field */
-      el.select();
-      el.setSelectionRange(0, 99999); /*For mobile devices*/
+        /* Select the text field */
+        el.select();
+        el.setSelectionRange(0, 99999); /*For mobile devices*/
 
-      // document.execCommand("copy"); /* Copy the text inside the text field */
-      navigator.clipboard.writeText(el.value);
+        // document.execCommand("copy"); /* Copy the text inside the text field */
+        navigator.clipboard.writeText(el.value);
 
-      _.growl('Copied');
-    });
+        _.growl('Copied');
+      });
 
-    <?php if (isset($dto) && $dto) {	?>
+      <?php if (isset($dto) && $dto) {  ?>
 
-      nav.find('.js-generate-public-link')
-        .on('refresh', function(e) {
+        nav.find('.js-generate-public-link')
+          .on('refresh', function(e) {
 
-          let _me = $(this);
+            let _me = $(this);
 
-          _.post({
-            url: _.url('<?= $this->route ?>'),
-            data: {
-              action: 'public-link-get',
-              id: <?= $dto->id ?>
-            },
-          }).then(d => {
+            _.post({
+              url: _.url('<?= $this->route ?>'),
+              data: {
+                action: 'public-link-get',
+                id: <?= $dto->id ?>
+              },
+            }).then(d => {
 
-            if ('ack' == d.response) {
+              if ('ack' == d.response) {
 
-              _me.closest('.nav-item')
-                .addClass('d-none');
+                _me.closest('.nav-item')
+                  .addClass('d-none');
 
-              nav.find('.js-public-link').closest('.nav-item')
-                .removeClass('d-none');
+                nav.find('.js-public-link').closest('.nav-item')
+                  .removeClass('d-none');
 
-              nav.find('.js-public-link').val(d.url);
-              nav.find('.js-public-link-expires')
-                .html('expires : ' + _.dayjs(d.expires).format('l'));
-            } else {
+                nav.find('.js-public-link').val(d.url);
+                nav.find('.js-public-link-expires')
+                  .html('expires : ' + _.dayjs(d.expires).format('l'));
+              } else {
 
-              _me.closest('.nav-item')
-                .removeClass('d-none');
+                _me.closest('.nav-item')
+                  .removeClass('d-none');
 
-              nav.find('.js-public-link').closest('.nav-item')
-                .addClass('d-none');
-            }
-          });
-        })
-        .on('clear-link', function(e) {
+                nav.find('.js-public-link').closest('.nav-item')
+                  .addClass('d-none');
+              }
+            });
+          })
+          .on('clear-link', function(e) {
 
-          let _me = $(this);
+            let _me = $(this);
 
-          _.post({
-            url: _.url('<?= $this->route ?>'),
-            data: {
-              action: 'public-link-clear',
-              id: <?= $dto->id ?>
-            },
+            _.post({
+              url: _.url('<?= $this->route ?>'),
+              data: {
+                action: 'public-link-clear',
+                id: <?= $dto->id ?>
+              },
 
-          }).then(d => {
+            }).then(d => {
 
-            _.growl(d);
-            if ('ack' == d.response) {
+              _.growl(d);
+              if ('ack' == d.response) {
 
-              _me.trigger('refresh');
-            }
-          });
-
-        })
-        .on('create-link', function(e) {
-
-          let _me = $(this);
-
-          _.get(_.url('<?= $this->route ?>/publicLink/<?= $dto->id ?>'))
-            .then(html => {
-
-              let _html = $(html)
-              _html.appendTo('body');
-
-              $('.modal', _html).on('success', d => _me.trigger('refresh'))
+                _me.trigger('refresh');
+              }
             });
 
-        })
-        .on('click', function(e) {
-          e.stopPropagation();
-          e.preventDefault();
+          })
+          .on('create-link', function(e) {
 
-          $(this).trigger('create-link');
+            let _me = $(this);
 
-        })
-        .on('email-link', function(e) {
+            _.get(_.url('<?= $this->route ?>/publicLink/<?= $dto->id ?>'))
+              .then(html => {
 
-          if (!!_.email.activate) {
+                let _html = $(html)
+                _html.appendTo('body');
 
-            _.email.activate({
-              subject: <?= json_encode(sprintf('%s - %s', $dto->address_street, $dto->subject)) ?>,
-              message: `<br><br>View the images on our portal <a href="${nav.find('.js-public-link').val()}">here</a><br><br>${!!window._cms_ ? _cms_.currentUser.signoff : ''}`
-            })
-          } else {
+                $('.modal', _html).on('success', d => _me.trigger('refresh'))
+              });
 
-            _.ask.alert('no email program');
-          }
+          })
+          .on('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            $(this).trigger('create-link');
+
+          })
+          .on('email-link', function(e) {
+
+            if (!!_.email.activate) {
+
+              _.email.activate({
+                subject: <?= json_encode(sprintf('%s - %s', $dto->address_street, $dto->subject)) ?>,
+                message: `<br><br>View the images on our portal <a href="${nav.find('.js-public-link').val()}">here</a><br><br>${!!window._cms_ ? _cms_.currentUser.signoff : ''}`
+              })
+            } else {
+
+              _.ask.alert('no email program');
+            }
+          });
+
+        $(document).ready(() => {
+          if (!_.email.activate) nav.find('.js-public-link-email').addClass(
+            'd-none');
         });
 
-      $(document).ready(() => {
-        if (!_.email.activate) nav.find('.js-public-link-email').addClass('d-none');
-      });
+        nav.find('.js-public-link-clear')
+          .on('click', e => nav.find('.js-generate-public-link').trigger('clear-link'));
+        nav.find('.js-public-link-regenerate')
+          .on('click', e => nav.find('.js-generate-public-link').trigger(
+            'create-link'));
+        nav.find('.js-public-link-email')
+          .on('click', e => nav.find('.js-generate-public-link').trigger('email-link'));
+        nav.find('.js-public-link-view')
+          .on('click', e => window.open(nav.find('.js-public-link').val()));
+        nav.find('.js-generate-public-link').trigger('refresh');
+      <?php  }  ?>
 
-      nav.find('.js-public-link-clear').on('click', e => nav.find(
-        '.js-generate-public-link').trigger('clear-link'));
-      nav.find('.js-public-link-regenerate').on('click', e => nav.find(
-        '.js-generate-public-link').trigger('create-link'));
-      nav.find('.js-public-link-email').on('click', e => nav.find(
-        '.js-generate-public-link').trigger('email-link'));
-      nav.find('.js-public-link-view').on('click', e => window.open(nav.find(
-        '.js-public-link').val()));
-      nav.find('.js-generate-public-link').trigger('refresh');
-    <?php	}	?>
-
-    $('#<?= $_uidAdd ?>').on('click', e => {
-      e.preventDefault();
-
-      _.get.modal(_.url('<?= $this->route ?>/entry'))
-        .then(d => d.on('success', (e, href) => window.location.href = href));
-
-    });
-
-    <?php if ($_uidCarousel) {	?>
-      $('#<?= $_uidCarousel ?>').on('click', function(e) {
-        e.stopPropagation();
+      $('#<?= $_uidAdd ?>').on('click', e => {
         e.preventDefault();
-        $(document).trigger('photolog-carousel');
+
+        _.get.modal(_.url('<?= $this->route ?>/entry'))
+          .then(d => d.on('success', (e, href) => window.location.href = href));
 
       });
 
-    <?php	}	?>
+      <?php if ($_uidCarousel) {  ?>
 
-  })(_brayworth_);
-</script>
+        $('#<?= $_uidCarousel ?>').on('click', function(e) {
+          e.stopPropagation();
+          e.preventDefault();
+          $(document).trigger('photolog-carousel');
+        });
+      <?php  }  ?>
+
+      _.photolog = {
+        cron: () => {
+
+          _.fetch.post(_.url('photolog'), {
+            'action': 'cron',
+          }).then(_.growl);
+        }
+      };
+
+      console.log(nav.find('.js-run-cron'));
+      nav.find('.js-run-cron').on('click', function(e) {
+
+        $(this).empty()
+          .html('<i class="spinner-border spinner-border-sm"></i> running ..');
+
+        _.fetch.post(_.url('photolog'), {
+          'action': 'cron',
+        }).then(d => {
+
+          $(this).text('run cron ..');
+          _.growl(d);
+        });
+
+      });
+      // console.log('run the cron job manually with : _brayworth_.photolog.cron()');
+    })(_brayworth_);
+  </script>
+</ul>

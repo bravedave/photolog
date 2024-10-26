@@ -22,6 +22,11 @@ class currentUser extends bravedave\dvc\currentUser {
 		return false;
 	}
 
+	static public function isDavid() {
+		return true;
+		return false;
+	}
+
 	static public function isRentalAdmin(): bool {
 
 		if (static::isAdmin())	return true;
