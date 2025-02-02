@@ -49,6 +49,9 @@
     "cron": "photolog\\postUpdate::cron",
     "smokealarm-importcsv": "smokealarm\\postUpdate::importcsv",
     "smokealarm-import-property-status": "smokealarm\\postUpdate::importpropertystatuscsv",
-    "start": "./run.sh"
+    "start": [
+      "Composer\\Config::disableProcessTimeout",
+      "bash ./run.sh"
+    ]
   }
 }

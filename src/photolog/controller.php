@@ -10,9 +10,8 @@
 
 namespace photolog;
 
-use application;
-use bravedave\dvc\{json, logger, Response, userAgent};
-use cms, cms\currentUser;
+use bravedave\dvc\{json, logger, Response, ServerRequest};
+use cms;
 use green, strings;
 use SplFileInfo;
 
@@ -70,16 +69,16 @@ class controller extends cms\controller {
 	protected function before() {
 
 		config::photolog_checkdatabase();
-		$this->viewPath[] = __DIR__ . '/views/';
-
 		parent::before();
+		$this->viewPath[] = __DIR__ . '/views/';
 	}
 
 	protected function posthandler() {
 		$debug = false;
 		// $debug = currentUser::isDavid();
 
-		$action = $this->getPost('action');
+		$request = new ServerRequest;
+		$action = $request('action');
 
 		if ('add-entry' == $action || 'update-entry' == $action) {
 			if ($property_id = $this->getPost('property_id')) {
@@ -180,27 +179,6 @@ class controller extends cms\controller {
 			} else {
 				json::nak($action);
 			}
-		} elseif ('get-photolog' == $action) {
-			/*
-      ( _ => {
-        _.post({
-          url : _.url( 'property_photolog'),
-          data : {
-            action : 'get-photolog',
-            property : 2
-          }
-        }).then( d => 'ack' == d.response ? console.table( d.data) : _.growl( d));
-			})(_brayworth_);
-      */
-			if ($pid = (int)$this->getPost('property')) {
-
-				$dao = new dao\property_photolog;
-				json::ack($action)
-					->add('data', $dao->getForProperty($pid));	// dtoSet
-			} else {
-
-				json::nak($action);
-			}
 		} elseif ('property-smokealarms' == $action) {
 			/*
       ( _ => {
@@ -296,132 +274,6 @@ class controller extends cms\controller {
 			} else {
 				json::nak($action);
 			}
-		} elseif ('rename-file' == $action) {
-
-			if ($id = (int)$this->getPost('id')) {
-
-				$oldfile = trim($this->getPost('file'), './ ');
-				if ($oldfile) {
-
-					$dao = new dao\property_photolog;
-					if ($dto = $dao->getByID($id)) {
-
-						$storage = $dao->DiskFileStorage($dto->id, $create = false);
-						if ($storage->isValid()) {
-
-							if ($storage->file_exists($oldfile)) {
-
-								$newfile = strings::safe_file_name(trim($this->getPost('newfile'), './ '));
-								if (!$newfile) {
-
-									json::nak(sprintf('%s : invalid new name', $action));
-									return;
-								}
-
-								// the new file must preserve the extension
-								$ext = '.' . pathinfo($storage->getPath($oldfile), PATHINFO_EXTENSION);
-								if (substr($newfile, -strlen($ext)) != $ext) {
-
-									$newfile .= $ext;
-								}
-
-								if ($storage->file_exists($newfile)) {
-
-									json::nak(sprintf('%s : %s already exists', $action, $newfile));
-									return;
-								}
-
-								$storage->rename($oldfile, $newfile);
-								$dao->renameImageInfo($dto, $oldfile, $newfile);
-								json::ack($action);
-							} else {
-
-								json::nak($action);
-							}
-						} else {
-
-							json::nak($action);
-						}
-					} else {
-
-						json::nak($action);
-					}
-				} else {
-
-					json::nak($action);
-				}
-			} else {
-
-				json::nak($action);
-			}
-		} elseif ('rotate-left' == $action || 'rotate-right' == $action || 'rotate-180' == $action) {
-
-			if ($id = (int)$this->getPost('id')) {
-
-				$dao = new dao\property_photolog;
-				if ($dto = $dao->getByID($id)) {
-
-					$_file = trim($this->getPost('file'), './ ');
-					$storage = $dao->DiskFileStorage($dto->id, $create = false);
-					if ($storage->isValid()) {
-
-						if ($storage->file_exists($_file)) {
-
-							$file = $storage->getPath($_file);
-							if (file_exists($file . config::photolog_prestamp)) {
-
-								if (utility::rotate(
-									$file,
-									'rotate-180' == $action ?
-										config::photolog_rotate_180 : ('rotate-left' == $action ?
-											config::photolog_rotate_left : config::photolog_rotate_right)
-								)) {
-
-									if (file_exists($file)) {
-
-										$info = new SplFileInfo($file);
-										$imgInfo = $dao->getImageInfo($dto, $info->getFilename());
-
-										$returnfile = (object)[
-											'description' => $info->getFilename(),
-											'extension' => $info->getExtension(),
-											'url' => strings::url(sprintf('%s/img/%d?img=%s&t=%s', $this->route, $dto->id, urlencode($info->getFilename()), $info->getMTime())),
-											'error' => false,
-											'size' => $info->getSize(),
-											'location' => $imgInfo->location ?? '',
-											'prestamp' => file_exists($info->getRealPath() . config::photolog_prestamp)
-										];
-
-										json::ack($action)
-											->add('data', $returnfile);
-									} else {
-
-										json::nak($action);
-									}
-								} else {
-
-									json::nak($action);
-								}
-							} else {
-
-								json::nak(sprintf('missing pre-stamp : %s', $action));
-							}
-						} else {
-
-							json::nak(sprintf('not found - %s', $action));
-						}
-					} else {
-
-						json::nak(sprintf('not found - %s', $action));
-					}
-				} else {
-
-					json::nak(sprintf('not found - %s', $action));
-				}
-			} else {
-
-				json::nak($action);
-			}
 		} elseif ('save-notepad' == $action) {
 			if ($id = $this->getPost('id')) {
 				$dao = new dao\property_photolog;
@@ -447,83 +299,6 @@ class controller extends cms\controller {
 					->add('term', $term)
 					->add('data', green\search::properties($term));
 			} else {
-				json::nak($action);
-			}
-		} elseif ('set-alarm-location' == $action) {
-
-			if ($id = $this->getPost('id')) {
-
-				if ($file = $this->getPost('file')) {
-
-					if ($location = $this->getPost('location')) {
-
-						$dao = new dao\property_photolog;
-						if ($dto = $dao->getByID($id)) {
-
-							$info = $dao->getImageInfo($dto, $file);
-							$info->location = $location;
-							$dao->setImageInfo($dto, $file, $info);
-							json::ack($action);
-						} else {
-
-							json::nak($action);
-						}
-					} else {
-
-						json::nak($action);
-					}
-				} else {
-
-					json::nak($action);
-				}
-			} else {
-
-				json::nak($action);
-			}
-		} elseif ('set-alarm-location-clear' == $action) {
-			if ($id = $this->getPost('id')) {
-				if ($file = $this->getPost('file')) {
-					$dao = new dao\property_photolog;
-					if ($dto = $dao->getByID($id)) {
-						$info = $dao->getImageInfo($dto, $file);
-						if (isset($info->location)) {
-							unset($info->location);
-							$dao->setImageInfo($dto, $file, $info);
-						}
-
-						json::ack($action);
-					} else {
-						json::nak($action);
-					}
-				} else {
-					json::nak($action);
-				}
-			} else {
-				json::nak($action);
-			}
-		} elseif ('touch' == $action) {
-			if ($id = $this->getPost('id')) {
-
-				$dao = new dao\property_photolog;
-				if ($dto = $dao->getByID($id)) {
-
-					$storage = $dao->DiskFileStorage($dto->id, $create = false);
-					if ($storage->isValid()) {
-
-						$touch = $storage->getPath() . '/temp.dat';
-						touch($touch);
-						unlink($touch);
-						json::ack($action);
-					} else {
-
-						json::nak($action);
-					}
-				} else {
-
-					json::nak($action);
-				}
-			} else {
-
 				json::nak($action);
 			}
 		} elseif ('upload' == $action) {
@@ -728,7 +503,23 @@ class controller extends cms\controller {
 			}
 		} else {
 
-			parent::postHandler();
+			/*
+      _brayworth_.fetch.post( _brayworth_.url( 'property_photolog'),{
+					action : 'get-photolog',
+					property : 2
+			}).then( ('ack' == d.response) ? console.table( d.data) : _brayworth_.growl( d));
+      */
+			return match ($action) {
+				'get-photolog' => handler::getPhotolog($request),
+				'rename-file' => handler::renameFile($request),
+				'rotate-left' => handler::rotate($request),
+				'rotate-right' => handler::rotate($request),
+				'rotate-180' => handler::rotate($request),
+				'set-alarm-location' => handler::setAlarmLocation($request),
+				'set-alarm-location-clear' => handler::setAlarmLocationClear($request),
+				'touch' => handler::touch($request),
+				default => parent::postHandler()
+			};
 		}
 	}
 

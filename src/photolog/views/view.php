@@ -176,8 +176,8 @@ $diskSpace = sys::diskspace();  ?>
     };
 
     const displayCard = file => {
-      let card = $('<div class="card photolog-card"></div>')
-        .data('file', file);
+
+      const card = $('<div class="card photolog-card"></div>').data('file', file);
 
       allCards.push(card);
 
@@ -375,80 +375,40 @@ $diskSpace = sys::diskspace();  ?>
             });
         })
         .on('rotate-180', function(e) {
-          let _me = $(this);
-          let file = _me.data('file');
 
-          _.post({
-            url: _.url('<?= $this->route ?>'),
-            data: {
-              action: 'rotate-180',
-              id: <?= $dto->id ?>,
-              file: file.description,
-            },
-          }).then(d => {
+          const _me = $(this);
+          const file = _me.data('file');
+
+          rotate(file, 'rotate-180').then(data => {
+
             // console.log(d);
-            if ('ack' == d.response) {
-              $('img[logimage]', _me).attr('src', d.data.url);
-              _me.data('file', d.data);
-            } else {
-              _.growl(d);
-
-            }
-
-          });
-
+            _me.find('img[logimage]').attr('src', data.url);
+            _me.data('file', data);
+          }).catch(_.growl);
         })
         .on('rotate-left', function(e) {
-          let _me = $(this);
-          let file = _me.data('file');
 
-          _.post({
-            url: _.url('<?= $this->route ?>'),
-            data: {
-              action: 'rotate-left',
-              id: <?= $dto->id ?>,
-              file: file.description,
+          const _me = $(this);
+          const file = _me.data('file');
 
-            },
+          rotate(file, 'rotate-left').then(data => {
 
-          }).then(d => {
             // console.log(d);
-            if ('ack' == d.response) {
-              $('img[logimage]', _me).attr('src', d.data.url);
-              _me.data('file', d.data);
-            } else {
-              _.growl(d);
-
-            }
-
-          });
-
+            _me.find('img[logimage]').attr('src', data.url);
+            _me.data('file', data);
+          }).catch(_.growl);
         })
         .on('rotate-right', function(e) {
-          let _me = $(this);
-          let file = _me.data('file');
 
-          _.post({
-            url: _.url('<?= $this->route ?>'),
-            data: {
-              action: 'rotate-right',
-              id: <?= $dto->id ?>,
-              file: file.description,
+          const _me = $(this);
+          const file = _me.data('file');
 
-            },
+          rotate(file, 'rotate-right').then(data => {
 
-          }).then(d => {
             // console.log(d);
-            if ('ack' == d.response) {
-              $('img[logimage]', _me).attr('src', d.data.url);
-              _me.data('file', d.data);
-            } else {
-              _.growl(d);
-
-            }
-
-          });
-
+            _me.find('img[logimage]').attr('src', data.url);
+            _me.data('file', data);
+          }).catch(_.growl);
         });
 
       _.longTouchDetector(card, contextmenu);
@@ -460,9 +420,14 @@ $diskSpace = sys::diskspace();  ?>
       card.trigger('refresh');
     };
 
-    /*--- ---[]--- ---*/
-    //~ console.log( '<?= $uid ?>fileupload');
-    /*--- ---[]--- ---*/
+    const rotate = (file, direction) => new Promise((resolve, reject) => {
+
+      _.fetch.post(_.url('<?= $this->route ?>'), {
+        action: direction,
+        id: <?= $dto->id ?>,
+        file: file.description,
+      }).then(d => 'ack' == d.response ? resolve(d.data) : reject(d));
+    });
 
     let cContainer =
       $('<div class="col-md-8 col-lg-3 col-xl-4 mb-2 d-print-none"></div>')
@@ -511,9 +476,8 @@ $diskSpace = sys::diskspace();  ?>
     allDelete.on('click', e => {
       e.stopPropagation();
 
-      confirmDeleteAction()
-        .then(() => $('.photolog-card').each((i, el) => $(el).trigger(
-          'delete-confirmed')));
+      confirmDeleteAction().then(() =>
+        $('.photolog-card').each((i, el) => $(el).trigger('delete-confirmed')));
     });
 
     const allDownloadVisibility = () => {
@@ -579,12 +543,12 @@ $diskSpace = sys::diskspace();  ?>
         ],
         onError: d => console.log('error', d),
         onReject: d => {
+
           $(`<div class="alert alert-danger">
 							<h5 class="alert-heading">${d.file.name}</h5>
 							${d.description}
 						</div>`)
             .appendTo(cContainer);
-
         },
         onUpload: d => {
 
@@ -594,29 +558,22 @@ $diskSpace = sys::diskspace();  ?>
             allDeleteVisibility();
             allDownloadVisibility();
           }
-
         }
-
       });
-    <?php  }  ?>
+    <?php  } ?>
 
-      (cards => {
-        $.each(cards, (i, file) => displayCard(file))
-      })(<?= json_encode($files) ?>);
+      (cds => $.each(cds, (i, file) => displayCard(file)))
+      (<?= json_encode($files) ?>);
 
     allDeleteVisibility();
     allDownloadVisibility();
 
-    _.post({
-      url: _.url('<?= $this->route ?>'),
-      data: {
-        action: 'property-smokealarms',
-        id: <?= (int)$dto->id ?>
-      },
+    _.fetch.post(_.url('<?= $this->route ?>'), {
+      action: 'property-smokealarms',
+      id: <?= (int)$dto->id ?>
     }).then(d => {
-      if ('ack' == d.response) {
-        smokeAlarms = d.alarms;
-      }
+
+      if ('ack' == d.response) smokeAlarms = d.alarms;
     });
 
     $(document).on('photolog-carousel', (e, file) => {
@@ -697,6 +654,5 @@ $diskSpace = sys::diskspace();  ?>
       _.get.modal(_.url('<?= $this->route ?>/entry/<?= $dto->id ?>'))
         .then(d => d.on('success', (e, href) => window.location.reload()));
     });
-
   }))(_brayworth_);
 </script>
