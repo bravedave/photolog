@@ -22,4 +22,6 @@ class config extends cms\entryexit\config {
   const label_short_pdf = 'Entry CR PDF';
   const label_options = 'Entry CR Options';
   const label_view_file = 'View file';
+
+  const tenant_signed_copy_file = 'tenant-signed-copy';
 }

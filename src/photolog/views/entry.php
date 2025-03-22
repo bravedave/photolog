@@ -10,12 +10,10 @@
 
 namespace photolog;
 
-use strings, theme;
-
-extract((array)$this->data);
+use cms\{strings, theme};
 
 $autoFocus = 'street';
-if (!$dto->id && $dto->property_id) $autoFocus = 'subject';	?>
+if (!$dto->id && $dto->property_id) $autoFocus = 'subject';  ?>
 
 <form id="<?= $_form = strings::rand() ?>" autocomplete="off">
   <input type="hidden" name="id" value="<?= $dto->id ?>">
@@ -117,13 +115,13 @@ if (!$dto->id && $dto->property_id) $autoFocus = 'subject';	?>
             return false;
           });
 
-        <?php if ('street' == $autoFocus) {	?>
+        <?php if ('street' == $autoFocus) {  ?>
 
           form.find('input[name="address_street"]').focus();
-        <?php } elseif ('subject' == $autoFocus) {	?>
+        <?php } elseif ('subject' == $autoFocus) {  ?>
 
           form.find('input[name="subject"]').focus();
-        <?php	} ?>
+        <?php  } ?>
 
       });
     })(_brayworth_);

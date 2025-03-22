@@ -40,10 +40,6 @@ class currentUser extends bravedave\dvc\currentUser {
 	}
 
 	static public function restriction($key, $value = null) {
-		// if ( 'smokealarm-company' == $key) {
-		// 	return '1';
-
-		// }
 
 		return false;
 	}

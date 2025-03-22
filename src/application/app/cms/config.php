@@ -54,6 +54,7 @@ class config extends bravedave\dvc\config {
 
   // static $FREE_DISKSPACE_THRESHHOLD = 10485760000; // 10G
   static $FREE_DISKSPACE_THRESHHOLD = 2097152000; // 2G
+  static $NUMERIC_NARRATION_TAIL = false;
 
   public static function checkdatabase() {
 
