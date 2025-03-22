@@ -12,5 +12,7 @@ namespace cms;
 
 final class routes {
 
+  const entryconditionreports = 'entrycr';
   const photolog = 'photolog';
+  const property_lite = 'property/lite';
 }

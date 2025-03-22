@@ -1195,6 +1195,7 @@ final class handler {
   public static function upload(ServerRequest $request): json {
 
     $debug = false;
+    // $debug = true;
     // $debug = currentUser::isDavid();
 
     $action = $request('action');
@@ -1271,8 +1272,14 @@ final class handler {
 
     /** heic are not current supported on fedora */
     if (config::$PHOTOLOG_ENABLE_HEIC) {
+
       $accept[] = 'image/heic';
       $accept[] = 'image/heif';
+
+      if ($debug) logger::debug(sprintf('<%s> %s', 'heic enabled', logger::caller()));
+    } else {
+
+      if ($debug) logger::debug(sprintf('<%s> %s', 'heic not enabled', logger::caller()));
     }
 
     if ($id) {
@@ -1292,7 +1299,7 @@ final class handler {
           if ($debug) logger::debug(sprintf('<%s> %s', get_class($file), logger::caller()));
 
           $mimeType = $file->getClientMediaType();
-          if ('application/octet-stream' == $mimeType) {
+          if (!$mimeType || 'application/octet-stream' == $mimeType) {
 
             /**
              * If getClientMediaType() returns application/octet-stream,
@@ -1363,6 +1370,8 @@ final class handler {
             }
           } else {
 
+            if ($debug) logger::debug(sprintf('<%s (%s) not acceptable> : %s', $file->getClientFilename(), $mimeType, __METHOD__));
+
             // error ?
             $badFiles[] = $file->getClientFilename();
           }
@@ -1372,12 +1381,17 @@ final class handler {
 
           if (count($badFiles) > 0) {
 
+            if ($debug) logger::debug(sprintf('<uploaded %s good, %s bad> %s', count($goodFiles), count($badFiles), __METHOD__));
             return json::nak($action, $badFiles)->add('files', $goodFiles);
           } else {
 
+            if ($debug) logger::debug(sprintf('<uploaded %s> %s', count($goodFiles), __METHOD__));
             return json::ack($action)->add('files', $goodFiles);
           }
         }
+      } else {
+
+        if ($debug) logger::debug(sprintf('<no dto> %s', __METHOD__));
       }
     }
 

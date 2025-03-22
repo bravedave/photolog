@@ -51,7 +51,7 @@
     "smokealarm-import-property-status": "smokealarm\\postUpdate::importpropertystatuscsv",
     "start": [
       "Composer\\Config::disableProcessTimeout",
-      "bash ./run.sh"
+      "php -S 0.0.0.0:8090 www/_mvp.php"
     ]
   }
 }
