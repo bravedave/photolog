@@ -11,7 +11,8 @@
 namespace photolog;
 
 use Intervention\Image\ImageManagerStatic;
-use bravedave\dvc\{dtoSet, logger, strings};
+use bravedave\dvc\{dtoSet, logger};
+use cms\{currentUser, strings};
 use DateTime;
 use DateTimeZone;
 use DirectoryIterator;
@@ -171,6 +172,46 @@ class utility {
 		}
 	}
 
+	static public function heicConvert(string $path) {
+
+		$debug = false;
+		// $debug = true;
+		// $debug = currentUser::isDavid();
+
+		// process all heic files
+		$files = new FilesystemIterator($path);
+		foreach ($files as $file) {
+			// logger::info( sprintf('<%s> %s', $file->getExtension(), __METHOD__));
+
+			/**
+			 * Process all heic files
+			 */
+			if ('heic' == strtolower($file->getExtension())) {
+
+				// logger::info(sprintf('<%s> %s', 'heic file', __METHOD__));
+				try {
+
+					if ($debug) logger::debug(sprintf('<convert %s> %s', $file->getPathname(), logger::caller()));
+
+					$imagick = new \Imagick;
+					$jpg = \preg_replace('@\.heic$@i', '.jpg', $file->getPathname());
+					$imagick->readImage($file->getPathname());
+					$imagick->writeImage($jpg);
+
+					unlink($file->getPathname());
+
+					if ($debug) logger::debug(sprintf('<converted %s> %s', $file->getPathname(), logger::caller()));
+				} catch (\Throwable $th) {
+
+					logger::info(sprintf('<%s> %s', $file->getPathname(), logger::caller()));
+					throw $th;
+				}
+			}
+		}
+
+		if ($debug) logger::debug(sprintf('<completed %s> %s', $path, logger::caller()));
+	}
+
 	public static function rotate(string $src, int $direction): bool {
 
 		$prestamp = $src . config::photolog_prestamp;
@@ -250,7 +291,8 @@ class utility {
 			'SELECT id, date FROM property_photolog',
 			function ($dto) use (&$icount, $afterHours, $debug) {
 
-				$limit = $afterHours ? 20 : 12;
+				$limit = $afterHours ? 24 : 16;
+				// $limit = $afterHours ? 20 : 12;
 				// $limit = $afterHours ? 20 : 10;
 				// $limit = $afterHours ? 16 : 8;
 
@@ -286,30 +328,7 @@ class utility {
 					}
 
 
-					$files = new FilesystemIterator($path . '/queue');
-					foreach ($files as $file) {
-						// logger::info( sprintf('<%s> %s', $file->getExtension(), __METHOD__));
-
-						/**
-						 * Process all heic files
-						 */
-						if ('heic' == strtolower($file->getExtension())) {
-
-							// logger::info(sprintf('<%s> %s', 'heic file', __METHOD__));
-							try {
-								$imagick = new \Imagick;
-								$jpg = \preg_replace('@\.heic$@i', '.jpg', $file->getPathname());
-								$imagick->readImage($file->getPathname());
-								$imagick->writeImage($jpg);
-
-								unlink($file->getPathname());
-							} catch (\Throwable $th) {
-
-								logger::info(sprintf('<%s> %s', $file->getPathname(), logger::caller()));
-								throw $th;
-							}
-						}
-					}
+					self::heicConvert($path . '/queue');
 
 					$files = new FilesystemIterator($path . '/queue');
 					foreach ($files as $file) {

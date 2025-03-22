@@ -13,7 +13,7 @@ namespace photolog;
 use cms;
 
 class config extends cms\config {
-	const photolog_db_version = 0.02;
+	const photolog_db_version = 3;
 
 	const label = 'PhotoLog';
 	const label_view = 'PhotoLog - View';
@@ -42,10 +42,10 @@ class config extends cms\config {
 		$dao->checkVersion('photolog', static::photolog_db_version);
 	}
 
-  static public function DiskFileStorage() : DiskFileStorage {
+	static public function DiskFileStorage(): DiskFileStorage {
 
-    return (new DiskFileStorage(self::photologStore()));
-  }
+		return (new DiskFileStorage(self::photologStore()));
+	}
 
 	public static function photologStore() {
 

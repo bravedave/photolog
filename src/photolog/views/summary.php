@@ -25,7 +25,7 @@ extract((array)$this->data);	// $this->data->dtoSet, $this->data->page, $this->d
 </div>
 
 <h3 class="d-none d-print-block"><?= $this->title ?></h3>
-<table class="table table-sm" id="<?= $_table = strings::rand()  ?>" data-role="photolog-table">
+<table class="table table-sm" id="<?= $_table = strings::rand()  ?>">
   <thead class="small">
 
     <tr>

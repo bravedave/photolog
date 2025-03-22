@@ -6,25 +6,42 @@
  *
  * MIT License
  *
-*/
-
-/**
  * replace:
  * [x] data-dismiss => data-bs-dismiss
  * [x] data-toggle => data-bs-toggle
+ * [x] data-content => data-bs-content
+ * [x] data-title => data-bs-title
+ * [x] data-trigger => data-bs-trigger
+ * [x] data-html => data-bs-html
  * [x] data-parent => data-bs-parent
  * [x] text-right => text-end
+ * [x] custom-select - form-select
  * [x] mr-* => me-*
  * [x] ml-* => ms-*
+ * [x] pr-* => pe-*
+ * [x] pl-* => ps-*
+ * [x] badge-pill rounded-pill
+ * [x] badge-primary text-bg-primary
+ * [x] badge-warning text-bg-warning
+ * [x] font-weight-bold => fw-bold
+ * [x] font-italic => fst-italic
  * [x] input-group-prepend - remove
  * [x] input-group-append - remove
+ * [x] btn input-group-text => btn btn-light
+ * [x] form-row => row g-2
+ * [x] form-group => mb-2
+ * [x] class="close" => class="btn-close"
  */
 
-extract((array)$this->data);
+
+namespace photolog;
+
+use cms\{strings};
+
 ?>
 
 <h3 class="d-none d-print-block"><?= $this->title ?></h3>
-<table class="table table-sm" id="<?= $_table = strings::rand() ?>" data-role="photolog-table">
+<table class="table table-sm js-photolog-table" id="<?= $_table = strings::rand() ?>">
   <thead class="small">
 
     <tr>
@@ -77,7 +94,7 @@ extract((array)$this->data);
       printf('<td>%s</td>', strings::asShortDate($dto->date));
       printf('<td class="d-none d-md-table-cell" data-address>%s</td>', strings::GoodStreetString($dto->address_street));
       printf(
-        '<td>%s<div class="d-md-none text-muted small font-italic">%s</div></td>',
+        '<td>%s<div class="d-md-none text-muted small fst-italic">%s</div></td>',
         $dto->subject,
         strings::GoodStreetString($dto->address_street)
       );

@@ -10,10 +10,10 @@
 
 namespace photolog;
 
-use bravedave\dvc\{json, logger, Response, ServerRequest};
+use bravedave\dvc\{logger, Response, ServerRequest};
+use cms\{currentUser, strings, userrestrictions};
+
 use cms;
-use green, strings;
-use SplFileInfo;
 
 class controller extends cms\controller {
 
@@ -25,14 +25,19 @@ class controller extends cms\controller {
 				'aside' => array_merge(['index'], config::index_set),
 				'help' => cms\docs\config::help_photolog,
 				'dtoSet' => (new dao\property_photolog)->getForProperty($pid),
-				'referer' => (new dao\properties)->getByID($pid),
+				'referer' => $referer = (new dao\properties)->getByID($pid),
 				'pageUrl' => strings::url($this->route . '/?property=' . $pid),
 				'searchFocus' => false,
 				'title' => $this->title = config::label,
 			];
 
-			if ($this->data->referer) {
-				$this->data->title = sprintf('%s : %s', $this->data->referer->address_street, $this->data->title);
+			if ($referer) {
+
+				$this->data->title = sprintf(
+					'%s : %s',
+					$referer->address_street,
+					$this->title
+				);
 			}
 
 			$scripts = [sprintf('<script src="%s"></script>', strings::url($this->route . '/js'))];
@@ -66,6 +71,13 @@ class controller extends cms\controller {
 		}
 	}
 
+	protected function access_control() {
+
+		if (currentUser::restriction(userrestrictions::photolog) == 'yes') return true;
+		if (currentUser::restriction(userrestrictions::smokeAlarm) == 'yes') return true;
+		return parent::access_control();
+	}
+
 	protected function before() {
 
 		config::photolog_checkdatabase();
@@ -74,457 +86,67 @@ class controller extends cms\controller {
 	}
 
 	protected function posthandler() {
-		$debug = false;
-		// $debug = currentUser::isDavid();
 
 		$request = new ServerRequest;
 		$action = $request('action');
 
-		if ('add-entry' == $action || 'update-entry' == $action) {
-			if ($property_id = $this->getPost('property_id')) {
-				$a = [
-					'property_id' => $property_id,
-					'subject' => $this->getPost('subject'),
-					'date' => $this->getPost('date')
+		/*
+			_brayworth_.fetch.post(_brayworth_.url('property_photolog'), {
+				action : 'property-smokealarms',
+				id : 3694
+			}).then(console.log);
 
-				];
-
-				$dao = new dao\property_photolog;
-
-				if ('update-entry' == $action) {
-					if ($id = (int)$this->getPost('id')) {
-
-						$dao->UpdateByID($a, $id);
-						json::ack($action)
-							->add('id', $id);
-					} else {
-						json::nak($action);
-					}
-				} else {
-					$id = $dao->Insert($a);
-					json::ack($action)
-						->add('id', $id);
-				}
-			} else {
-				json::nak($action);
-			}
-		} elseif ('cron' == $action) {
-			/*
 			_brayworth_.fetch.post(_brayworth_.url('photolog'), {
 				'action' : 'cron',
 			}).then(console.log);
-			*/
 
-			utility::stamp();
-			json::ack('cron run complete');
-		} elseif ('delete' == $action) {
-
-			if ($id = $this->getPost('id')) {
-
-				$dao = new dao\property_photolog;
-				$storage = $dao->DiskFileStorage($id, $create = false);
-				if ($storage->isValid()) {
-
-					$_file = trim($this->getPost('file'), './ ');
-					if ($_file) {
-
-						$storage->deleteFile($_file);
-						$storage->deleteFile($_file . config::photolog_prestamp);
-
-						$Qstorage = $storage->subFolder('queue', $create = false);
-						if ($Qstorage->isValid()) {
-
-							if ($Qstorage->file_exists($_file)) {
-
-								$errfile = sprintf(
-									'%s.err',
-									basename($Qstorage->getPath($_file))
-								);
-								$Qstorage->deleteFile($_file);
-								$Qstorage->deleteFile($errfile);
-							}
-						}
-					}
-				}
-
-				json::ack($action);
-			} else json::nak($action);
-		} elseif ('delete-entry' == $action) {
-
-			if ($id = $this->getPost('id')) {
-
-				$dao = new dao\property_photolog;
-				if ($dto = $dao->getByID($id)) {
-
-					if (0 == $dto->files->total) {
-
-						$storage = $dao->DiskFileStorage($dto->id, $create = false);
-						if ($storage->isValid()) {
-
-							$Qstorage = $storage->subFolder('queue');
-							if ($Qstorage->isValid()) $Qstorage->delete();
-
-							if ($storage->file_exists('_info.json')) $storage->deleteFile('_info.json');
-							$storage->delete();
-						}
-
-						$dao->delete($id);
-						json::ack($action);
-					} else {
-						json::nak(sprintf('%s %d files', $action, $dto->files->total));
-					}
-				} else {
-					json::nak($action);
-				}
-			} else {
-				json::nak($action);
-			}
-		} elseif ('property-smokealarms' == $action) {
-			/*
-      ( _ => {
-        _.post({
-          url : _.url('property_photolog'),
-          data : {
-            action : 'property-smokealarms',
-            id : 3694
-
-          },
-
-        }).then( d => {
-          console.log( d);
-          _.growl( d);
-
-        });
-
-      }) (_brayworth_);
-      */
-
-			if ($id = (int)$this->getPost('id')) {
-				$alarms = [];
-				if (class_exists('smokealarm\dao\smokealarm')) {
-					$dao = new dao\property_photolog;
-					if ($dto = $dao->getByID($id)) {
-						$dao = new \smokealarm\dao\smokealarm;
-						if ($res = $dao->getForProperty($dto->property_id)) {
-							$alarms = (array)$res->dtoSet();
-						}
-					}
-				}
-
-				json::ack($action)
-					->add('alarms', $alarms);
-			} else {
-				json::nak($action);
-			}
-		} elseif ('public-link-clear' == $action) {
-			if ($id = $this->getPost('id')) {
-				$dao = new dao\property_photolog;
-				if ($dto = $dao->getByID($id)) {
-
-					$a = [
-						'public_link' => '',
-						'public_link_expires' => ''
-
-					];
-					$dao->UpdateByID($a, $dto->id);
-					json::ack($action);
-				} else {
-					json::nak($action);
-				}
-			} else {
-				json::nak($action);
-			}
-		} elseif ('public-link-create' == $action) {
-			if ($id = $this->getPost('id')) {
-				$dao = new dao\property_photolog;
-				if ($dto = $dao->getByID($id)) {
-
-					$a = ['public_link_expires' => ''];
-					if (strtotime($this->getPost('public_link_expires')) > time()) {
-						$a = [
-							'public_link' => bin2hex(random_bytes(11)),
-							'public_link_expires' => $this->getPost('public_link_expires')
-
-						];
-					}
-
-					$dao->UpdateByID($a, $dto->id);
-					json::ack($action);
-				} else {
-					json::nak($action);
-				}
-			} else {
-				json::nak($action);
-			}
-		} elseif ('public-link-get' == $action) {
-
-			if ($id = $this->getPost('id')) {
-				$dao = new dao\property_photolog;
-				if ($dto = $dao->getByID($id)) {
-					if (strtotime($dto->public_link_expires) > time()) {
-						json::ack($action)
-							->add('url', sprintf('%spl/%s', config::$PORTAL, $dto->public_link))
-							->add('expires', $dto->public_link_expires);
-					} else {
-						json::nak($action);
-					}
-				} else {
-					json::nak($action);
-				}
-			} else {
-				json::nak($action);
-			}
-		} elseif ('save-notepad' == $action) {
-			if ($id = $this->getPost('id')) {
-				$dao = new dao\property_photolog;
-				if ($dto = $dao->getByID($id)) {
-
-					$a = [
-						'notes' => $this->getPost('notes')
-
-					];
-
-					$dao->UpdateByID($a, $dto->id);
-					json::ack($action)
-						->add('data', $a);
-				} else {
-					json::nak($action);
-				}
-			} else {
-				json::nak($action);
-			}
-		} elseif ('search-properties' == $action) {
-			if ($term = $this->getPost('term')) {
-				json::ack($action)
-					->add('term', $term)
-					->add('data', green\search::properties($term));
-			} else {
-				json::nak($action);
-			}
-		} elseif ('upload' == $action) {
-
-			$id = (int)$this->getPost('id');
-			$location = '';
-
-			if ($tag = $this->getPost('tag')) {
-
-				$id = 0;
-
-				if (class_exists('smokealarm\dao\smokealarm')) {
-
-					if ('smokealarm' == $tag) {
-
-						if ($smokealarm_id = (int)$this->getPost('smokealarm_id')) {
-
-							$dao = new \smokealarm\dao\smokealarm;
-							if ($dto = $dao->getByID($smokealarm_id)) {
-
-								if ($dto->properties_id) {
-
-									$dao = new dao\property_photolog;
-									if ($logs = $dao->getForProperty($dto->properties_id)) {
-
-										foreach ($logs as $log) {
-
-											if (preg_match('@^smoke alarm audit@i', $log->subject)) {
-
-												if (($t = strtotime($log->date)) > 0) {
-
-													if (date('Y-m') == date('Y-m', $t)) {
-
-														// use this one ..
-														$id = $log->id;
-														break;
-													}
-												}
-											}
-										}
-									}
-								}
-
-								if (!$id) {
-
-									$dao = new dao\property_photolog;
-									$id = $dao->Insert([
-										'property_id' => $dto->properties_id,
-										'subject' => sprintf('Smoke Alarm Audit %s', date('M Y')),
-										'date' => date('Y-m-d')
-									]);
-								}
-
-								$location = $this->getPost('location');
-							}
-						}
-					}
-				}
-			}
-
-			$videoTypes = ['video/quicktime', 'video/mp4'];
-
-			$accept = [
-				'application/pdf',
-				'image/jpeg',
-				'image/pjpeg',
-				'image/png'
-			];
-
-			if (config::$PHOTOLOG_ENABLE_VIDEO) {
-				$accept[] = 'video/quicktime';
-				$accept[] = 'video/mp4';
-			}
-
-			/** heic are not current supported on fedora */
-			if (config::$PHOTOLOG_ENABLE_HEIC) {
-				$accept[] = 'image/heic';
-				$accept[] = 'image/heif';
-			}
-
-			if ($id) {
-
-				$dao = new dao\property_photolog;
-				if ($dto = $dao->getByID($id)) {
-
-					$storage = $dao->DiskFileStorage($dto->id, $create = true);
-					$Qstorage = $storage->subFolder('queue');
-
-					$response = [
-						'response' => 'ack',
-						'description' => '',
-						'files' => []
-					];
-
-					foreach ($_FILES as $file) {
-
-						$Qstorage->touch('.upload-in-progress');
-
-						set_time_limit(60);
-						if ($debug) logger::debug(sprintf('<%s> %s', $file['name'], __METHOD__));
-
-						if ($file['error'] == 2) {
-
-							logger::info(sprintf('<%s is too large> %s', $file['name'], __METHOD__));
-							$response['response'] = 'nak';
-							$response['description'] = $file['name'] . ' is too large ..';
-						} elseif (is_uploaded_file($file['tmp_name'])) {
-
-							$strType = mime_content_type($file['tmp_name']);
-							if ($debug) logger::debug(sprintf('<%s (%s)> %s', $file['name'], $strType, __METHOD__));
-
-							if (in_array($strType, $accept)) {
-
-								if ($debug) logger::debug(sprintf('<%s (%s) acceptable> : %s', $file['name'], $strType, __METHOD__));
-
-								$target = '';
-								if ('application/pdf' == $strType || in_array($strType, $videoTypes)) {
-
-									$target = $storage->storeFile($file);
-								} else {
-
-									$target = $Qstorage->storeFile($file);
-								}
-
-								if ($target) {
-
-									chmod($target, 0666);
-									// logger::info(sprintf('<%s> %s', $target, __METHOD__));
-
-									if ($debug) logger::debug(sprintf('upload: %s (%s) accepted : %s', $file['name'], $strType, __METHOD__));
-									$response['files'][] = [
-										'description' => $file['name'],
-										'url' => strings::url(sprintf($this->route . '/img/%d?img=%s&t=%s', $dto->id, $file['name'], filemtime($target)))
-									];
-
-									if ($location) {
-
-										if (!('application/pdf' == $strType || in_array($strType, $videoTypes))) {
-
-											// do this now to improve response for autoupdate
-											utility::stampone(
-												$target,
-												sprintf('%s/%s', $storage->getPath(), $file['name']),
-												$dto
-											);
-										}
-
-										$info = $dao->getImageInfo($dto, $file['name']);
-										$info->location = $location;
-										$dao->setImageInfo($dto, $file['name'], $info);
-									}
-								} else {
-
-									logger::info("Possible file property_photolog/upload attack!  Here's some debugging info:\n" . var_export($_FILES, TRUE));
-								}
-							} elseif ($strType == "") {
-
-								logger::info(sprintf('<%s invalid file type> : %s', $file['name'], __METHOD__));
-								$response['response'] = 'nak';
-								$response['description'] = $file['name'] . ' invalid file type ..';
-							} else {
-
-								logger::info(sprintf('<file type not permitted : %s> %s', $strType, __METHOD__));
-								// \sys::notifySupport(
-								// 	'PhotoLog Error',
-								// 	implode(PHP_EOL, [
-								// 		sprintf('Trying to upload : %s', $strType, __METHOD__),
-								// 		sprintf('File   ...: %s(%s)', $file['name'], $strType),
-								// 		sprintf('User   ...: %s', currentUser::name()),
-								// 		sprintf('UserAgent : %s', userAgent::toString()),
-								// 	])
-								// );
-
-								// config::$DEBUG_REJECT_TYPES = true;
-								if (config::$DEBUG_REJECT_TYPES) {
-
-									$trash = $storage->subFolder('.trash');
-									if ($target = $trash->storeFile($file)) {
-
-										chmod($target, 0666);
-										logger::debug(sprintf('<save debug file : %s> %s', $target, __METHOD__));
-									}
-								}
-
-								$response['response'] = 'nak';
-								$response['description'] = $file['name'] . ' file type not permitted ..: ' . $strType;
-							}
-						} else {
-
-							logger::info(sprintf('<what the dickens : %s> %s', $file['error'], __METHOD__));
-						}
-					}
-
-					new json($response);
-				} else {
-
-					json::nak($action);
-				}
-			} else {
-
-				json::nak($action);
-			}
-		} else {
-
-			/*
-      _brayworth_.fetch.post( _brayworth_.url( 'property_photolog'),{
+			_brayworth_.fetch.post( _brayworth_.url( 'property_photolog'),{
 					action : 'get-photolog',
 					property : 2
 			}).then( ('ack' == d.response) ? console.table( d.data) : _brayworth_.growl( d));
-      */
-			return match ($action) {
-				'get-photolog' => handler::getPhotolog($request),
-				'rename-file' => handler::renameFile($request),
-				'rotate-left' => handler::rotate($request),
-				'rotate-right' => handler::rotate($request),
-				'rotate-180' => handler::rotate($request),
-				'set-alarm-location' => handler::setAlarmLocation($request),
-				'set-alarm-location-clear' => handler::setAlarmLocationClear($request),
-				'touch' => handler::touch($request),
-				default => parent::postHandler()
-			};
-		}
+
+			_brayworth_.fetch.post( _brayworth_.url( 'property_photolog'),{
+					action : 'get-photolog-file',
+					id : 16240,
+					file : 'IMG_2547.jpeg'
+			}).then(console.log);
+		*/
+		return match ($action) {
+			'add-entry' => handler::save($request),
+			'analyse-damage' => handler::analyseDamage($request),
+			'analyse-damage-reprocess' => handler::analyseDamageReprocess($request),
+			'cron' => handler::cron($request),
+			'delete' => handler::delete($request),
+			'delete-entry' => handler::deleteEntry($request),
+			'entry-condition-report-set' => handler::entryConditionReportSet($request),
+			'get-photolog' => handler::getPhotolog($request),
+			'get-photolog-file' => handler::getPhotologFile($request),
+			'openai-cache-file-delete' => handler::openaiCacheFileDelete($request),
+			'openai-cache-file-exists' => handler::openaiCacheFileExists($request),
+			'photolog-tag-clear' => handler::tagClear($request),
+			'photolog-tag-to-room' => handler::tagToRoom($request),
+			'property-smokealarms' => handler::propertySmokeAlarms($request),
+			'public-link-clear' => handler::publicLinkClear($request),
+			'public-link-create' => handler::publicLinkCreate($request),
+			'public-link-get' => handler::publicLinkGet($request),
+			'rename-file' => handler::renameFile($request),
+			'rotate-left' => handler::rotate($request),
+			'rotate-right' => handler::rotate($request),
+			'rotate-180' => handler::rotate($request),
+			'save-notepad' => handler::saveNotepad($request),
+			'search-properties' => handler::searchProperties($request),
+			'set-alarm-location' => handler::setAlarmLocation($request),
+			'set-alarm-location-clear' => handler::setAlarmLocationClear($request),
+			'photolog-set-associated-entry-condition-report' => handler::setAssociatedEntryConditionReport($request),
+			'touch' => handler::touch($request),
+			'update-entry' => handler::save($request),
+			'upload' => handler::upload($request),
+			default => parent::postHandler()
+		};
 	}
 
 	public function entry($id = 0) {
-		$this->title = 'add entry';
+
 		$this->data = (object)[
 			'dto' => (object)[
 				'id' => 0,
@@ -532,26 +154,41 @@ class controller extends cms\controller {
 				'address_street' => '',
 				'subject' => '',
 				'date' => date('Y-m-d'),
-			]
+			],
+			'title' => $this->title = 'add entry'
 		];
 
 		if ((int)$id > 0) {
 
 			$dao = new dao\property_photolog;
-			if ($dto = $dao->getByID($id)) {
-				$this->title = 'edit entry';
+			if ($dto = $dao($id)) {
+
+				$this->data->title = $this->title = 'edit entry';
 				$this->data->dto = $dto;
 			}
 		} elseif ($property = (int)$this->getParam('property')) {
 
 			$dao = new dao\properties;
 			if ($dto = $dao->getByID($property)) {
+
 				$this->data->dto->property_id = $dto->id;
 				$this->data->dto->address_street = $dto->address_street;
 			}
 		}
 
 		$this->load('entry');
+	}
+
+	public function menu() {
+
+		$this->data = (object)[
+			'bootstrap' => 5
+		];
+
+		$set = config::index_set;
+		print "\t\t\t<div class=\"sidebar pt-3 pb-5\"><!-- theme start -->\n";
+		array_walk($set, fn($e) => $this->load($e));
+		print "\n\t\t\t</div><!-- theme end -->\n";
 	}
 
 	public function img($id = 0) {
@@ -598,7 +235,7 @@ class controller extends cms\controller {
 		$s = ['@{{route}}@'];
 		$r = [strings::url($this->route)];
 
-		$js = \file_get_contents(__DIR__ . '/js/custom.js');
+		$js = file_get_contents(__DIR__ . '/js/custom.js');
 		$js = preg_replace($s, $r, $js);
 
 		Response::javascript_headers();
@@ -610,45 +247,37 @@ class controller extends cms\controller {
 		if ($id = (int)$id) {
 
 			$dao = new dao\property_photolog;
-			if ($dto = $dao->getByID($id)) {
+			if ($dto = $dao($id)) {
+
 				$this->data = (object)[
 					'title' => $this->title = sprintf('%s - notepad', config::label),
 					'dto' => $dto,
 				];
 
 				$this->load('notepad');
-			} else {
-
-				print 'not found';
+				return;
 			}
-		} else {
-
-			print 'invalid';
 		}
+		print 'invalid';
 	}
 
 	public function publicLink($id) {
 
 		if ($id = (int)$id) {
+
 			$dao = new dao\property_photolog;
 			if ($dto = $dao->getByID($id)) {
+
 				$this->data = (object)[
 					'title' => $this->title = 'Public Link',
 					'dto' => $dto,
-
 				];
 
 				$this->load('public-link');
-				// $this->load( 'invalid');
-
-			} else {
-
-				$this->load('invalid');
+				return;
 			}
-		} else {
-
-			$this->load('invalid');
 		}
+		$this->load('invalid');
 	}
 
 	public function view($id = 0) {
@@ -656,35 +285,68 @@ class controller extends cms\controller {
 		if ($id = (int)$id) {
 
 			$dao = new dao\property_photolog;
-			if ($dto = $dao->getByID($id)) {
+			if ($dto = $dao($id)) {
+
+				/** @var dao\dto\property_photolog $dto */
+
+				$enableAI = false;
+				$verbatimAI = 'not enabled';
+				if ($dto->entryexit_entry_conditions_reports_id) {
+
+					$daoEECR = new cms\entryexit\dao\entryexit_entry_conditions_reports;
+					if ($eecr = $daoEECR($dto->entryexit_entry_conditions_reports_id)) {
+
+						/** @var cms\entryexit\dao\dto\entryexit_entry_conditions_reports $eecr */
+
+						if ($eecr->issued_by < 1) {
+
+							if (! $eecr->tenant_signed) {
+
+								$enableAI = true;
+								$verbatimAI = 'enabled';
+							} else {
+
+								$verbatimAI = 'tenant signed - ai disabled';
+							}
+						} else {
+
+							$verbatimAI = 'issued to tenant - ai disabled';
+						}
+					}
+				}
 
 				$this->data = (object)[
-					'aside' => array_merge(['index'], config::index_set),
+					'aside' => ['index'],
 					'dto' => $dto,
+					'enableAI' => $enableAI,
+					'verbatimAI' => $verbatimAI,
 					'files' => $dao->getFiles($dto, $this->route),
 					'help' => cms\docs\config::help_photolog,
 					'pageUrl' => strings::url($this->route . '/view/' . $dto->id),
 					'referer' => false,
+					'rooms' => (new cms\dao\property_rooms)->getMatrix($id),
 					'searchFocus' => true,
 					'title' => $this->title = config::label_view,
 				];
+
+				if ($dto->address_street) {
+
+					$this->data->title = $this->title = strings::GoodStreetString($dto->address_street) . ' - ' . config::label;
+				}
+
 
 				if ($referer = $this->getParam('f')) {
 
 					$this->data->referer = (new dao\properties)->getByID($referer);
 				}
 
+				// logger::dump($dto->property_photolog_rooms_tags);
+
 				$this->renderBS5([
 					'main' => fn() => $this->load('view')
 				]);
-			} else {
-
-				print 'not found';
-			}
-		} else {
-
-			print 'invalid';
-		}
+			} else print 'not found';
+		} else print 'invalid';
 	}
 
 	public function zip($id) {
@@ -694,7 +356,7 @@ class controller extends cms\controller {
 		if ($id = (int)$id) {
 
 			$dao = new dao\property_photolog;
-			if ($dto = $dao->getByID($id)) {
+			if ($dto = $dao($id)) {
 
 				$filename = sprintf('%sphotolog-%d.zip', config::tempdir(), $dto->id);
 				if (file_exists($filename)) unlink($filename);

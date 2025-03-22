@@ -10,16 +10,17 @@
 
 namespace photolog\dao;
 
-use cms;
-use CallbackFilterIterator, FilesystemIterator;
-use strings;
-
-use bravedave\dvc\{dao, dto, dtoSet, logger};
-use cms\currentUser;
 use photolog\{config, DiskFileStorage};
+use bravedave\dvc\{dao, dto as dvcDTO, dtoSet, logger};
+use cms\{currentUser, strings};
+
+use CallbackFilterIterator, FilesystemIterator;
+use cms;
+use photolog\photolog_file;
 
 class property_photolog extends dao {
 	protected $_db_name = 'property_photolog';
+	protected $template = dto\property_photolog::class;
 
 	protected function dirSize($path) {
 		$io = popen('/usr/bin/du -sk ' . $path, 'r');
@@ -119,10 +120,10 @@ class property_photolog extends dao {
 
 	protected function _dtoSet($res) {
 
-		return $res->dtoSet(fn ($dto) => $this->_dtoExpand($dto));
+		return $res->dtoSet(fn($dto) => $this->_dtoExpand($dto));
 	}
 
-	protected function _getInfoFile(dto $dto): string {
+	protected function _getInfoFile(dvcDTO $dto): string {
 
 		return implode(DIRECTORY_SEPARATOR, [
 			$this->store($dto->id),
@@ -130,7 +131,7 @@ class property_photolog extends dao {
 		]);
 	}
 
-	protected function _getInfo(dto $dto): object {
+	protected function _getInfo(dvcDTO $dto): object {
 
 		if ($path = realpath($this->_getInfoFile($dto))) {
 
@@ -143,7 +144,7 @@ class property_photolog extends dao {
 		return (object)[];
 	}
 
-	protected function _setInfo(dto $dto, object $info) {
+	protected function _setInfo(dvcDTO $dto, object $info) {
 
 		$this->store($dto->id, $create = true);
 		if ($path = $this->_getInfoFile($dto)) {
@@ -153,56 +154,71 @@ class property_photolog extends dao {
 		}
 	}
 
-	public function getByID($id) {
-
-		if ($dto = parent::getByID($id)) {
-
-			$dto = $this->_dtoExpand($dto);
-
-			$dao = new properties;
-			$dto->address_street = $dao->getFieldByID($dto->property_id, 'address_street');
-		}
-
-		return $dto;
-	}
-
-	public function getFiles(dto $dto, string $route): array {
+	public function getFiles(dvcDTO $dto, string $route): array {
 
 		$files = [];
 		$path = $this->store($dto->id);
 		$info = $this->_getInfo($dto);
 		if (is_dir($path)) {
 
+			$roomTags = $dto->property_photolog_rooms_tags ?? null;
+			if (is_null($roomTags)) {
+
+				/**
+				 * this is a legacy call
+				 * normally the $dto would have been
+				 * expanded to include the room tags
+				 */
+
+				$roomTags = (new property_photolog_rooms_tag)->getByPropertyPhotologID($dto->id);
+			}
+
+
 			$_files = new FilesystemIterator($path);
 			foreach ($_files as $file) {
-				if ('_info.json' == $file->getFilename()) continue;
 
+				if ('_info.json' == $file->getFilename()) continue;
 				if (preg_match('@(jp[e]?g|png|mov|mp4|pdf)$@i', $file->getExtension())) {
+
 					$location = '';
 					$fileName = $file->getFilename();
 					if (isset($info->{$fileName})) {
+
 						$fileInfo = (object)$info->{$fileName};
-						if (isset($fileInfo->location)) {
-							$location = (string)$fileInfo->location;
-						}
+						if (isset($fileInfo->location)) $location = (string)$fileInfo->location;
 					}
 
-					$files[] = (object)[
+					// search roomTags for a tag that matches this file
+					$room_id = 0;
+					$room = '';
+					$tag = array_search($fileName, array_map(fn($tag) => $tag->file, $roomTags));
+					if ($tag !== false) {
+
+						$room_id = $roomTags[$tag]->property_rooms_id;
+						$room = $roomTags[$tag]->name;
+						// logger::info(sprintf('<%s => %s> %s', $fileName, $location, logger::caller()));
+					}
+
+					$files[] = new photolog_file([
 						'description' => $fileName,
+						'file' => $fileName,
 						'extension' => $file->getExtension(),
 						'url' => strings::url(sprintf('%s/img/%d?img=%s&t=%s', $route, $dto->id, urlencode($file->getFilename()), $file->getMTime())),
 						'error' => false,
 						'size' => $file->getSize(),
 						'location' => $location,
+						'room' => $room,
+						'room_id' => $room_id,
 						'prestamp' => file_exists($file->getRealPath() . config::photolog_prestamp)
-
-					];
+					]);
 				}
 			}
 
 			if (is_dir($queue = $path . '/queue')) {
+
 				$_files = new FilesystemIterator($queue);
 				foreach ($_files as $file) {
+
 					if (preg_match('@(heic|png|jp[e]?g|jfif)$@i', $file->getExtension())) {
 
 						$parts = pathinfo($file->getRealpath());
@@ -210,32 +226,34 @@ class property_photolog extends dao {
 							'%s/%s.err',
 							$parts['dirname'],
 							$parts['filename']
-
 						);
 
 
 						$location = '';
 						$fileName = $file->getFilename();
 						if (isset($info->{$fileName})) {
+
 							$fileInfo = (object)$info->{$fileName};
-							if (isset($fileInfo->location)) {
-								$location = (string)$fileInfo->location;
-							}
+							if (isset($fileInfo->location)) $location = (string)$fileInfo->location;
 						}
 
-						$files[] = (object)[
+						$files[] = new photolog_file([
 							'description' => $fileName,
+							'file' => $fileName,
 							'extension' => $file->getExtension(),
 							'url' => strings::url(sprintf('%s/img/%d?img=%s', $route, $dto->id, urlencode($file->getFilename()))),
 							'error' => file_exists($errfile) || 10 > $file->getSize(),
 							'size' => $file->getSize(),
 							'location' => $location,
-
-						];
+							'room' => '',
+						]);
 					}
 				}
 			}
 		}
+
+		// sort files by fileName ascending
+		usort($files, fn($a, $b) => strcmp($a->file, $b->file));
 
 		return $files;
 	}
@@ -264,7 +282,18 @@ class property_photolog extends dao {
 			$pid
 		);
 
-		return (new dtoSet)($sql, fn ($dto) => $this->_dtoExpand($dto));
+		return (new dtoSet)($sql, fn($dto) => $this->_dtoExpand($dto));
+	}
+
+	public function getRichData(dvcDTO $dto): dvcDTO {
+
+		$dto = $this->_dtoExpand($dto);
+
+		$dao = new properties;
+		$dto->address_street = $dao->getFieldByID($dto->property_id, 'address_street');
+
+		$dto->property_photolog_rooms_tags = (new property_photolog_rooms_tag)->getByPropertyPhotologID($dto->id);
+		return $dto;
 	}
 
 	public function getPropertySummary() {
@@ -378,7 +407,7 @@ class property_photolog extends dao {
 		return [];
 	}
 
-	public function getImageInfo(dto $dto, string $file): object {
+	public function getImageInfo(dvcDTO $dto, string $file): object {
 
 		if ($json = $this->_getInfo($dto)) {
 
@@ -397,12 +426,12 @@ class property_photolog extends dao {
 	/**
 	 * preserves any image information during a file rename procedure
 	 *
-	 * @param dto $dto
+	 * @param dvcDTO $dto
 	 * @param string $file
 	 * @param string $fnewfile
 	 * @return void
 	 */
-	public function renameImageInfo(dto $dto, string $file, string $newfile) {
+	public function renameImageInfo(dvcDTO $dto, string $file, string $newfile) {
 
 		if ($json = $this->_getInfo($dto)) {
 
@@ -424,12 +453,12 @@ class property_photolog extends dao {
 	/**
 	 * Sets rich information for the file - e.g. Smokealarm Location
 	 *
-	 * @param dto $dto
+	 * @param dvcDTO $dto
 	 * @param string $file
 	 * @param object $info
 	 * @return void
 	 */
-	public function setImageInfo(dto $dto, string $file, object $info) {
+	public function setImageInfo(dvcDTO $dto, string $file, object $info) {
 
 		if ($json = $this->_getInfo($dto)) {
 
@@ -451,13 +480,7 @@ class property_photolog extends dao {
 	public function store(int $id, bool $create = false) {
 
 		$path = sprintf('%s%d', config::photologStore(), (int)$id);
-		// logger::info( sprintf('<%s> %s', $path, __METHOD__));
-
-		if ($create && !is_dir($path)) {
-			mkdir($path, 0777);
-			chmod($path, 0777);
-		}
-
+		if ($create && !is_dir($path)) mkdir($path);
 		return $path;
 	}
 

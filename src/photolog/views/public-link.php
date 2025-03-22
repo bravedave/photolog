@@ -3,125 +3,95 @@
  * David Bray
  * BrayWorth Pty Ltd
  * e. david@brayworth.com.au
- *
+ * 
  * MIT License
  *
-*/  ?>
+*/
 
-<div id="<?= $_wrap = strings::rand() ?>">
-  <form id="<?= $_form = strings::rand() ?>" autocomplete="off">
-    <input type="hidden" name="action" value="public-link-create" />
-    <input type="hidden" name="id" value="<?= $this->data->dto->id ?>" />
+namespace photolog;
 
-    <div class="modal fade" tabindex="-1" role="dialog" id="<?= $_modal = strings::rand() ?>" aria-labelledby="<?= $_modal ?>Label" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <div class="modal-header bg-secondary text-white py-2">
-            <h5 class="modal-title" id="<?= $_modal ?>Label"><?= $this->title ?></h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
+use cms\{strings, theme};
 
-          </div>
+?>
 
-          <div class="modal-body">
-            <div class="input-group">
-                <input class="form-control" type="date" required name="public_link_expires" />
+<form id="<?= $_form = strings::rand() ?>" autocomplete="off">
+  <input type="hidden" name="action" value="public-link-create" />
+  <input type="hidden" name="id" value="<?= $dto->id ?>" />
 
-                <div class="input-group-append">
-                  <button class="btn btn-outline-secondary" type="button" id="<?= $_uid = strings::rand() ?>1">+1</button>
-                </div>
+  <div class="modal fade" tabindex="-1" role="dialog" id="<?= $_modal = strings::rand() ?>" aria-labelledby="<?= $_modal ?>Label"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
 
-                <div class="input-group-append">
-                  <button class="btn btn-outline-secondary" type="button" id="<?= $_uid ?>7">+7</button>
-                </div>
-
-                <div class="input-group-append">
-                  <button class="btn btn-outline-secondary" type="button" id="<?= $_uid ?>30">+30</button>
-                </div>
-
-                <div class="input-group-append">
-                  <div class="input-group-text">days</div>
-                </div>
-
-            </div>
-            <script>
-            ( _ => {
-              $('#<?= $_uid ?>1').on( 'click', e => {
-                $('input[name="public_link_expires"]').val( _.dayjs().add(1,'d').format('YYYY-MM-DD'));
-                $('input[name="public_link_expires"]').focus();
-
-              });
-
-              $('#<?= $_uid ?>7').on( 'click', e => {
-                $('input[name="public_link_expires"]').val( _.dayjs().add(7,'d').format('YYYY-MM-DD'));
-                $('input[name="public_link_expires"]').focus();
-
-              });
-
-              $('#<?= $_uid ?>30').on( 'click', e => {
-                $('input[name="public_link_expires"]').val( _.dayjs().add(30,'d').format('YYYY-MM-DD'));
-                $('input[name="public_link_expires"]').focus();
-
-              });
-
-            })(_brayworth_);
-            </script>
-
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="submit" class="btn btn-primary">Save</button>
-
-          </div>
-
+        <div class="modal-header <?= theme::modalHeader() ?>">
+          <h5 class="modal-title" id="<?= $_modal ?>Label"><?= $this->title ?></h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
         </div>
 
+        <div class="modal-body">
+
+          <div class="input-group">
+
+            <input class="form-control" type="date" required name="public_link_expires" />
+            <button type="button" class="btn btn-outline-secondary js-bump"
+              data-bump="1">+1</button>
+            <button type="button" class="btn btn-outline-secondary js-bump"
+              data-bump="7">+7</button>
+            <button type="button" class="btn btn-outline-secondary js-bump"
+              data-bump="30">+30</button>
+            <div class="input-group-text">days</div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
       </div>
-
     </div>
-
-  </form>
+  </div>
 
   <script>
-  $(document).ready( () => {
+    (_ => {
+      const form = $('#<?= $_form ?>');
+      const modal = $('#<?= $_modal ?>');
 
-      $('#<?= $_modal ?>').on( 'hidden.bs.modal', e => { $('#<?= $_wrap ?>').remove(); });
-      $('#<?= $_modal ?>').modal( 'show');
+      modal.on('shown.bs.modal', () => {
 
-      $('#<?= $_form ?>')
-      .on( 'submit', function( e) {
-          let _form = $(this);
-          let _data = _form.serializeFormJSON();
-          let _modalBody = $('.modal-body', _form);
+        modal.find('.js-bump').on('click', function(e) {
 
-          ( _ => {
-              _.post({
-                  url : _.url('<?= $this->route ?>'),
-                  data : _data,
+          _.hideContexts(e);
 
-              }).then( d => {
-                  if ( 'ack' == d.response) {
-                      $('#<?= $_modal ?>').trigger( 'success');
+          $('input[name="public_link_expires"]').val(_.dayjs().add(this.dataset.bump, 'd').format('YYYY-MM-DD'));
+          $('input[name="public_link_expires"]').focus();
+        })
 
-                  }
-                  else {
-                      _.growl( d);
+        form.on('submit', function(e) {
 
-                  }
+          try {
 
-                  $('#<?= $_modal ?>').modal( 'hide');
+            _.fetch.post.form(_.url('<?= $this->route ?>'), this)
+              .then(d => {
 
+                if ('ack' == d.response) {
+
+                  modal.trigger('success');
+                  modal.modal('hide');
+                } else {
+
+                  _.growl(d);
+                }
               });
+          } catch (error) {
 
-          }) (_brayworth_);
+            console.error(error);
+          }
 
           return false;
-
+        });
       });
-
-  });
+    })(_brayworth_);
   </script>
-
-</div>
+</form>
